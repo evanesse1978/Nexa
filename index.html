@@ -1026,7 +1026,7 @@
         // IMPOSTAZIONI / TEMA
         // ==============================
         function themeStorageKey(){
-            try{ return currentUser ? ('evanEsseTheme'+currentUser.id) : 'evanEsseTheme'; }
+            try{ return currentUser ? ('evanEsseTheme'+currentUser.uid) : 'evanEsseTheme'; }
             catch(e){ return 'evanEsseTheme'; }
         }
         function applyTheme(t){
@@ -1078,7 +1078,7 @@
             updateDashboard();
             renderAgendaMain();
         }
-        function saveAllData() { localStorage.setItem(`evanEsse_data_${currentUser.id}`, JSON.stringify(clients)); localStorage.setItem(`evanEsse_policies_${currentUser.id}`, JSON.stringify(policies)); localStorage.setItem(`evanEsse_agenda_${currentUser.id}`, JSON.stringify(appointments)); }
+        function saveAllData() { localStorage.setItem(`evanEsse_data_${currentUser.uid}`, JSON.stringify(clients)); localStorage.setItem(`evanEsse_policies_${currentUser.uid}`, JSON.stringify(policies)); localStorage.setItem(`evanEsse_agenda_${currentUser.uid}`, JSON.stringify(appointments)); }
 
         // ==================================================
         // AUTO-INCASSO: SDD mensile (split==12) il giorno di scadenza
@@ -1110,11 +1110,11 @@
             if(confirm("ATTENZIONE: questa operazione cancellerà SOLO i dati (clienti/polizze/agenda) del profilo attualmente loggato.")) {
                 if(confirm("Sicuro al 100%?")) {
                     try{
-                        localStorage.removeItem('evanEssedata'+currentUser.id);
-                        localStorage.removeItem('evanEssepolicies'+currentUser.id);
-                        localStorage.removeItem('evanEsseagenda'+currentUser.id);
-                        localStorage.removeItem('evanEsserecentClients'+currentUser.id);
-                        localStorage.removeItem('evanEsserecentPolicies'+currentUser.id);
+                        localStorage.removeItem('evanEssedata'+currentUser.uid);
+                        localStorage.removeItem('evanEssepolicies'+currentUser.uid);
+                        localStorage.removeItem('evanEsseagenda'+currentUser.uid);
+                        localStorage.removeItem('evanEsserecentClients'+currentUser.uid);
+                        localStorage.removeItem('evanEsserecentPolicies'+currentUser.uid);
                     } catch(e){ console.log(e); }
                     clients = []; policies = []; appointments = [];
                     saveAllData();
@@ -1670,8 +1670,8 @@
         // =============================
         // ULTIMI VISTI (Clienti/Polizze)
         // =============================
-        function recentClientsKey(){ return currentUser ? `evanEsse_recentClients_${currentUser.id}` : 'evanEsse_recentClients'; }
-        function recentPoliciesKey(){ return currentUser ? `evanEsse_recentPolicies_${currentUser.id}` : 'evanEsse_recentPolicies'; }
+        function recentClientsKey(){ return currentUser ? `evanEsse_recentClients_${currentUser.uid}` : 'evanEsse_recentClients'; }
+        function recentPoliciesKey(){ return currentUser ? `evanEsse_recentPolicies_${currentUser.uid}` : 'evanEsse_recentPolicies'; }
 
         function getRecentIds(key, limit=5){
             try { return (JSON.parse(localStorage.getItem(key)) || []).slice(0, limit); }
