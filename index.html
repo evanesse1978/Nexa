@@ -1405,7 +1405,50 @@
         }
 
         function downloadBackup() { const data = { clients, policies, appointments, currentUser }; const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `backup_evanesse_${new Date().toISOString().split('T')[0]}.json`; a.click(); }
-        function processImport(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (confirm("Sovrascrivere dati?")) { clients = data.clients || []; policies = data.policies || []; appointments = data.appointments || []; saveAllData(); location.reload(); } } catch (err) { alert("File non valido."); } }; reader.readAsText(file); }
+        async function processImport(input) { 
+            const file = input.files[0]; 
+            if (!file) return; 
+            
+            const reader = new FileReader(); 
+            reader.onload = async function(e) { 
+                try { 
+                    const data = JSON.parse(e.target.result); 
+                    
+                    if (confirm("ATTENZIONE: Questa operazione sovrascriverà i dati attuali su Firebase con quelli del backup.\n\nProcedere?")) { 
+                        
+                        // Mostra un indicatore di caricamento visivo
+                        const importBtn = document.querySelector('button[onclick*="importFile"]');
+                        if(importBtn) importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Caricamento in corso...';
+
+                        // 1. Carica i dati in memoria
+                        clients = data.clients || []; 
+                        policies = data.policies || []; 
+                        appointments = data.appointments || []; 
+                        
+                        // 2. Forza la sincronizzazione immediata su Firebase e ATTENDI la fine
+                        try {
+                            // Disabilita i listener per evitare loop durante l'upload
+                            fbStopListeners();
+                            
+                            await fbFullSyncToFirestore();
+                            
+                            alert("Importazione completata con successo! I dati sono stati salvati su Firebase.");
+                            location.reload(); 
+                        } catch (fbErr) {
+                            console.error("Errore Firebase:", fbErr);
+                            alert("Errore durante il salvataggio su Firebase: " + fbErr.message);
+                            if(importBtn) importBtn.innerHTML = '<i class="fa-solid fa-upload text-info"></i> Importa Archivio';
+                            // Riavvia i listener in caso di errore
+                            fbStartListeners();
+                        }
+                    } 
+                } catch (err) { 
+                    alert("Il file selezionato non è valido."); 
+                    console.error(err);
+                } 
+            }; 
+            reader.readAsText(file); 
+        }
         function processLegacyImport(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const legacyData = JSON.parse(e.target.result); if (!Array.isArray(legacyData)) return alert("Formato non valido"); let newC=0, newP=0; const splitMap = { 'Annuale': 1, 'Semestrale': 2, 'Trimestrale': 4, 'Quadrimestrale': 3, 'Mensile': 12, 'Mensile con SDD': 12 }; legacyData.forEach(item => { let client = clients.find(c => (item.codiceFiscale && c.cf === item.codiceFiscale) || c.name === item.nomeCliente); if (!client) { client = { id: Date.now() + Math.floor(Math.random() * 1000), name: item.nomeCliente, cf: item.codiceFiscale || '', email: item.email || '', phone: item.cellulare || '', address: '', notes: item.linkedProfiles || '', relation: null, createdAt: new Date().toLocaleDateString('it-IT') }; clients.push(client); newC++; } const split = splitMap[item.frazionamento] || (item.isAnnual ? 1 : 2); const annual = parseFloat(item.premio) || 0; const comm = parseFloat(item.provvigioni) || 0; let ramo = 'RAMI VARI'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('AUTO')) ramo = 'AUTO'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('VITA')) ramo = 'VITA'; let titles = []; let count = (split === 1 ? 1 : split); let amt = annual / count; let expiryDate = new Date(item.dataScadenza); let effectDate = new Date(expiryDate); effectDate.setFullYear(effectDate.getFullYear() - 1); for(let i=0; i<count; i++){ let titleDate = new Date(item.dataScadenza); titleDate.setFullYear(titleDate.getFullYear() - 1); if(i > 0) titleDate.setMonth(titleDate.getMonth() + (12/count * i)); let status = 'DA INCASSARE'; let pDate = null; if(item.pagato && i===0) { status = 'INCASSATO'; pDate = item.dataIncasso; } titles.push({ id: Date.now() + Math.floor(Math.random()*1000000), n: i+1, dueDate: titleDate.toISOString().split('T')[0], amount: amt, status: status, commTotal: comm, commPers: comm * 0.35, paymentDate: pDate }); } const newPol = { id: Date.now() + Math.floor(Math.random() * 10000), clientId: client.id, ramo: ramo, company: item.compagnia, notes: item.tipoPolizza || '', policyNumber: item.numeroPolizza || '', effect: effectDate.toISOString().split('T')[0], expiry: item.dataScadenza, split: split, annualPremium: annual, commPerc: 35, status: item.status === 'attiva' ? 'ATTIVA' : 'ANNULLATA', titles: titles }; policies.push(newPol); newP++; }); saveAllData(); alert(`Importati ${newC} clienti e ${newP} polizze.`); location.reload(); } catch (err) { console.error(err); alert("Errore nel file JSON."); } }; reader.readAsText(file); }
 
         function renderClients(list = null) {
