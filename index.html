@@ -995,16 +995,33 @@
             await batch.commit();
         }
 
-        function saveAllData() {
-            if(!currentUser || !currentUser.uid) return;
-            if(!window.FB || !FB.db) return;
-            if(fbIsApplyingRemote) return;
+        function saveLocalBackup() {
+  if (!currentUser || !currentUser.uid) return;
+  try {
+    localStorage.setItem("evanEssedata" + currentUser.uid, JSON.stringify(clients || []));
+    localStorage.setItem("evanEssepolicies" + currentUser.uid, JSON.stringify(policies || []));
+    localStorage.setItem("evanEsseagenda" + currentUser.uid, JSON.stringify(appointments || []));
+  } catch (e) {
+    console.log("saveLocalBackup error", e);
+  }
+}
 
-            clearTimeout(fbSaveTimer);
-            fbSaveTimer = setTimeout(() => {
-                fbFullSyncToFirestore().catch(err => console.error('fbFullSyncToFirestore', err));
-            }, 350);
-        }
+function saveAllData() {
+  if (!currentUser || !currentUser.uid) return;
+
+  // Backup locale
+  saveLocalBackup();
+
+  // Sync Firebase
+  if (!window.FB || !FB.db) return;
+  if (fbIsApplyingRemote) return;
+
+  clearTimeout(fbSaveTimer);
+  fbSaveTimer = setTimeout(() => {
+    fbFullSyncToFirestore().catch(err => console.error("fbFullSyncToFirestore", err));
+  }, 350);
+}
+
 
 
 
@@ -1171,7 +1188,8 @@ function initApp() {
   renderAgendaMain();
 }
 
-        function saveAllData() { localStorage.setItem(`evanEsse_data_${currentUser.uid}`, JSON.stringify(clients)); localStorage.setItem(`evanEsse_policies_${currentUser.uid}`, JSON.stringify(policies)); localStorage.setItem(`evanEsse_agenda_${currentUser.uid}`, JSON.stringify(appointments)); }
+        
+
 
         // ==================================================
         // AUTO-INCASSO: SDD mensile (split==12) il giorno di scadenza
