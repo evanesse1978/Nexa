@@ -322,26 +322,99 @@
         .event-chip-gen { background-color: rgba(226, 255, 0, 0.1); color: #E2FF00; border-left: 2px solid #E2FF00; }
     
 
-        /* THEME LIGHT OVERRIDES (HIGH CONTRAST) */
-        .theme-light body{ background-color:#f8fafc !important; color:#0f172a !important; }
-        .theme-light .bg-deep{ background-color:#f8fafc !important; }
-        .theme-light .bg-deep50, .theme-light .bg-deep\/50{ background-color:rgba(248,250,252,0.75) !important; }
-        .theme-light .bg-deep30{ background-color:rgba(248,250,252,0.55) !important; }
-        .theme-light .bg-deep20{ background-color:rgba(248,250,252,0.40) !important; }
-        .theme-light .bg-surface{ background-color:#ffffff !important; }
-        .theme-light .glass-effect{ background:rgba(255,255,255,0.92) !important; border:1px solid rgba(15,23,42,0.14) !important; }
-        .theme-light .text-white{ color:#0b1220 !important; }
-        .theme-light .text-slate-300{ color:#1f2937 !important; }
-        .theme-light .text-slate-400{ color:#334155 !important; }
-        .theme-light .text-slate-500{ color:#475569 !important; }
-        .theme-light input, .theme-light textarea, .theme-light select{ background-color:#ffffff !important; color:#0f172a !important; border-color:#cbd5e1 !important; }
-        .theme-light input::placeholder, .theme-light textarea::placeholder{ color:#64748b !important; }
-        .theme-light .bg-slate-900\/50, .theme-light .bg-slate-800\/50{ background-color:rgba(226,232,240,0.65) !important; }
-        .theme-light .bg-slate-800{ background-color:#e2e8f0 !important; }
-        .theme-light .border-slate-700, .theme-light .border-slate-800, .theme-light .border-slate-800\/50{ border-color:#cbd5e1 !important; }
-        .theme-light select option{ background-color:#ffffff !important; color:#0f172a !important; }
+        /* THEME LIGHT OVERRIDES (READABLE) */
+/* Obiettivo: niente giallo fluo con testo chiaro, e contrasto alto in light mode */
+.theme-light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
 
-    </style>
+/* Superfici e testi */
+.theme-light .bg-deep { background-color: #f8fafc !important; }
+.theme-light .bg-deep50 { background-color: rgba(248,250,252,0.75) !important; }
+.theme-light .bg-deep30 { background-color: rgba(248,250,252,0.55) !important; }
+.theme-light .bg-deep20 { background-color: rgba(248,250,252,0.40) !important; }
+.theme-light .bg-surface { background-color: #ffffff !important; }
+
+.theme-light .glass-effect {
+  background: rgba(255,255,255,0.92) !important;
+  border: 1px solid rgba(15,23,42,0.14) !important;
+}
+
+.theme-light .text-white { color: #0b1220 !important; }
+.theme-light .text-slate-300 { color: #1f2937 !important; }
+.theme-light .text-slate-400 { color: #334155 !important; }
+.theme-light .text-slate-500 { color: #475569 !important; }
+
+/* Inputs */
+.theme-light input,
+.theme-light textarea,
+.theme-light select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+.theme-light input::placeholder,
+.theme-light textarea::placeholder {
+  color: #64748b !important;
+}
+.theme-light select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Bordi/box secondari */
+.theme-light .bg-slate-90050,
+.theme-light .bg-slate-80050 {
+  background-color: rgba(226,232,240,0.65) !important;
+}
+.theme-light .bg-slate-800 { background-color: #e2e8f0 !important; }
+
+.theme-light .border-slate-700,
+.theme-light .border-slate-800,
+.theme-light .border-slate-80050 {
+  border-color: #cbd5e1 !important;
+}
+
+/* --- FIX PRINCIPALE: ACCENT in light mode (blu) --- */
+.theme-light .text-accent { color: #2563eb !important; }
+.theme-light .bg-accent { background-color: #2563eb !important; color: #ffffff !important; }
+.theme-light .border-accent { border-color: #2563eb !important; }
+
+/* classi tailwind peer-checked */
+.theme-light .peer-checked\:bg-accent { background-color: #2563eb !important; }
+.theme-light .peer-checked\:text-darktext { color: #ffffff !important; }
+
+/* gradient from-accent5 */
+.theme-light .from-accent5 {
+  --tw-gradient-from: rgba(37,99,235,0.10) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(37,99,235,0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+/* Nav attiva */
+.theme-light .nav-active {
+  background-color: rgba(37,99,235,0.10) !important;
+  color: #0b1220 !important;
+  border: 1px solid rgba(37,99,235,0.35) !important;
+  box-shadow: 0 0 15px -3px rgba(37,99,235,0.15) !important;
+}
+.theme-light .nav-active i { color: #2563eb !important; }
+
+/* Chip agenda gen */
+.theme-light .event-chip-gen {
+  background-color: rgba(37,99,235,0.12) !important;
+  color: #1d4ed8 !important;
+  border-left-color: #2563eb !important;
+}
+
+/* Hover gialli hardcoded -> blu */
+.theme-light .hover\:bg-yellow-400:hover { background-color: #1d4ed8 !important; }
+.theme-light .hover\:bg-accent90:hover { background-color: #1d4ed8 !important; }
+
+.theme-light .text-darktext { color: #0f172a !important; }
+
+</style>
 </head>
 <body class="bg-deep text-slate-300 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
 
@@ -997,7 +1070,7 @@
 
             FB.createUserWithEmailAndPassword(FB.auth, email, pass)
                 .then(async (cred) => {
-                    await fbEnsureProfile(cred.user.uid, { name, surname, email, createdAt: FB.serverTimestamp() });
+                    await fbEnsureProfile(cred.user.uid, { name, surname, email, displayName: `${name} ${surname}`.trim(), createdAt: FB.serverTimestamp() });
                 })
                 .catch((err) => {
                     alert('Errore registrazione: ' + (err.message || err));
@@ -1060,24 +1133,44 @@
             m.classList.add('hidden');
         }
 
-        function initApp(){
-            loadTheme();
+        function computeDisplayNameFromProfile(profile, fbUser) {
+  const n = (profile?.name || "").trim();
+  const s = (profile?.surname || "").trim();
+  const full = `${n} ${s}`.trim();
 
-            const display = (currentUser ? ((currentUser.name||'') + ' ' + (currentUser.surname||'')).trim() : '');
-            document.getElementById('user-display-name').innerText = display || (currentUser?.email || '');
-            document.getElementById('user-avatar').innerText = (currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : (currentUser?.email ? currentUser.email.charAt(0).toUpperCase() : 'U'));
+  if (profile?.displayName && String(profile.displayName).trim()) return String(profile.displayName).trim();
+  if (full) return full;
 
-            clients = clients || [];
-            policies = policies || [];
-            appointments = appointments || [];
+  if (fbUser?.displayName && String(fbUser.displayName).trim()) return String(fbUser.displayName).trim();
+  if (fbUser?.email) return String(fbUser.email).split("@")[0];
+  return "User";
+}
 
-            consolidateDuplicatePolicies();
-            autoCollectSDDTitles();
+function renderUserHeader(displayName, email) {
+  const dnEl = document.getElementById("user-display-name");
+  const avEl = document.getElementById("user-avatar");
+  if (dnEl) dnEl.innerText = displayName || "User";
+  if (avEl) avEl.innerText = (displayName?.charAt(0) || email?.charAt(0) || "U").toUpperCase();
+}
 
-            renderClients();
-            updateDashboard();
-            renderAgendaMain();
-        }
+function initApp() {
+  loadTheme();
+
+  const dn = (currentUser && currentUser.displayName) ? currentUser.displayName : (`${currentUser?.name || ""} ${currentUser?.surname || ""}`.trim());
+  const safeName = dn || (currentUser?.email ? String(currentUser.email).split("@")[0] : "User");
+  renderUserHeader(safeName, currentUser?.email || "");
+
+  clients = clients || [];
+  policies = policies || [];
+  appointments = appointments || [];
+
+  consolidateDuplicatePolicies();
+  autoCollectSDDTitles();
+  renderClients();
+  updateDashboard();
+  renderAgendaMain();
+}
+
         function saveAllData() { localStorage.setItem(`evanEsse_data_${currentUser.uid}`, JSON.stringify(clients)); localStorage.setItem(`evanEsse_policies_${currentUser.uid}`, JSON.stringify(policies)); localStorage.setItem(`evanEsse_agenda_${currentUser.uid}`, JSON.stringify(appointments)); }
 
         // ==================================================
