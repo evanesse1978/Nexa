@@ -785,7 +785,8 @@
         </div>
     </div>
 
-    <div id="paymentModal" class="fixed inset-0 z-50 hidden"><div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePaymentModal()"></div><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm"><div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-success"><h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-coins text-success mr-2"></i>Registra Incasso</h3><input type="hidden" id="payPolicyId"><input type="hidden" id="payTitleId"><div class="space-y-4"><div><label class="block text-xs text-slate-500 font-bold mb-1">Data</label><input type="date" id="payDate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white"></div><div><label class="block text-xs text-slate-500 font-bold mb-1">Metodo</label><select id="payMethod" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="CONTANTI">CONTANTI</option><option value="POS">POS</option><option value="BONIFICO">BONIFICO</option><option value="ASSEGNO">ASSEGNO</option><option value="ONLINE">PAGAMENTO ONLINE</option></select></div><button onclick="confirmPayment()" class="w-full py-2 bg-success text-white rounded-lg font-bold hover:bg-green-600 mt-4">Conferma</button></div></div></div></div>
+    <div id="paymentModal" class="fixed inset-0 z-50 hidden"><div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePaymentModal()"></div><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm"><div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-success"><h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-coins text-success mr-2"></i>Registra Incasso</h3><input type="hidden" id="payPolicyId"><input type="hidden" id="payTitleId"><div class="space-y-4"><div><label class="block text-xs text-slate-500 font-bold mb-1">Data</label><input type="date" id="payDate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white"></div><div><label class="block text-xs text-slate-500 font-bold mb-1">Metodo</label><select id="payMethod" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="CONTANTI">CONTANTI</option><option value="POS">POS</option><option value="BONIFICO">BONIFICO</option><option value="ASSEGNO">ASSEGNO</option><option value="ONLINE">PAGAMENTO ONLINE</option><option value="SDD">SDD</option>
+</select></div><button onclick="confirmPayment()" class="w-full py-2 bg-success text-white rounded-lg font-bold hover:bg-green-600 mt-4">Conferma</button></div></div></div></div>
 <script type="module" id="firebase-init">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
   import {
@@ -2606,20 +2607,53 @@ function initApp() {
         function openPaymentModal(pid,tid){document.getElementById('paymentModal').classList.remove('hidden'); document.getElementById('payPolicyId').value=pid; document.getElementById('payTitleId').value=tid;}
         function closePaymentModal(){document.getElementById('paymentModal').classList.add('hidden');}
         
-        function confirmPayment(){
-            const pid=parseInt(document.getElementById('payPolicyId').value);
-            const tid=parseInt(document.getElementById('payTitleId').value);
-            const d=document.getElementById('payDate').value;
-            const m=document.getElementById('payMethod').value;
-            const p=policies.find(x=>x.id===pid);
-            const t=p.titles.find(x=>x.id===tid);
-            t.status='INCASSATO'; t.paymentDate=d; t.paymentMethod=m; 
-            saveAllData(); 
-            closePaymentModal(); 
-            renderDeadlines(); // AGGIORNA DASHBOARD SCADENZE
-            updateDashboard(); 
-            if(currentViewingPolicyId===pid) openPolicyTitles(pid);
-        }
+        function confirmPayment() {
+  try {
+    const policyId = document.getElementById('payPolicyId').value;
+    const titleId = document.getElementById('payTitleId').value;
+    const payDate = document.getElementById('payDate').value;
+    const method = document.getElementById('payMethod').value;
+
+    if (!policyId || !titleId) return alert('Dati mancanti.');
+
+    const pol = policies.find(p => String(p.id) === String(policyId));
+    if (!pol) return alert('Polizza non trovata.');
+
+    const t = (pol.titles || []).find(x => String(x.id) === String(titleId));
+    if (!t) return alert('Titolo non trovato.');
+
+    // --- SDD: se polizza mensile (12 rate), all'incasso della prima rata incassa anche le altre 11 ---
+    // Regola richiesta: solo se il metodo scelto è SDD e si sta incassando la rata n°1.
+    // Data incasso di ogni rata = scadenza della rata.
+    if (method === 'SDD' && Number(pol.split) === 12 && Number(t.n) === 1) {
+      (pol.titles || []).forEach(tt => {
+        tt.status = 'INCASSATO';
+        tt.paymentMethod = 'SDD';
+        tt.paymentDate = tt.dueDate || null;
+      });
+
+      saveAllData();
+      closePaymentModal();
+      renderDeadlines();
+      updateDashboard();
+      return;
+    }
+
+    // --- comportamento standard: incasso singolo titolo ---
+    t.status = 'INCASSATO';
+    t.paymentDate = payDate || null;
+    t.paymentMethod = method || 'CONTANTI';
+
+    saveAllData();
+    closePaymentModal();
+    renderDeadlines();
+    updateDashboard();
+  } catch (e) {
+    console.error(e);
+    alert('Errore registrazione incasso: ' + e.message);
+  }
+}
+
 
         function cancelPayment(pid, tid){
             try{
