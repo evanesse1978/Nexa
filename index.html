@@ -2611,7 +2611,7 @@ function initApp() {
   try {
     const policyId = document.getElementById('payPolicyId').value;
     const titleId = document.getElementById('payTitleId').value;
-    const payDate = document.getElementById('payDate').value;
+    const payDate = document.getElementById('payDate').value; // YYYY-MM-DD
     const method = document.getElementById('payMethod').value;
 
     if (!policyId || !titleId) return alert('Dati mancanti.');
@@ -2622,32 +2622,37 @@ function initApp() {
     const t = (pol.titles || []).find(x => String(x.id) === String(titleId));
     if (!t) return alert('Titolo non trovato.');
 
+    // Normalizza date come stringa ISO (YYYY-MM-DD) per evitare problemi di parsing/Timezone
+    const isoPayDate = (payDate && String(payDate).trim()) ? String(payDate).trim() : null;
+
     // --- SDD: se polizza mensile (12 rate), all'incasso della prima rata incassa anche le altre 11 ---
     // Regola richiesta: solo se il metodo scelto è SDD e si sta incassando la rata n°1.
-    // Data incasso di ogni rata = scadenza della rata.
+    // Data incasso di ogni rata = scadenza della rata (dueDate).
     if (method === 'SDD' && Number(pol.split) === 12 && Number(t.n) === 1) {
       (pol.titles || []).forEach(tt => {
         tt.status = 'INCASSATO';
         tt.paymentMethod = 'SDD';
-        tt.paymentDate = tt.dueDate || null;
+        tt.paymentDate = tt.dueDate ? String(tt.dueDate) : isoPayDate;
       });
 
       saveAllData();
       closePaymentModal();
       renderDeadlines();
       updateDashboard();
+      if (currentViewingPolicyId && String(currentViewingPolicyId) === String(policyId)) openPolicyTitles(policyId);
       return;
     }
 
     // --- comportamento standard: incasso singolo titolo ---
     t.status = 'INCASSATO';
-    t.paymentDate = payDate || null;
+    t.paymentDate = isoPayDate;
     t.paymentMethod = method || 'CONTANTI';
 
     saveAllData();
     closePaymentModal();
     renderDeadlines();
     updateDashboard();
+    if (currentViewingPolicyId && String(currentViewingPolicyId) === String(policyId)) openPolicyTitles(policyId);
   } catch (e) {
     console.error(e);
     alert('Errore registrazione incasso: ' + e.message);
