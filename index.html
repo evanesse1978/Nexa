@@ -2659,14 +2659,16 @@ function initApp() {
 
         function cancelPayment(pid, tid) {
   try {
-    if (!confirm('Annullare l'incasso del titolo?')) return;
+    if (!confirm("Annullare l'incasso del titolo?")) return;
     const p = policies.find(x => String(x.id) === String(pid));
     if (!p) return;
     const t = (p.titles || []).find(x => String(x.id) === String(tid));
     if (!t) return;
+
     t.status = 'DA INCASSARE';
     t.paymentDate = null;
     t.paymentMethod = null;
+
     saveAllData();
     renderDeadlines();
     updateDashboard();
@@ -2675,6 +2677,7 @@ function initApp() {
     console.log('cancelPayment', e);
   }
 }
+
 
 
     </script>
