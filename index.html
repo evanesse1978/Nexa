@@ -2609,25 +2609,22 @@ function initApp() {
         
         function confirmPayment() {
   try {
-    const policyId = document.getElementById('payPolicyId').value;
-    const titleId = document.getElementById('payTitleId').value;
+    const policyId = String(document.getElementById('payPolicyId').value || '').trim();
+    const titleId = String(document.getElementById('payTitleId').value || '').trim();
     const payDate = document.getElementById('payDate').value; // YYYY-MM-DD
     const method = document.getElementById('payMethod').value;
 
     if (!policyId || !titleId) return alert('Dati mancanti.');
 
-    const pol = policies.find(p => String(p.id) === String(policyId));
+    const pol = policies.find(p => String(p.id) === policyId);
     if (!pol) return alert('Polizza non trovata.');
 
-    const t = (pol.titles || []).find(x => String(x.id) === String(titleId));
+    const t = (pol.titles || []).find(x => String(x.id) === titleId);
     if (!t) return alert('Titolo non trovato.');
 
-    // Normalizza date come stringa ISO (YYYY-MM-DD) per evitare problemi di parsing/Timezone
     const isoPayDate = (payDate && String(payDate).trim()) ? String(payDate).trim() : null;
 
-    // --- SDD: se polizza mensile (12 rate), all'incasso della prima rata incassa anche le altre 11 ---
-    // Regola richiesta: solo se il metodo scelto è SDD e si sta incassando la rata n°1.
-    // Data incasso di ogni rata = scadenza della rata (dueDate).
+    // SDD mensile: incassando la rata 1, incassa anche tutte le altre e imposta paymentDate = dueDate
     if (method === 'SDD' && Number(pol.split) === 12 && Number(t.n) === 1) {
       (pol.titles || []).forEach(tt => {
         tt.status = 'INCASSATO';
@@ -2639,11 +2636,11 @@ function initApp() {
       closePaymentModal();
       renderDeadlines();
       updateDashboard();
-      if (currentViewingPolicyId && String(currentViewingPolicyId) === String(policyId)) openPolicyTitles(policyId);
+      if (currentViewingPolicyId && String(currentViewingPolicyId) === policyId) openPolicyTitles(policyId);
       return;
     }
 
-    // --- comportamento standard: incasso singolo titolo ---
+    // Incasso singolo
     t.status = 'INCASSATO';
     t.paymentDate = isoPayDate;
     t.paymentMethod = method || 'CONTANTI';
@@ -2652,7 +2649,7 @@ function initApp() {
     closePaymentModal();
     renderDeadlines();
     updateDashboard();
-    if (currentViewingPolicyId && String(currentViewingPolicyId) === String(policyId)) openPolicyTitles(policyId);
+    if (currentViewingPolicyId && String(currentViewingPolicyId) === policyId) openPolicyTitles(policyId);
   } catch (e) {
     console.error(e);
     alert('Errore registrazione incasso: ' + e.message);
@@ -2660,22 +2657,25 @@ function initApp() {
 }
 
 
-        function cancelPayment(pid, tid){
-            try{
-                if(!confirm("Annullare l'incasso del titolo?")) return;
-                const p = (policies||[]).find(x=>x.id===pid);
-                if(!p) return;
-                const t = (p.titles||[]).find(x=>x.id===tid);
-                if(!t) return;
-                t.status = 'DA INCASSARE';
-                t.paymentDate = '';
-                t.paymentMethod = '';
-                saveAllData();
-                renderDeadlines();
-                updateDashboard();
-                if(currentViewingPolicyId===pid) openPolicyTitles(pid);
-            } catch(e){ console.log('cancelPayment', e); }
-        }
+        function cancelPayment(pid, tid) {
+  try {
+    if (!confirm('Annullare l'incasso del titolo?')) return;
+    const p = policies.find(x => String(x.id) === String(pid));
+    if (!p) return;
+    const t = (p.titles || []).find(x => String(x.id) === String(tid));
+    if (!t) return;
+    t.status = 'DA INCASSARE';
+    t.paymentDate = null;
+    t.paymentMethod = null;
+    saveAllData();
+    renderDeadlines();
+    updateDashboard();
+    if (currentViewingPolicyId && String(currentViewingPolicyId) === String(pid)) openPolicyTitles(pid);
+  } catch (e) {
+    console.log('cancelPayment', e);
+  }
+}
+
 
     </script>
 </body>
