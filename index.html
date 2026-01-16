@@ -475,7 +475,12 @@
                 <a href="#" onclick="switchSection('agenda')" id="nav-agenda" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-regular fa-calendar-check w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Agenda & Calendario</span></a>
                 <a href="#" onclick="switchSection('clients')" id="nav-clients" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-users w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Anagrafica clienti</span></a>
                 <a href="#" onclick="switchSection('contracts'); resetContractFilter(); renderContractsDefault();" id="nav-contracts" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-file-contract w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Contratti / Polizze</span></a>
-                <a href="#" onclick="switchSection('deadlines')" id="nav-deadlines" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-calendar-days w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Scadenze titoli</span></a>
+                
+<a href="#" onclick="switchSection('claims'); renderClaims();" id="nav-claims" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-80050 hover:text-white group">
+  <i class="fa-solid fa-triangle-exclamation w-5 text-center group-hover:text-accent transition-colors"></i>
+  <span class="font-medium">Sinistri</span>
+</a>
+<a href="#" onclick="switchSection('deadlines')" id="nav-deadlines" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-calendar-days w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Scadenze titoli</span></a>
                     <a href="#" onclick="switchSection('report')" id="nav-report" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
                         <i class="fa-solid fa-chart-pie w-5 text-center group-hover:text-accent transition-colors"></i>
                         <span class="font-medium">Report</span>
@@ -615,7 +620,68 @@
 
     
 
-            <div id="section-report" class="hidden fade-in">
+            
+<div id="section-claims" class="hidden fade-in">
+  <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
+    <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
+      <div>
+        <h3 class="text-lg font-bold text-white uppercase tracking-wide">Sinistri</h3>
+        <p class="text-sm text-slate-400 mt-1">Archivio sinistri con filtri e storico aggiornamenti.</p>
+      </div>
+
+      <div class="flex flex-wrap items-end gap-2">
+        <div>
+          <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Stato</label>
+          <select id="filterClaimStatus" onchange="renderClaims()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white">
+            <option value="APERTI">Sinistri aperti</option>
+            <option value="CHIUSI">Sinistri chiusi</option>
+            <option value="TUTTI">Tutti</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Mese</label>
+          <select id="filterClaimMonth" onchange="renderClaims()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white w-28"></select>
+        </div>
+
+        <div>
+          <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Anno</label>
+          <select id="filterClaimYear" onchange="renderClaims()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white w-24"></select>
+        </div>
+
+        <div>
+          <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Cerca</label>
+          <input id="searchClaims" onkeyup="renderClaims()" placeholder="Polizza, sinistro, cliente..." class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-56" />
+        </div>
+
+        <button onclick="openClaimModal(null, null)" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent20 flex gap-2">
+          <i class="fa-solid fa-plus"></i> Nuovo
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-lg border border-slate-800">
+      <table class="w-full text-left text-sm text-slate-400">
+        <thead class="bg-slate-90050 text-slate-200 uppercase text-xs font-bold tracking-wider">
+          <tr>
+            <th class="px-6 py-4">Stato</th>
+            <th class="px-6 py-4">Polizza</th>
+            <th class="px-6 py-4">Compagnia</th>
+            <th class="px-6 py-4">Cliente</th>
+            <th class="px-6 py-4">N. sinistro</th>
+            <th class="px-6 py-4">Data apertura</th>
+            <th class="px-6 py-4">Ultimo aggiornamento</th>
+            <th class="px-6 py-4">Note</th>
+            <th class="px-6 py-4 text-center">Chiuso</th>
+            <th class="px-6 py-4 text-right">Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="claimsTableBody" class="divide-y divide-slate-80050"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="section-report" class="hidden fade-in">
                 <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
                         <div>
@@ -740,7 +806,13 @@
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePolicyModal()"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent">
-                <div class="flex justify-between items-start mb-6"><div><h3 class="text-xl font-bold text-white" id="polModalTitle">Gestione Polizza</h3></div><button onclick="closePolicyModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+                <div class="flex justify-between items-start mb-6"><div><h3 class="text-xl font-bold text-white" id="polModalTitle">Gestione Polizza</h3>
+<div class=\"mt-3\">
+  <button type=\"button\" onclick=\"openClaimModal(editingPolicyId || currentViewingPolicyId || null, null)\"
+          class=\"text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-white border border-slate-600\">
+    <i class=\"fa-solid fa-triangle-exclamation mr-2 text-warning\"></i>Apri sinistro
+  </button>
+</div></div><button onclick="closePolicyModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button></div>
                 <form id="policyForm" onsubmit="savePolicy(event)">
                     <div class="mb-6"><label class="block text-xs text-slate-500 font-bold mb-1">Contraente *</label><select id="polClientSelect" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-accent"><option value="">Seleziona...</option></select></div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -2684,5 +2756,676 @@ function editRenewalCommission(pid, tid) {
 
 
     </script>
+
+<!-- CLAIMS MODAL -->
+<div id="claimModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeClaimModal()"></div>
+
+  <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-4xl px-4">
+    <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent">
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h3 class="text-xl font-bold text-white" id="claimModalTitle">Gestione Sinistro</h3>
+          <p class="text-xs text-slate-500 mt-1">Compila i dati e aggiungi aggiornamenti (storico).</p>
+        </div>
+        <button onclick="closeClaimModal()" class="text-slate-500 hover:text-accent">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="claimId" />
+      <input type="hidden" id="claimPolicyId" />
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-xs text-slate-500 font-bold mb-1">Numero Polizza</label>
+          <input type="text" id="claimPolicyNumber" readonly class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono opacity-80" />
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-500 font-bold mb-1">Compagnia</label>
+          <input type="text" id="claimCompany" readonly class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm opacity-80" />
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-500 font-bold mb-1">Numero Sinistro</label>
+          <input type="text" id="claimNumber" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono" />
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-500 font-bold mb-1">Data Apertura</label>
+          <input type="date" id="claimOpenDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
+        </div>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div class="md:col-span-2">
+          <label class="block text-xs text-slate-500 font-bold mb-1">Note</label>
+          <textarea id="claimNotes" rows="2" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="Note interne..."></textarea>
+        </div>
+
+        <div class="flex items-center gap-3 bg-slate-800/30 border border-slate-700/50 rounded-xl px-4 py-3">
+          <input type="checkbox" id="claimClosed" class="accent-accent bg-deep border-slate-700 h-4 w-4 rounded" onchange="onClaimClosedToggle()" />
+          <label for="claimClosed" class="text-sm text-slate-300 font-bold select-none">Sinistro chiuso</label>
+          <span class="text-xs text-slate-500 ml-auto" id="claimClosedAtLabel"></span>
+        </div>
+      </div>
+
+      <div class="mt-6 border-t border-slate-800 pt-4">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <h4 class="text-sm font-bold text-white uppercase tracking-wide">Storico aggiornamenti</h4>
+          <button onclick="addClaimUpdate()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-white border border-slate-600">
+            <i class="fa-solid fa-plus mr-2"></i>Aggiungi
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+          <input type="datetime-local" id="claimUpdTs" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white" />
+          <input type="text" id="claimUpdText" placeholder="Testo aggiornamento..." class="md:col-span-3 bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white" />
+        </div>
+
+        <div id="claimUpdatesList" class="space-y-2 max-h-72 overflow-y-auto pr-2"></div>
+      </div>
+
+      <div class="flex gap-3 mt-6 pt-4 border-t border-slate-800">
+        <button type="button" onclick="closeClaimModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300">Annulla</button>
+        <button type="button" onclick="saveClaim()" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400">Salva</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+// =========================
+// SINISTRI (CLAIMS) - V1
+// =========================
+
+// Data store
+let fbUnsubClaims = null;
+let fbKnownClaimIds = new Set();
+let claims = [];
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function isoToday(){
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().split('T')[0];
+}
+function isoNowLocal(){
+  const now = new Date();
+  const d = new Date(now.getTime() - now.getTimezoneOffset()*60000);
+  return d.toISOString().slice(0,16);
+}
+function escapeHtml(str){
+  return String(str ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+function initClaimsFilters(){
+  const mSel = document.getElementById('filterClaimMonth');
+  const ySel = document.getElementById('filterClaimYear');
+  if(!mSel || !ySel) return;
+
+  mSel.innerHTML = `
+    <option value="TUTTI">Tutti</option>
+    <option value="01">Gennaio</option><option value="02">Febbraio</option><option value="03">Marzo</option>
+    <option value="04">Aprile</option><option value="05">Maggio</option><option value="06">Giugno</option>
+    <option value="07">Luglio</option><option value="08">Agosto</option><option value="09">Settembre</option>
+    <option value="10">Ottobre</option><option value="11">Novembre</option><option value="12">Dicembre</option>
+  `;
+
+  const now = new Date();
+  const curY = now.getFullYear();
+  const curM = pad2(now.getMonth()+1);
+
+  let yHtml = `<option value="TUTTI">Tutti</option>`;
+  for(let y=2025; y<=2050; y++) yHtml += `<option value="${y}">${y}</option>`;
+  ySel.innerHTML = yHtml;
+
+  const st = document.getElementById('filterClaimStatus');
+  if(st && !st.value) st.value = 'APERTI';
+  mSel.value = curM;
+  ySel.value = String(curY);
+}
+
+function getPolicyById(pid){
+  try { return policies?.find(p => String(p.id) === String(pid)); } catch(e){ return null; }
+}
+function getClientNameById(cid){
+  try { const c = clients?.find(x => String(x.id) === String(cid)); return c?.name || ''; } catch(e){ return ''; }
+}
+
+// --- Firebase integration (wrap existing functions) ---
+(function(){
+  const _fbStopListeners = (typeof fbStopListeners === 'function') ? fbStopListeners : null;
+  const _fbStartListeners = (typeof fbStartListeners === 'function') ? fbStartListeners : null;
+  const _fbFullSyncToFirestore = (typeof fbFullSyncToFirestore === 'function') ? fbFullSyncToFirestore : null;
+  const _saveLocalBackup = (typeof saveLocalBackup === 'function') ? saveLocalBackup : null;
+
+  // stop listeners
+  if(_fbStopListeners){
+    window.fbStopListeners = function(){
+      try { _fbStopListeners(); } catch(e){}
+      try { if(fbUnsubClaims) fbUnsubClaims(); } catch(e){}
+      fbUnsubClaims = null;
+    };
+  }
+
+  // start listeners
+  if(_fbStartListeners){
+    window.fbStartListeners = function(){
+      _fbStartListeners();
+      try {
+        if(!currentUser || !currentUser.uid || !window.FB || !FB.db) return;
+        const uid = currentUser.uid;
+        if(fbUnsubClaims) { try{ fbUnsubClaims(); }catch(e){} fbUnsubClaims=null; }
+        fbUnsubClaims = FB.onSnapshot(
+          FB.collection(FB.db, `users/${uid}/claims`),
+          (qs) => {
+            fbIsApplyingRemote = true;
+            const arr = [];
+            const known = new Set();
+            qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
+            claims = arr;
+            fbKnownClaimIds = known;
+            fbIsApplyingRemote = false;
+            renderClaims();
+          }
+        );
+      } catch(e){ console.error('fbStartListeners claims', e); }
+    };
+  }
+
+  // full sync
+  if(_fbFullSyncToFirestore){
+    window.fbFullSyncToFirestore = async function(){
+      await _fbFullSyncToFirestore();
+      // NB: _fbFullSyncToFirestore fa commit batch; qui facciamo un mini-batch separato per claims
+      try {
+        if(!currentUser || !currentUser.uid || !window.FB || !FB.db) return;
+        const uid = currentUser.uid;
+        const batch = FB.writeBatch(FB.db);
+        const seenClaims = new Set();
+
+        (claims || []).forEach(cl => {
+          if(!cl || cl.id === undefined || cl.id === null) return;
+          const id = String(cl.id);
+          seenClaims.add(id);
+          batch.set(
+            FB.doc(FB.db, `users/${uid}/claims/${id}`),
+            { ...cl, updatedAt: FB.serverTimestamp() },
+            { merge: true }
+          );
+        });
+
+        (fbKnownClaimIds || new Set()).forEach(id => {
+          if(!seenClaims.has(id)) batch.delete(FB.doc(FB.db, `users/${uid}/claims/${id}`));
+        });
+
+        await batch.commit();
+        fbKnownClaimIds = seenClaims;
+      } catch(e){ console.error('fbFullSyncToFirestore claims', e); }
+    };
+  }
+
+  // local backup
+  if(_saveLocalBackup){
+    window.saveLocalBackup = function(){
+      _saveLocalBackup();
+      try{
+        if(!currentUser || !currentUser.uid) return;
+        localStorage.setItem('evanEsseclaims' + currentUser.uid, JSON.stringify(claims || []));
+      } catch(e){}
+    };
+  }
+})();
+
+// --- Policy modal helper button uses openClaimModal(editingPolicyId...) already in HTML ---
+
+// --- Claims Modal ---
+function openClaimModal(policyId=null, claimId=null){
+  const modal = document.getElementById('claimModal');
+  if(!modal) return;
+
+  modal.dataset.draft = '';
+
+  document.getElementById('claimId').value = claimId ? String(claimId) : '';
+  document.getElementById('claimPolicyId').value = policyId ? String(policyId) : '';
+
+  document.getElementById('claimModalTitle').innerText = claimId ? 'Modifica Sinistro' : 'Nuovo Sinistro';
+  document.getElementById('claimNumber').value = '';
+  document.getElementById('claimOpenDate').value = isoToday();
+  document.getElementById('claimNotes').value = '';
+  document.getElementById('claimClosed').checked = false;
+  document.getElementById('claimClosedAtLabel').innerText = '';
+  document.getElementById('claimUpdatesList').innerHTML = '';
+  document.getElementById('claimUpdTs').value = isoNowLocal();
+  document.getElementById('claimUpdText').value = '';
+
+  // policy values
+  if(policyId){
+    const p = getPolicyById(policyId);
+    document.getElementById('claimPolicyNumber').value = p?.policyNumber || '';
+    document.getElementById('claimCompany').value = p?.company || '';
+  } else {
+    document.getElementById('claimPolicyNumber').value = '';
+    document.getElementById('claimCompany').value = '';
+  }
+
+  // edit
+  if(claimId){
+    const cl = (claims || []).find(x => String(x.id) === String(claimId));
+    if(cl){
+      document.getElementById('claimPolicyId').value = cl.policyId || '';
+      document.getElementById('claimPolicyNumber').value = cl.policyNumber || '';
+      document.getElementById('claimCompany').value = cl.company || '';
+      document.getElementById('claimNumber').value = cl.claimNumber || '';
+      document.getElementById('claimOpenDate').value = cl.openedAt || isoToday();
+      document.getElementById('claimNotes').value = cl.notes || '';
+      document.getElementById('claimClosed').checked = !!cl.closed;
+      document.getElementById('claimClosedAtLabel').innerText = cl.closedAt ? `Chiuso il ${cl.closedAt}` : '';
+      renderClaimUpdatesList(cl.updates || []);
+      modal.dataset.draft = JSON.stringify({ updates: Array.isArray(cl.updates) ? cl.updates : [] });
+    }
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closeClaimModal(){
+  document.getElementById('claimModal')?.classList.add('hidden');
+}
+
+function onClaimClosedToggle(){
+  const chk = document.getElementById('claimClosed');
+  const lbl = document.getElementById('claimClosedAtLabel');
+  if(!chk || !lbl) return;
+  lbl.innerText = chk.checked ? `Chiuso il ${isoToday()}` : '';
+}
+
+function getModalClaimDraft(){
+  const modal = document.getElementById('claimModal');
+  if(!modal) return { updates: [] };
+  try{
+    const raw = modal.dataset.draft ? JSON.parse(modal.dataset.draft) : null;
+    if(raw && Array.isArray(raw.updates)) return raw;
+  }catch(e){}
+  return { updates: [] };
+}
+
+function setModalClaimDraft(d){
+  const modal = document.getElementById('claimModal');
+  if(!modal) return;
+  modal.dataset.draft = JSON.stringify({ updates: Array.isArray(d?.updates) ? d.updates : [] });
+}
+
+function renderClaimUpdatesList(updates){
+  const box = document.getElementById('claimUpdatesList');
+  if(!box) return;
+  const arr = Array.isArray(updates) ? updates.slice() : [];
+  arr.sort((a,b) => String(b.ts||'').localeCompare(String(a.ts||'')));
+
+  if(arr.length === 0){
+    box.innerHTML = `<div class="text-slate-500 text-xs italic">Nessun aggiornamento.</div>`;
+    return;
+  }
+
+  box.innerHTML = '';
+  arr.forEach(u => {
+    const ts = u.ts ? String(u.ts).replace('T',' ') : '';
+    const text = u.text || '';
+    box.innerHTML += `
+      <div class="p-3 rounded-xl bg-slate-800/30 border border-slate-700/50">
+        <div class="flex items-start justify-between gap-3">
+          <div class="text-xs text-accent font-bold">${escapeHtml(ts)}</div>
+          <button class="text-xs text-red-400 hover:text-red-300" onclick="deleteClaimUpdate('${escapeHtml(u.id)}')" title="Elimina aggiornamento">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+        <div class="text-sm text-white mt-1 whitespace-pre-wrap break-words">${escapeHtml(text)}</div>
+      </div>
+    `;
+  });
+}
+
+function addClaimUpdate(){
+  const ts = document.getElementById('claimUpdTs')?.value || isoNowLocal();
+  const text = document.getElementById('claimUpdText')?.value?.trim();
+  if(!text) return alert('Inserisci testo aggiornamento.');
+
+  const cur = getModalClaimDraft();
+  cur.updates.push({ id: String(Date.now()) + String(Math.floor(Math.random()*1000)), ts, text });
+  setModalClaimDraft(cur);
+
+  document.getElementById('claimUpdText').value = '';
+  document.getElementById('claimUpdTs').value = isoNowLocal();
+  renderClaimUpdatesList(cur.updates);
+}
+
+function deleteClaimUpdate(updateId){
+  const cur = getModalClaimDraft();
+  cur.updates = cur.updates.filter(u => String(u.id) !== String(updateId));
+  setModalClaimDraft(cur);
+  renderClaimUpdatesList(cur.updates);
+}
+
+function saveClaim(){
+  try{
+    const claimId = document.getElementById('claimId').value || String(Date.now());
+    const policyId = document.getElementById('claimPolicyId').value?.trim();
+    const policyNumber = document.getElementById('claimPolicyNumber').value?.trim();
+    const company = document.getElementById('claimCompany').value?.trim();
+    const claimNumber = document.getElementById('claimNumber').value?.trim();
+    const openedAt = document.getElementById('claimOpenDate').value;
+    const notes = document.getElementById('claimNotes').value || '';
+    const closed = !!document.getElementById('claimClosed').checked;
+
+    if(!policyId) throw new Error('Collega il sinistro ad una polizza (apri dalla polizza).');
+    if(!claimNumber) throw new Error('Numero sinistro obbligatorio.');
+    if(!openedAt) throw new Error('Data apertura obbligatoria.');
+
+    const p = getPolicyById(policyId);
+    const clientId = p?.clientId || '';
+    const clientName = getClientNameById(clientId);
+    const draft = getModalClaimDraft();
+    const updates = Array.isArray(draft.updates) ? draft.updates : [];
+
+    const prev = (claims || []).find(x => String(x.id) === String(claimId));
+    let closedAt = null;
+    if(closed) closedAt = prev?.closedAt || isoToday();
+
+    const obj = {
+      id: String(claimId),
+      policyId: String(policyId),
+      policyNumber: policyNumber || p?.policyNumber || '',
+      company: company || p?.company || '',
+      clientId: clientId ? String(clientId) : '',
+      clientName: clientName || '',
+      claimNumber: String(claimNumber),
+      openedAt: String(openedAt),
+      notes: String(notes),
+      closed: !!closed,
+      closedAt: closedAt,
+      updates: updates
+    };
+
+    const idx = (claims || []).findIndex(x => String(x.id) === String(claimId));
+    if(idx >= 0) claims[idx] = obj; else claims.push(obj);
+
+    saveAllData();
+    closeClaimModal();
+    renderClaims();
+  } catch(err){
+    alert('Errore salvataggio sinistro: ' + err.message);
+  }
+}
+
+function deleteClaim(id){
+  if(!confirm('Eliminare questo sinistro?')) return;
+  claims = (claims || []).filter(x => String(x.id) !== String(id));
+  saveAllData();
+  renderClaims();
+}
+
+function quickToggleClaimClosed(id, isClosed){
+  const idx = (claims || []).findIndex(x => String(x.id) === String(id));
+  if(idx < 0) return;
+  claims[idx].closed = !!isClosed;
+  claims[idx].closedAt = isClosed ? (claims[idx].closedAt || isoToday()) : null;
+  saveAllData();
+  renderClaims();
+}
+
+function getLastUpdateText(updates){
+  if(!Array.isArray(updates) || updates.length === 0) return '';
+  const sorted = updates.slice().sort((a,b)=>String(b.ts||'').localeCompare(String(a.ts||'')));
+  const u = sorted[0];
+  const ts = u.ts ? String(u.ts).replace('T',' ') : '';
+  const text = u.text || '';
+  return `${ts} - ${text}`;
+}
+
+function renderClaims(){
+  const tb = document.getElementById('claimsTableBody');
+  if(!tb) return;
+
+  const status = document.getElementById('filterClaimStatus')?.value || 'APERTI';
+  const month = document.getElementById('filterClaimMonth')?.value || 'TUTTI';
+  const year  = document.getElementById('filterClaimYear')?.value || 'TUTTI';
+  const q = (document.getElementById('searchClaims')?.value || '').trim().toUpperCase();
+
+  let list = Array.isArray(claims) ? claims.slice() : [];
+
+  if(status === 'APERTI') list = list.filter(c => !c.closed);
+  if(status === 'CHIUSI') list = list.filter(c => !!c.closed);
+
+  list = list.filter(c => {
+    const d = String(c.openedAt || '');
+    if(year !== 'TUTTI' && !d.startsWith(String(year) + '-')) return false;
+    if(month !== 'TUTTI' && d.slice(5,7) !== String(month)) return false;
+    return true;
+  });
+
+  if(q){
+    list = list.filter(c => {
+      const pn = String(c.policyNumber || '').toUpperCase();
+      const cn = String(c.claimNumber || '').toUpperCase();
+      const cln = String(c.clientName || '').toUpperCase();
+      const comp = String(c.company || '').toUpperCase();
+      return pn.includes(q) || cn.includes(q) || cln.includes(q) || comp.includes(q);
+    });
+  }
+
+  list.sort((a,b) => String(b.openedAt||'').localeCompare(String(a.openedAt||'')));
+
+  tb.innerHTML = '';
+  if(list.length === 0){
+    tb.innerHTML = `<tr><td colspan="10" class="px-6 py-8 text-center text-slate-500">Nessun sinistro trovato.</td></tr>`;
+    return;
+  }
+
+  list.forEach(c => {
+    const closed = !!c.closed;
+    const badge = closed
+      ? `<span class="px-2 py-1 rounded text-xs font-bold bg-red-900/30 text-red-300 border border-red-700/40">CHIUSO</span>`
+      : `<span class="px-2 py-1 rounded text-xs font-bold bg-emerald-900/30 text-emerald-300 border border-emerald-700/40">APERTO</span>`;
+
+    const lastUpd = escapeHtml(getLastUpdateText(c.updates || []));
+    const notes = escapeHtml((c.notes || '').slice(0,60));
+    const pol = escapeHtml(c.policyNumber || '');
+    const cli = escapeHtml(c.clientName || '');
+    const comp = escapeHtml(c.company || '');
+
+    tb.innerHTML += `
+      <tr class="hover:bg-slate-800/30 border-b border-slate-80050 last:border-0">
+        <td class="px-6 py-4">${badge}</td>
+        <td class="px-6 py-4 font-mono text-xs text-white">${pol}</td>
+        <td class="px-6 py-4 text-xs text-slate-200">${comp}</td>
+        <td class="px-6 py-4 text-sm text-slate-200">${cli}</td>
+        <td class="px-6 py-4 font-mono text-xs text-white">${escapeHtml(c.claimNumber||'')}</td>
+        <td class="px-6 py-4 font-mono text-xs text-slate-300">${escapeHtml(c.openedAt||'')}</td>
+        <td class="px-6 py-4 text-xs text-slate-300">${lastUpd}</td>
+        <td class="px-6 py-4 text-xs text-slate-400">${notes}</td>
+        <td class="px-6 py-4 text-center">
+          <input type="checkbox" class="accent-accent h-4 w-4 rounded" ${closed ? 'checked' : ''}
+                 onchange="quickToggleClaimClosed('${escapeHtml(c.id)}', this.checked)" />
+        </td>
+        <td class="px-6 py-4 text-right space-x-2">
+          <button class="text-xs border border-slate-700 text-slate-300 hover:bg-slate-800 px-2 py-1 rounded" onclick="openClaimModal(null,'${escapeHtml(c.id)}')">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="text-xs border border-slate-700 text-slate-500 hover:text-red-300 hover:bg-slate-800 px-2 py-1 rounded" onclick="deleteClaim('${escapeHtml(c.id)}')">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+// --- Export/Import/Reset overrides ---
+
+// Export include sinistri
+function downloadBackup(){
+  const data = { clients, policies, appointments, claims, currentUser };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `backup_evanesse_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+}
+
+// Import include sinistri
+async function processImport(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!confirm('ATTENZIONE: questa operazione sovrascriverà i dati attuali su Firebase con quelli del backup. Procedere?')) return;
+
+      const importBtn = document.querySelector('button[onclick="document.getElementById(\"importFile\").click()"]');
+      if(importBtn) importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Caricamento...';
+
+      clients = data.clients || [];
+      policies = data.policies || [];
+      appointments = data.appointments || [];
+      claims = data.claims || [];
+
+      try{
+        fbStopListeners();
+        await fbFullSyncToFirestore();
+        alert('Importazione completata con successo! I dati sono stati salvati su Firebase.');
+        location.reload();
+      } catch(fbErr){
+        console.error('Errore Firebase import', fbErr);
+        alert('Errore durante il salvataggio su Firebase: ' + (fbErr?.message || fbErr));
+        if(importBtn) importBtn.innerHTML = '<i class="fa-solid fa-upload text-info"></i> Importa Archivio';
+        try{ fbStartListeners(); }catch(e){}
+      }
+    } catch(err){
+      console.error(err);
+      alert('Il file selezionato non è valido.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetDatabase(){
+  if(!currentUser) { alert('Nessun profilo attivo.'); return; }
+  if(!confirm('ATTENZIONE: questa operazione cancellerà SOLO i dati (clienti/polizze/agenda/sinistri) del profilo attualmente loggato.')) return;
+  if(!confirm('Sicuro al 100%?')) return;
+
+  try{
+    localStorage.removeItem('evanEssedata' + currentUser.uid);
+    localStorage.removeItem('evanEssepolicies' + currentUser.uid);
+    localStorage.removeItem('evanEsseagenda' + currentUser.uid);
+    localStorage.removeItem('evanEsseclaims' + currentUser.uid);
+    localStorage.removeItem('evanEsserecentClients' + currentUser.uid);
+    localStorage.removeItem('evanEsserecentPolicies' + currentUser.uid);
+  } catch(e){ console.log(e); }
+
+  clients = [];
+  policies = [];
+  appointments = [];
+  claims = [];
+
+  saveAllData();
+  alert('Dati del profilo cancellati.');
+  location.reload();
+}
+
+// --- Init hook ---
+(function(){
+  const _initApp = (typeof initApp === 'function') ? initApp : null;
+  if(_initApp){
+    window.initApp = function(){
+      _initApp();
+      initClaimsFilters();
+      renderClaims();
+    };
+  }
+})();
+
+
+
+function setHeaderTitle(t, s){
+  const pt = document.getElementById('page-title');
+  const ps = document.getElementById('page-subtitle');
+  if(pt) pt.innerText = t || '';
+  if(ps) ps.innerText = s || '';
+}
+
+// Override per includere Sinistri e aggiornare sempre il titolo pagina
+function switchSection(sectionName){
+  try {
+    document.getElementById('section-report')?.classList.add('hidden');
+    document.getElementById('nav-report')?.classList.remove('nav-active');
+  } catch(e){}
+
+  ['home','clients','contracts','deadlines','agenda','report','claims'].forEach(id => {
+    const el = document.getElementById(`section-${id}`);
+    if(el) el.classList.add('hidden');
+    const nav = document.getElementById(`nav-${id}`);
+    if(nav) nav.classList.remove('nav-active');
+  });
+
+  const map = {
+    home:      { t:'Dashboard', s:'Panoramica' },
+    agenda:    { t:'Agenda', s:'Calendario e appuntamenti' },
+    clients:   { t:'Clienti', s:'Anagrafica clienti' },
+    contracts: { t:'Polizze', s:'Gestione portafoglio' },
+    deadlines: { t:'Scadenze', s:'Scadenziario titoli' },
+    report:    { t:'Report', s:'Analisi Produzione, Portafoglio e Polizze Perse' },
+    claims:    { t:'Sinistri', s:'Gestione sinistri' }
+  };
+  const m = map[sectionName] || map.home;
+  setHeaderTitle(m.t, m.s);
+
+  if(sectionName === 'home'){
+    document.getElementById('section-home')?.classList.remove('hidden');
+    document.getElementById('nav-home')?.classList.add('nav-active');
+    updateDashboard();
+  } else if(sectionName === 'clients'){
+    document.getElementById('section-clients')?.classList.remove('hidden');
+    document.getElementById('nav-clients')?.classList.add('nav-active');
+    renderClients();
+  } else if(sectionName === 'contracts'){
+    document.getElementById('section-contracts')?.classList.remove('hidden');
+    document.getElementById('nav-contracts')?.classList.add('nav-active');
+    renderContractsDefault();
+  } else if(sectionName === 'deadlines'){
+    document.getElementById('section-deadlines')?.classList.remove('hidden');
+    document.getElementById('nav-deadlines')?.classList.add('nav-active');
+    const fMoD = document.getElementById('filterMonthDeadlines');
+    if(fMoD && !fMoD.value){
+      const now = new Date();
+      fMoD.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    }
+    renderDeadlines();
+  } else if(sectionName === 'report'){
+    document.getElementById('section-report')?.classList.remove('hidden');
+    document.getElementById('nav-report')?.classList.add('nav-active');
+    initReportDefaults();
+    renderReport();
+  } else if(sectionName === 'agenda'){
+    document.getElementById('section-agenda')?.classList.remove('hidden');
+    document.getElementById('nav-agenda')?.classList.add('nav-active');
+    renderAgendaMain();
+  } else if(sectionName === 'claims'){
+    document.getElementById('section-claims')?.classList.remove('hidden');
+    document.getElementById('nav-claims')?.classList.add('nav-active');
+    renderClaims();
+  }
+}
+</script>
+
 </body>
 </html>
