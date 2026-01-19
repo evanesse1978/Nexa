@@ -2234,30 +2234,41 @@ function initApp() {
         function buildDeadlineMessage(deadline) {
             const pay = getCompanyPaymentInfo(deadline.comp);
 
+            const dueStr = (() => {
+                if (!deadline.dueDate) return '';
+                try {
+                    const d = new Date(String(deadline.dueDate).slice(0,10) + 'T12:00:00');
+                    return d.toLocaleDateString('it-IT');
+                } catch (e) {
+                    return String(deadline.dueDate);
+                }
+            })();
+
             const lines = [
                 '🔔 Promemoria scadenza assicurativa',
                 '',
                 'Gentile ' + deadline.cname + ',',
                 'ti ricordiamo la prossima scadenza del tuo titolo assicurativo:',
                 '',
+                '📅 Data scadenza: ' + (dueStr || '-'),
+                (deadline.rata ? ('🧾 Rata: ' + deadline.rata) : null),
                 '👤 Nominativo: ' + deadline.cname,
                 '📂 Ramo: ' + (deadline.ramo || '-'),
                 '🏢 Compagnia: ' + (deadline.comp || '-'),
                 '🆔 Numero polizza: ' + (deadline.polNum || '-'),
                 '💶 Importo: € ' + Number(deadline.amount || 0).toFixed(2),
-            ];
+            ].filter(x => x !== null);
 
             if (pay.iban) {
                 lines.push('');
                 lines.push('🏦 Dati per il pagamento:');
-                lines.push('Beneficiario: ' + (pay.payee || '-'));
+                lines.push('Beneficiario: ' + (pay.payee || ''));
                 lines.push('IBAN: ' + pay.iban);
             }
 
             lines.push('');
             lines.push('Per qualsiasi necessità puoi contattarci.');
-            lines.push('Grazie per la collaborazione. 🤝');
-
+            lines.push('Grazie per la collaborazione.');
             return lines.join('\n');
         }
 
@@ -2275,7 +2286,7 @@ function initApp() {
                 ramo: p.ramo,
                 comp: p.company,
                 polNum: p.policyNumber,
-                amount: t.amount,
+                amount: t.amount, dueDate: t.dueDate, rata: t.n,
                 phone: c ? c.phone : '',
                 email: c ? c.email : ''
             };
