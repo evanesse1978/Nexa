@@ -265,7 +265,23 @@
         </div>
     </div>
 
-    <script>
+    
+
+<!-- AVATAR PICKER MODAL -->
+<div id="avatarModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black80 backdrop-blur-sm" onclick="closeAvatarPicker()"></div>
+  <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-4">
+    <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-accent">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-user-astronaut mr-2 text-accent"></i>Seleziona avatar</h3>
+        <button onclick="closeAvatarPicker()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+      <div id="avatarGrid" class="grid grid-cols-5 sm:grid-cols-6 gap-3"></div>
+      <p class="text-10px text-slate-500 mt-4">L'avatar viene salvato nel profilo utente.</p>
+    </div>
+  </div>
+</div>
+<script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -808,9 +824,13 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
                 <div><h2 class="text-xl font-bold text-white" id="page-title">Dashboard</h2><p class="text-xs text-slate-500" id="page-subtitle">Panoramica</p></div>
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden md:block"><p class="text-sm font-bold text-white" id="user-display-name">User</p></div>
-                    <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center border border-accent/30 shadow-lg shadow-accent/10 text-accent font-bold text-lg" id="user-avatar">U</div>
+                    <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center border border-accent/30 shadow-lg shadow-accent/10 text-accent font-bold text-lg" id="user-avatar" onclick="openAvatarPicker()" title="Cambia avatar" role="button" style="cursor:pointer;">U</div>
                     <button onclick="openSettingsModal()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-slate-700 transition-all text-slate-400" title="Impostazioni"><i class="fa-solid fa-gear"></i></button>
-                    <button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-red-900/50 hover:text-red-500 transition-all text-slate-400" title="Esci"><i class="fa-solid fa-power-off"></i></button>
+                    
+        <button id="btn-manual-save" onclick="manualSaveAll(this)" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-slate-700 transition-all text-slate-400" title="Salva">
+            <i class="fa-solid fa-floppy-disk"></i>
+        </button>
+<button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-red-900/50 hover:text-red-500 transition-all text-slate-400" title="Esci"><i class="fa-solid fa-power-off"></i></button>
                 </div>
             </header>
 
@@ -1389,6 +1409,33 @@ function saveAllData() {
   }, 350);
 }
 
+        // SALVATAGGIO MANUALE (forza sync immediato)
+        async function manualSaveAll(btn){
+            if(!currentUser || !currentUser.uid) return alert('Nessun profilo attivo.');
+
+            const iconEl = btn ? btn.querySelector('i') : null;
+            const prevClass = iconEl ? iconEl.className : '';
+            try{
+                if(iconEl) iconEl.className = 'fa-solid fa-spinner fa-spin';
+
+                // Backup locale + sync Firebase immediato
+                saveLocalBackup();
+
+                if(window.FB && FB.db && !fbIsApplyingRemote){
+                    clearTimeout(fbSaveTimer);
+                    await fbFullSyncToFirestore();
+                }
+
+                if(iconEl) iconEl.className = 'fa-solid fa-check';
+                setTimeout(()=>{ if(iconEl) iconEl.className = prevClass || 'fa-solid fa-floppy-disk'; }, 900);
+            } catch(e){
+                console.error('manualSaveAll error', e);
+                if(iconEl) iconEl.className = prevClass || 'fa-solid fa-floppy-disk';
+                alert('Errore durante il salvataggio.');
+            }
+        }
+
+
 
 
 
@@ -1544,12 +1591,121 @@ function saveAllData() {
   return "User";
 }
 
-function renderUserHeader(displayName, email) {
-  const dnEl = document.getElementById("user-display-name");
-  const avEl = document.getElementById("user-avatar");
-  if (dnEl) dnEl.innerText = displayName || "User";
-  if (avEl) avEl.innerText = (displayName?.charAt(0) || email?.charAt(0) || "U").toUpperCase();
-}
+const AVATAR_PRESETS = [
+            { id: 'A1', bg: '#0ea5e9', fg: '#ffffff', icon: 'fa-solid fa-user' },
+            { id: 'A2', bg: '#6366f1', fg: '#ffffff', icon: 'fa-solid fa-user-tie' },
+            { id: 'A3', bg: '#22c55e', fg: '#052e16', icon: 'fa-solid fa-user-doctor' },
+            { id: 'A4', bg: '#f59e0b', fg: '#1f2937', icon: 'fa-solid fa-user-gear' },
+            { id: 'A5', bg: '#ef4444', fg: '#ffffff', icon: 'fa-solid fa-user-ninja' },
+            { id: 'A6', bg: '#8b5cf6', fg: '#ffffff', icon: 'fa-solid fa-user-astronaut' },
+            { id: 'A7', bg: '#14b8a6', fg: '#042f2e', icon: 'fa-solid fa-shield-halved' },
+            { id: 'A8', bg: '#e11d48', fg: '#ffffff', icon: 'fa-solid fa-heart' },
+            { id: 'A9', bg: '#a3e635', fg: '#1f2937', icon: 'fa-solid fa-leaf' },
+            { id: 'A10', bg: '#38bdf8', fg: '#0b1220', icon: 'fa-solid fa-car' },
+            { id: 'A11', bg: '#fb7185', fg: '#0b1220', icon: 'fa-solid fa-briefcase' },
+            { id: 'A12', bg: '#34d399', fg: '#0b1220', icon: 'fa-solid fa-chart-line' },
+            { id: 'A13', bg: '#f97316', fg: '#0b1220', icon: 'fa-solid fa-fire' },
+            { id: 'A14', bg: '#60a5fa', fg: '#0b1220', icon: 'fa-solid fa-snowflake' },
+            { id: 'A15', bg: '#c084fc', fg: '#0b1220', icon: 'fa-solid fa-bolt' },
+            { id: 'A16', bg: '#fda4af', fg: '#0b1220', icon: 'fa-solid fa-mug-hot' },
+            { id: 'A17', bg: '#fcd34d', fg: '#0b1220', icon: 'fa-solid fa-star' },
+            { id: 'A18', bg: '#4ade80', fg: '#0b1220', icon: 'fa-solid fa-tree' },
+            { id: 'A19', bg: '#93c5fd', fg: '#0b1220', icon: 'fa-solid fa-mountain' },
+            { id: 'A20', bg: '#fca5a5', fg: '#0b1220', icon: 'fa-solid fa-paw' },
+            { id: 'A21', bg: '#bef264', fg: '#0b1220', icon: 'fa-solid fa-fish' },
+            { id: 'A22', bg: '#a78bfa', fg: '#0b1220', icon: 'fa-solid fa-ghost' },
+            { id: 'A23', bg: '#22d3ee', fg: '#0b1220', icon: 'fa-solid fa-sailboat' },
+            { id: 'A24', bg: '#fdba74', fg: '#0b1220', icon: 'fa-solid fa-plane' },
+            { id: 'A25', bg: '#86efac', fg: '#0b1220', icon: 'fa-solid fa-graduation-cap' },
+            { id: 'A26', bg: '#f9a8d4', fg: '#0b1220', icon: 'fa-solid fa-wand-magic-sparkles' },
+            { id: 'A27', bg: '#67e8f9', fg: '#0b1220', icon: 'fa-solid fa-compass' },
+            { id: 'A28', bg: '#fef08a', fg: '#0b1220', icon: 'fa-solid fa-sun' },
+            { id: 'A29', bg: '#c7d2fe', fg: '#0b1220', icon: 'fa-solid fa-moon' },
+            { id: 'A30', bg: '#94a3b8', fg: '#0b1220', icon: 'fa-solid fa-fingerprint' },
+        ];
+
+        function getAvatarPreset(id){
+            if(!id) return null;
+            return AVATAR_PRESETS.find(a => a.id === id) || null;
+        }
+
+        function applyAvatarToElement(el, avatarId, fallbackLetter){
+            if(!el) return;
+            const a = getAvatarPreset(avatarId);
+            el.dataset.avatarId = avatarId || '';
+
+            if(a){
+                el.style.backgroundColor = a.bg;
+                el.style.color = a.fg;
+                el.style.borderColor = 'rgba(255,255,255,0.15)';
+                el.innerHTML = `<i class="${a.icon}"></i>`;
+            } else {
+                el.style.backgroundColor = '';
+                el.style.color = '';
+                el.style.borderColor = '';
+                el.innerText = (fallbackLetter || 'U').toUpperCase();
+            }
+        }
+
+        function renderUserHeader(displayName, email, avatarId){
+            const dnEl = document.getElementById('user-display-name');
+            const avEl = document.getElementById('user-avatar');
+            const safeName = displayName || 'User';
+            const fallback = (String(safeName).trim().charAt(0) || (email ? String(email).charAt(0) : 'U'));
+
+            if(dnEl) dnEl.innerText = safeName;
+            if(avEl) applyAvatarToElement(avEl, avatarId, fallback);
+        }
+
+        function openAvatarPicker(){
+            const m = document.getElementById('avatarModal');
+            if(!m) return;
+            m.classList.remove('hidden');
+            renderAvatarGrid();
+        }
+
+        function closeAvatarPicker(){
+            const m = document.getElementById('avatarModal');
+            if(!m) return;
+            m.classList.add('hidden');
+        }
+
+        function renderAvatarGrid(){
+            const grid = document.getElementById('avatarGrid');
+            if(!grid) return;
+            const selected = currentUser?.avatarId || '';
+            grid.innerHTML = '';
+            AVATAR_PRESETS.forEach(a => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'w-12 h-12 rounded-full flex items-center justify-center border transition-all ' +
+                    (a.id === selected ? 'border-accent shadow-lg shadow-accent20' : 'border-slate-700 hover:border-accent');
+                btn.style.backgroundColor = a.bg;
+                btn.style.color = a.fg;
+                btn.innerHTML = `<i class="${a.icon}"></i>`;
+                btn.onclick = () => selectAvatar(a.id);
+                grid.appendChild(btn);
+            });
+        }
+
+        async function selectAvatar(avatarId){
+            try{
+                if(!currentUser || !currentUser.uid) return;
+                currentUser.avatarId = avatarId;
+
+                if(window.FB && FB.db){
+                    await fbEnsureProfile(currentUser.uid, { avatarId });
+                }
+
+                const dn = computeDisplayNameFromProfile({ displayName: currentUser.displayName, name: currentUser.name, surname: currentUser.surname }, { displayName: currentUser.displayName, email: currentUser.email });
+                renderUserHeader(dn, currentUser.email, currentUser.avatarId);
+
+                closeAvatarPicker();
+            } catch(e){
+                console.error('selectAvatar error', e);
+                alert('Errore salvataggio avatar.');
+            }
+        }
 
 function initApp() {
   loadTheme();
