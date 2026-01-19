@@ -2322,12 +2322,61 @@ function initApp() {
         // Matitina provvigioni (solo rinnovi): modifica provvigione personale (commPers)
         
 function editRenewalAmount(pid, tid){const p=policies.find(x=>x.id==pid);if(!p)return alert('Polizza non trovata');const t=p.titles.find(x=>x.id==tid);if(!t||t.isRenewal!==true)return alert('Funzione disponibile solo sui rinnovi.');const curr=Number(t.amount||0).toFixed(2);const val=prompt('Inserisci premio titolo (rinnovo)',curr);if(val===null)return;const newAmt=safeParseFloat(val);if(isNaN(newAmt))return alert('Valore non valido');t.amount=newAmt;if(Number(p.annualPremium||0)===0)p.annualPremium=newAmt;saveAllData();renderDeadlines();updateDashboard();if(currentViewingPolicyId==p.id)openPolicyTitles(p.id);}
-function editRenewalCommissionTotal(pid, tid){const p=policies.find(x=>String(x.id)==String(pid));if(!p)return alert('Polizza non trovata');const t=p.titles.find(x=>String(x.id)==String(tid));if(!t||t.isRenewal!==true)return alert('Funzione disponibile solo sui rinnovi.');const curr=Number(t.commTotal||0).toFixed(2);const val=prompt('Inserisci provvigione totale (rinnovo)',curr);if(val===null)return;const newTot=safeParseFloat(val);if(isNaN(newTot))return alert('Valore non valido');t.commTotal=newTot;const perc=safeParseFloat(p.commPerc||0);t.commPers=parseFloat((newTot*perc/100).toFixed(2));saveAllData();renderDeadlines();updateDashboard();if(currentViewingPolicyId==p.id)openPolicyTitles(p.id);}
-function editRenewalCommission(pid, tid) {
+function editRenewalCommissionTotal(pid, tid){
+            const p = policies.find(x => String(x.id) === String(pid));
+            if(!p) return alert('Polizza non trovata');
+            const t = (p.titles || []).find(x => String(x.id) === String(tid));
+            if(!t || t.isRenewal !== true) return alert('Funzione disponibile solo sui rinnovi.');
+
+            const curr = Number(t.commTotal || 0).toFixed(2);
+            const val = prompt('Inserisci provvigione totale (rinnovo)', curr);
+            if(val === null) return;
+            const newTot = safeParseFloat(val);
+            if(isNaN(newTot)) return alert('Valore non valido');
+
+            // FIX SDD mensile: provvigioni solo sulla prima rata rinnovo
+            if(Number(p.split) === 12){
+                const rts = (p.titles || []).filter(x => x.isRenewal === true).sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
+                const first = rts[0];
+                if(first && String(t.id) !== String(first.id)){
+                    alert('SDD mensile: le provvigioni vanno inserite solo sul 1° titolo di rinnovo (le altre rate restano a 0).');
+                    t.commTotal = 0;
+                    t.commPers = 0;
+                    return;
+                }
+                // azzera sempre tutte le altre rate rinnovo
+                rts.forEach(x => { if(first && String(x.id) !== String(first.id)) { x.commTotal = 0; x.commPers = 0; } });
+            }
+
+            t.commTotal = newTot;
+            const perc = safeParseFloat(p.commPerc || 0);
+            t.commPers = parseFloat((newTot * perc / 100).toFixed(2));
+
+            saveAllData();
+            renderDeadlines();
+            updateDashboard();
+            if(currentViewingPolicyId == p.id) openPolicyTitles(p.id);
+        }
+
+        function editRenewalCommission(pid, tid) {
             const p = policies.find(x => x.id == pid);
             if(!p) return alert('Polizza non trovata');
             const t = (p.titles || []).find(x => x.id == tid);
             if(!(t && t.isRenewal === true)) return alert('Funzione disponibile solo sui rinnovi.');
+
+            // FIX SDD mensile: provvigioni solo sulla prima rata rinnovo
+            if(Number(p.split) === 12){
+                const rts = (p.titles || []).filter(x => x.isRenewal === true).sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
+                const first = rts[0];
+                if(first && String(t.id) !== String(first.id)){
+                    alert('SDD mensile: le provvigioni vanno inserite solo sul 1° titolo di rinnovo (le altre rate restano a 0).');
+                    t.commPers = 0;
+                    t.commTotal = 0;
+                    return;
+                }
+                // azzera sempre tutte le altre rate rinnovo
+                rts.forEach(x => { if(first && String(x.id) !== String(first.id)) { x.commTotal = 0; x.commPers = 0; } });
+            }
 
             const curr = Number(t.commPers || 0).toFixed(2);
             const val = prompt('Inserisci provvigione (tua) per questo titolo (€):', curr);
@@ -2787,7 +2836,35 @@ function editRenewalCommission(pid, tid) {
         function calcLivePersonale(tid, val, perc) { const tot = safeParseFloat(val); const pers = (tot * perc / 100).toFixed(2); document.getElementById('pers-'+tid).value = pers; }
         // UPDATE FUNZIONI: ORA CHIAMANO renderDeadlines() invece di renderTitles()
         function updateCommTotal(polId, titId, val) { const p = policies.find(x => x.id === polId); const newVal = safeParseFloat(val); const perc = p.commPerc || 0; p.titles.forEach(t => { t.commTotal = newVal; t.commPers = parseFloat((newVal * perc / 100).toFixed(2)); }); saveAllData(); openPolicyTitles(polId); renderDeadlines(); }
-        function updateCommPersonal(polId, titId, val) { const p = policies.find(x => x.id === polId); const newVal = safeParseFloat(val); p.titles.forEach(t => { t.commPers = newVal; }); saveAllData(); openPolicyTitles(polId); renderDeadlines(); }
+        function updateCommPersonal(polId, titId, val) {
+            const p = policies.find(x => x.id === polId);
+            if(!p) return;
+            const t = (p.titles || []).find(x => x.id === titId);
+            if(!t) return;
+
+            const newVal = safeParseFloat(val);
+
+            // FIX SDD mensile: le provvigioni dell'intera annualità vanno SOLO sulla prima rata del rinnovo
+            if(Number(p.split) === 12 && t.isRenewal === true){
+                const rts = (p.titles || []).filter(x => x.isRenewal === true).sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
+                const first = rts[0];
+                if(first && String(t.id) !== String(first.id)){
+                    alert('SDD mensile: le provvigioni vanno inserite solo sul 1° titolo di rinnovo (le altre rate restano a 0).');
+                    t.commPers = 0;
+                } else {
+                    t.commPers = newVal;
+                    // tutte le altre rate rinnovo sempre a 0
+                    rts.forEach(x => { if(first && String(x.id) !== String(first.id)) { x.commPers = 0; x.commTotal = 0; } });
+                }
+            } else {
+                // comportamento standard: modifica solo quel titolo
+                t.commPers = newVal;
+            }
+
+            saveAllData();
+            openPolicyTitles(polId);
+            renderDeadlines();
+        }); saveAllData(); openPolicyTitles(polId); renderDeadlines(); }
         
         // MODIFICATO PER GESTIRE IL PROMPT O IL CALCOLO DI NUOVO IMPORTO
         function editTitle(polId, titId){ 
