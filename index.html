@@ -414,6 +414,300 @@
 
 .theme-light .text-darktext { color: #0f172a !important; }
 
+
+
+/* =========================================================
+   EXTRA FIX: LIGHT THEME (contrast + hover + buttons)
+   Obiettivo: in light mode niente testi “chiari” su fondo chiaro
+   e niente testi “scuri” su fondo scuro, anche in hover.
+========================================================= */
+
+/* 1) Fix hover text (molti elementi usano hover:text-white) */
+.theme-light .hover\:text-white:hover { color: #0b1220 !important; }
+.theme-light .hover\:text-slate-300:hover { color: #0b1220 !important; }
+.theme-light .hover\:text-slate-400:hover { color: #0b1220 !important; }
+.theme-light .hover\:text-slate-500:hover { color: #0b1220 !important; }
+
+/* 2) Fix hover background per classi molto usate */
+.theme-light .hover\:bg-slate-800:hover { background-color: #cbd5e1 !important; }
+.theme-light .hover\:bg-slate-700:hover { background-color: #cbd5e1 !important; }
+.theme-light .hover\:bg-slate-600:hover { background-color: #cbd5e1 !important; }
+
+.theme-light .hover\:bg-slate-800\/50:hover { background-color: rgba(226,232,240,0.85) !important; }
+.theme-light .hover\:bg-slate-800\/30:hover { background-color: rgba(226,232,240,0.70) !important; }
+.theme-light .hover\:bg-slate-900\/50:hover { background-color: rgba(226,232,240,0.85) !important; }
+
+/* 3) Fix background “/30” e “/20” (box, card, righe tabella, ecc.) */
+.theme-light .bg-slate-800\/30 { background-color: rgba(226,232,240,0.55) !important; }
+.theme-light .bg-slate-800\/20 { background-color: rgba(226,232,240,0.40) !important; }
+
+/* 4) Fix bottoni accent: in light mode l’accent diventa blu,
+      quindi testo deve essere bianco anche se esiste text-darktext */
+.theme-light .bg-accent.text-darktext { color: #ffffff !important; }
+.theme-light .hover\:bg-yellow-400:hover.text-darktext { color: #ffffff !important; }
+.theme-light .hover\:bg-accent90:hover.text-darktext { color: #ffffff !important; }
+
+/* 5) Fix combinazione hover:bg-accent + hover:text-darktext (es. bottone “Oggi”) */
+.theme-light .hover\:text-darktext:hover { color: #ffffff !important; }
+.theme-light .hover\:bg-accent:hover { background-color: #1d4ed8 !important; }
+
+/* 6) Uniforma alcuni bg/border grigi nel tema chiaro */
+.theme-light .bg-slate-700 { background-color: #e2e8f0 !important; }
+.theme-light .bg-slate-600 { background-color: #e2e8f0 !important; }
+
+.theme-light .border-slate-600,
+.theme-light .border-slate-500 { border-color: #cbd5e1 !important; }
+
+/* 7) Checkbox/radio: accent coerente con accent blu in light mode */
+.theme-light .accent-accent { accent-color: #2563eb !important; }
+
+/* =========================================================
+   MOBILE OPTIMIZATION (smartphone)
+   - Evita i problemi di 100vh su mobile (barra indirizzi)
+   - Layout più usabile senza cambiare JS (solo CSS)
+========================================================= */
+html, body { height: 100%; }
+body { min-height: 100dvh; height: 100dvh; }
+@supports not (height: 100dvh) {
+  body { min-height: 100vh; height: 100vh; }
+}
+
+/* Su schermi piccoli: sidebar sopra e contenuto sotto (niente compressione orizzontale) */
+@media (max-width: 768px) {
+  #app-container { flex-direction: column !important; }
+
+  #app-container > aside {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 45vh;
+    overflow-y: auto;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(148,163,184,0.35) !important;
+  }
+
+  main > header {
+    height: auto !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  /* la “p-8” del contenuto principale su mobile è eccessiva */
+  main > div.flex-1 {
+    padding: 1rem !important;
+  }
+}
+
+/* Modali: top più vicino e altezza reale su smartphone (senza toccare HTML/JS) */
+@media (max-width: 640px) {
+  .fixed.inset-0 > div.absolute.top-12 {
+    top: 1rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .fixed.inset-0 > div.absolute.top-12 > div {
+    max-height: calc(100dvh - 2rem) !important;
+  }
+}
+
+
+
+/* =========================
+   THEME LIGHT: COLOR REFRESH (no grigi)
+   - Sostituisce grigi/slate con tinte azzurre/indigo coerenti col blu accent.
+   - Aggiunge fix per classi Tailwind con slash (es: bg-deep/50).
+   ========================= */
+.theme-light{
+  --lt-surface: #ffffff;
+  --lt-panel: #eff6ff;        /* blue-50 */
+  --lt-panel2: #dbeafe;       /* blue-100 */
+  --lt-panel3: #bfdbfe;       /* blue-200 */
+  --lt-border: #93c5fd;       /* blue-300 */
+  --lt-border-strong: #60a5fa;/* blue-400 */
+  --lt-muted: #1e3a8a;        /* blue-900 */
+  --lt-muted2: #1d4ed8;       /* blue-700 */
+}
+
+/* --- Deep backgrounds con slash (usati in header e overlay) --- */
+.theme-light .bg-deep\/50 { background-color: rgba(239,246,255,0.88) !important; }
+.theme-light .bg-deep\/30 { background-color: rgba(239,246,255,0.70) !important; }
+.theme-light .bg-deep\/20 { background-color: rgba(239,246,255,0.55) !important; }
+
+/* Se esistono anche versioni senza slash già usate in CSS */
+.theme-light .bg-deep50 { background-color: rgba(239,246,255,0.88) !important; }
+.theme-light .bg-deep30 { background-color: rgba(239,246,255,0.70) !important; }
+.theme-light .bg-deep20 { background-color: rgba(239,246,255,0.55) !important; }
+
+/* Superfici “grigie” -> pannelli azzurri */
+.theme-light .bg-slate-900\/50,
+.theme-light .bg-slate-800\/50,
+.theme-light .bg-slate-90050,
+.theme-light .bg-slate-80050 {
+  background-color: rgba(219,234,254,0.72) !important;
+}
+.theme-light .bg-slate-800\/30 { background-color: rgba(219,234,254,0.56) !important; }
+.theme-light .bg-slate-800\/20 { background-color: rgba(219,234,254,0.42) !important; }
+
+.theme-light .bg-slate-800 { background-color: var(--lt-panel2) !important; }
+.theme-light .bg-slate-700 { background-color: var(--lt-panel3) !important; }
+.theme-light .bg-slate-600 { background-color: #c7d2fe !important; } /* indigo-200 */
+
+/* Hover “grigi” -> hover azzurro */
+.theme-light .hover\:bg-slate-800:hover,
+.theme-light .hover\:bg-slate-700:hover,
+.theme-light .hover\:bg-slate-600:hover {
+  background-color: rgba(191,219,254,0.88) !important;
+}
+.theme-light .hover\:bg-slate-800\/50:hover,
+.theme-light .hover\:bg-slate-800\/30:hover,
+.theme-light .hover\:bg-slate-900\/50:hover {
+  background-color: rgba(191,219,254,0.82) !important;
+}
+
+/* Bordi (anche con slash) -> azzurri */
+.theme-light .border-slate-800,
+.theme-light .border-slate-700,
+.theme-light .border-slate-600,
+.theme-light .border-slate-500,
+.theme-light .border-slate-80050,
+.theme-light .border-slate-700\/50,
+.theme-light .border-slate-800\/50 {
+  border-color: var(--lt-border) !important;
+}
+
+/* Testi “grigi” -> blu/indigo (contrastati) */
+.theme-light .text-slate-500 { color: var(--lt-muted) !important; }
+.theme-light .text-slate-400 { color: var(--lt-muted2) !important; }
+.theme-light .text-slate-300 { color: #0f172a !important; }
+
+/* IMPORTANT: alcuni header/tabelle usano text-slate-200 (troppo chiaro su azzurro) */
+.theme-light .text-slate-200,
+.theme-light .text-slate-100,
+.theme-light .text-slate-50 {
+  color: #0f172a !important;
+}
+
+/* Placeholder */
+.theme-light input::placeholder,
+.theme-light textarea::placeholder {
+  color: #1e40af !important; /* blue-800 */
+  opacity: 0.85;
+}
+
+/* Tabelle: intestazioni leggibili (testo scuro su azzurro chiaro) */
+.theme-light table thead,
+.theme-light table thead th {
+  background-color: rgba(191,219,254,0.92) !important;
+  color: #0f172a !important;
+}
+.theme-light table thead * { color: #0f172a !important; }
+
+/* Fix specifico: classi THEAD tailwind in markup */
+.theme-light thead.bg-slate-900\/50,
+.theme-light thead.bg-slate-90050 {
+  background-color: rgba(191,219,254,0.92) !important;
+}
+
+
+/* =========================
+   LIGHT THEME: SINISTRI (claims) readability
+   ========================= */
+.theme-light #section-claims table,
+.theme-light #section-claims thead,
+.theme-light #section-claims tbody,
+.theme-light #section-claims th,
+.theme-light #section-claims td {
+  color: #0f172a !important;
+}
+.theme-light #section-claims thead {
+  background-color: rgba(191,219,254,0.92) !important;
+}
+.theme-light #section-claims thead th {
+  color: #0f172a !important;
+}
+.theme-light #section-claims tbody tr:hover {
+  background-color: rgba(37,99,235,0.06) !important;
+}
+
+
+/* =========================
+   FIX: Theme selector visibility (Settings modal) in LIGHT mode
+   ========================= */
+body.theme-light #settingsModal input[name="theme"] + div,
+.theme-light #settingsModal input[name="theme"] + div{
+  transition: all .15s ease-in-out;
+}
+
+body.theme-light #settingsModal input[name="theme"]:not(:checked) + div,
+.theme-light #settingsModal input[name="theme"]:not(:checked) + div{
+  background-color: rgba(219,234,254,0.85) !important;
+  color: #0f172a !important;
+  border-color: rgba(147,197,253,0.95) !important;
+  opacity: 0.9;
+}
+
+body.theme-light #settingsModal input[name="theme"]:checked + div,
+.theme-light #settingsModal input[name="theme"]:checked + div{
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.25) !important;
+  opacity: 1;
+  position: relative;
+}
+
+body.theme-light #settingsModal input[name="theme"]:checked + div::after,
+.theme-light #settingsModal input[name="theme"]:checked + div::after{
+  content: "✓";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+
+/* =========================
+   THEME LIGHT: CALENDAR BLUE (no grigio)
+   ========================= */
+.theme-light .calendar-day-header{
+  color: #1e3a8a !important; /* blue-900 */
+}
+
+.theme-light .calendar-cell{
+  background-color: rgba(239,246,255,0.85) !important; /* blue-50 */
+  border: 1px solid rgba(147,197,253,0.65) !important; /* blue-300 */
+}
+
+.theme-light .calendar-cell:hover{
+  background-color: rgba(191,219,254,0.65) !important; /* blue-200 */
+}
+
+.theme-light .calendar-cell.today{
+  background-color: rgba(37,99,235,0.10) !important; /* accent blue */
+  border-color: rgba(37,99,235,0.45) !important;
+}
+
+.theme-light .calendar-cell.inactive{
+  opacity: 0.65 !important;
+  background-color: rgba(219,234,254,0.45) !important;
+}
+
+
+/* THEME LIGHT: from-accent/5 */
+.theme-light .from-accent\/5{
+  --tw-gradient-from: rgba(37,99,235,0.10) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(37,99,235,0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
 </style>
 </head>
 <body class="bg-deep text-slate-300 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
