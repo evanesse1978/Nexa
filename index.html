@@ -1475,8 +1475,22 @@ function saveAllData() {
             // LEGACY: abbandonato (ora Firebase Auth)
             console.warn('completeLogin legacy chiamata, ignorata');
         }
-        function handleLogout() {
-            FB.signOut(FB.auth).catch(err => alert('Errore logout: ' + (err.message || err)));
+        async function handleLogout() {
+            try {
+                // Forza un salvataggio immediato prima del logout (evita di perdere modifiche per via del debounce)
+                if(currentUser && currentUser.uid && window.FB && FB.db && !fbIsApplyingRemote){
+                    clearTimeout(fbSaveTimer);
+                    await fbFullSyncToFirestore();
+                }
+            } catch(e) {
+                console.error('Errore salvataggio pre-logout:', e);
+            }
+
+            try {
+                await FB.signOut(FB.auth);
+            } catch(err) {
+                alert('Errore logout: ' + (err.message || err));
+            }
         }
 
         // ==============================
