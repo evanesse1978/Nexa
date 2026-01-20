@@ -1340,21 +1340,27 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
             );
         }
 
-        async function fbFullSyncToFirestore() {
+        async function fbFullSyncToFirestore(){
             if(!currentUser || !currentUser.uid) return;
             const uid = currentUser.uid;
 
-            const batch = FB.writeBatch(FB.db);
+            // Firestore writeBatch ha un limite massimo di operazioni per commit.
+            // Per evitare blocchi/errori su archivi grandi, facciamo commit a blocchi.
+            const ops = []; // { type:'set'|'delete', path, data }
 
             const seenClients = new Set();
             (clients || []).forEach(c => {
                 if(!c || c.id === undefined || c.id === null) return;
                 const id = String(c.id);
                 seenClients.add(id);
-                batch.set(FB.doc(FB.db, `users/${uid}/clients/${id}`), { ...c, _updatedAt: FB.serverTimestamp() }, { merge: true });
+                ops.push({
+                    type: 'set',
+                    path: `users/${uid}/clients/${id}`,
+                    data: { ...c, updatedAt: FB.serverTimestamp() }
+                });
             });
-            fbKnownClientIds.forEach(id => {
-                if(!seenClients.has(id)) batch.delete(FB.doc(FB.db, `users/${uid}/clients/${id}`));
+            (fbKnownClientIds || new Set()).forEach(id => {
+                if(!seenClients.has(String(id))) ops.push({ type:'delete', path: `users/${uid}/clients/${String(id)}` });
             });
 
             const seenPolicies = new Set();
@@ -1362,10 +1368,14 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
                 if(!p || p.id === undefined || p.id === null) return;
                 const id = String(p.id);
                 seenPolicies.add(id);
-                batch.set(FB.doc(FB.db, `users/${uid}/policies/${id}`), { ...p, _updatedAt: FB.serverTimestamp() }, { merge: true });
+                ops.push({
+                    type: 'set',
+                    path: `users/${uid}/policies/${id}`,
+                    data: { ...p, updatedAt: FB.serverTimestamp() }
+                });
             });
-            fbKnownPolicyIds.forEach(id => {
-                if(!seenPolicies.has(id)) batch.delete(FB.doc(FB.db, `users/${uid}/policies/${id}`));
+            (fbKnownPolicyIds || new Set()).forEach(id => {
+                if(!seenPolicies.has(String(id))) ops.push({ type:'delete', path: `users/${uid}/policies/${String(id)}` });
             });
 
             const seenAppointments = new Set();
@@ -1373,13 +1383,26 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
                 if(!a || a.id === undefined || a.id === null) return;
                 const id = String(a.id);
                 seenAppointments.add(id);
-                batch.set(FB.doc(FB.db, `users/${uid}/appointments/${id}`), { ...a, _updatedAt: FB.serverTimestamp() }, { merge: true });
+                ops.push({
+                    type: 'set',
+                    path: `users/${uid}/appointments/${id}`,
+                    data: { ...a, updatedAt: FB.serverTimestamp() }
+                });
             });
-            fbKnownAppointmentIds.forEach(id => {
-                if(!seenAppointments.has(id)) batch.delete(FB.doc(FB.db, `users/${uid}/appointments/${id}`));
+            (fbKnownAppointmentIds || new Set()).forEach(id => {
+                if(!seenAppointments.has(String(id))) ops.push({ type:'delete', path: `users/${uid}/appointments/${String(id)}` });
             });
 
-            await batch.commit();
+            const CHUNK = 450; // margine sotto il limite
+            for(let i=0; i<ops.length; i+=CHUNK){
+                const batch = FB.writeBatch(FB.db);
+                ops.slice(i, i+CHUNK).forEach(op => {
+                    const ref = FB.doc(FB.db, op.path);
+                    if(op.type === 'set') batch.set(ref, op.data, { merge: true });
+                    else batch.delete(ref);
+                });
+                await batch.commit();
+            }
         }
 
         function saveLocalBackup() {
@@ -1415,6 +1438,8 @@ function saveAllData() {
 
             const iconEl = btn ? btn.querySelector('i') : null;
             const prevClass = iconEl ? iconEl.className : '';
+            const timeoutMs = 45000;
+
             try{
                 if(iconEl) iconEl.className = 'fa-solid fa-spinner fa-spin';
 
@@ -1423,7 +1448,10 @@ function saveAllData() {
 
                 if(window.FB && FB.db && !fbIsApplyingRemote){
                     clearTimeout(fbSaveTimer);
-                    await fbFullSyncToFirestore();
+                    await Promise.race([
+                        fbFullSyncToFirestore(),
+                        new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout salvataggio: connessione lenta/offline o archivio molto grande.')), timeoutMs))
+                    ]);
                 }
 
                 if(iconEl) iconEl.className = 'fa-solid fa-check';
@@ -1431,7 +1459,7 @@ function saveAllData() {
             } catch(e){
                 console.error('manualSaveAll error', e);
                 if(iconEl) iconEl.className = prevClass || 'fa-solid fa-floppy-disk';
-                alert('Errore durante il salvataggio.');
+                alert((e && e.message) ? e.message : 'Errore durante il salvataggio.');
             }
         }
 
