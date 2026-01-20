@@ -1821,7 +1821,7 @@ function initApp() {
                     (p.titles || []).forEach(t => {
                         if(t.status === 'DA INCASSARE' && String(t.dueDate) === todayStr){
                             t.status = 'INCASSATO';
-                            t.paymentDate = todayStr;
+                            t.paymentDate = t.dueDate ? String(t.dueDate) : todayStr;
                             t.paymentMethod = 'SDD';
                             changed = true;
                         }
@@ -2569,8 +2569,48 @@ function initApp() {
 
         // Matitina provvigioni (solo rinnovi): modifica provvigione personale (commPers)
         
-function editRenewalAmount(pid, tid){const p=policies.find(x=>x.id==pid);if(!p)return alert('Polizza non trovata');const t=p.titles.find(x=>x.id==tid);if(!t||t.isRenewal!==true)return alert('Funzione disponibile solo sui rinnovi.');const curr=Number(t.amount||0).toFixed(2);const val=prompt('Inserisci premio titolo (rinnovo)',curr);if(val===null)return;const newAmt=safeParseFloat(val);if(isNaN(newAmt))return alert('Valore non valido');t.amount=newAmt;if(Number(p.annualPremium||0)===0)p.annualPremium=newAmt;saveAllData();renderDeadlines();updateDashboard();if(currentViewingPolicyId==p.id)openPolicyTitles(p.id);}
-function editRenewalCommissionTotal(pid, tid){const p=policies.find(x=>String(x.id)==String(pid));if(!p)return alert('Polizza non trovata');const t=p.titles.find(x=>String(x.id)==String(tid));if(!t||t.isRenewal!==true)return alert('Funzione disponibile solo sui rinnovi.');const curr=Number(t.commTotal||0).toFixed(2);const val=prompt('Inserisci provvigione totale (rinnovo)',curr);if(val===null)return;const newTot=safeParseFloat(val);if(isNaN(newTot))return alert('Valore non valido');t.commTotal=newTot;const perc=safeParseFloat(p.commPerc||0);t.commPers=parseFloat((newTot*perc/100).toFixed(2));saveAllData();renderDeadlines();updateDashboard();if(currentViewingPolicyId==p.id)openPolicyTitles(p.id);}
+function editRenewalAmount(pid, tid){
+            const p = policies.find(x => String(x.id) === String(pid));
+            if(!p) return alert('Polizza non trovata');
+
+            const t = (p.titles || []).find(x => String(x.id) === String(tid));
+            if(!t || t.isRenewal !== true) return alert('Funzione disponibile solo sui rinnovi.');
+
+            const curr = Number(t.amount || 0).toFixed(2);
+            const val = prompt('Inserisci premio titolo (rinnovo)', curr);
+            if(val === null) return;
+
+            const newAmt = safeParseFloat(val);
+            if(isNaN(newAmt)) return alert('Valore non valido');
+
+            t.amount = newAmt;
+
+            // Mensile (split 12): se modifichi una rata di rinnovo, aggiorna anche le altre rate di rinnovo dello stesso anno
+            if(Number(p.split) === 12 && t.dueDate){
+                const y = String(t.dueDate).slice(0,4);
+                (p.titles || []).forEach(tt => {
+                    if(tt === t) return;
+                    if(tt.isRenewal === true && String(tt.dueDate || '').slice(0,4) === y){
+                        tt.amount = newAmt;
+                        // Provvigioni solo sulla prima rata dell'anno
+                        if(Number(tt.n) !== 1){
+                            tt.commTotal = 0;
+                            tt.commPers = 0;
+                        }
+                    }
+                });
+
+                p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
+            } else {
+                if(Number(p.annualPremium || 0) === 0) p.annualPremium = newAmt;
+            }
+
+            saveAllData();
+            renderDeadlines();
+            updateDashboard();
+            if(currentViewingPolicyId == p.id) openPolicyTitles(p.id);
+        }
+        function editRenewalCommissionTotal(pid, tid){const p=policies.find(x=>String(x.id)==String(pid));if(!p)return alert('Polizza non trovata');const t=p.titles.find(x=>String(x.id)==String(tid));if(!t||t.isRenewal!==true)return alert('Funzione disponibile solo sui rinnovi.');const curr=Number(t.commTotal||0).toFixed(2);const val=prompt('Inserisci provvigione totale (rinnovo)',curr);if(val===null)return;const newTot=safeParseFloat(val);if(isNaN(newTot))return alert('Valore non valido');t.commTotal=newTot;const perc=safeParseFloat(p.commPerc||0);t.commPers=parseFloat((newTot*perc/100).toFixed(2));saveAllData();renderDeadlines();updateDashboard();if(currentViewingPolicyId==p.id)openPolicyTitles(p.id);}
 function editRenewalCommission(pid, tid) {
             const p = policies.find(x => x.id == pid);
             if(!p) return alert('Polizza non trovata');
@@ -3331,8 +3371,8 @@ function editRenewalCommission(pid, tid) {
 
     const isoPayDate = (payDate && String(payDate).trim()) ? String(payDate).trim() : null;
 
-    // SDD mensile: incassando la rata 1, incassa anche tutte le altre e imposta paymentDate = dueDate
-    if (method === 'SDD' && Number(pol.split) === 12 && Number(t.n) === 1) {
+    // SDD mensile: se incassi con SDD, incassa tutte le 12 rate e imposta paymentDate = dueDate
+    if (method === 'SDD' && Number(pol.split) === 12) {
       (pol.titles || []).forEach(tt => {
         tt.status = 'INCASSATO';
         tt.paymentMethod = 'SDD';
@@ -3343,25 +3383,26 @@ function editRenewalCommission(pid, tid) {
       closePaymentModal();
       renderDeadlines();
       updateDashboard();
-      if (currentViewingPolicyId && String(currentViewingPolicyId) === policyId) openPolicyTitles(policyId);
+      if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
       return;
     }
 
-    // Incasso singolo
+    // Standard: incassa solo il titolo selezionato
     t.status = 'INCASSATO';
+    t.paymentMethod = method;
     t.paymentDate = isoPayDate;
-    t.paymentMethod = method || 'CONTANTI';
 
     saveAllData();
     closePaymentModal();
     renderDeadlines();
     updateDashboard();
-    if (currentViewingPolicyId && String(currentViewingPolicyId) === policyId) openPolicyTitles(policyId);
+    if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
   } catch (e) {
     console.error(e);
-    alert('Errore registrazione incasso: ' + e.message);
+    alert('Errore registrazione incasso.');
   }
 }
+
 
 
         function cancelPayment(pid, tid) {
