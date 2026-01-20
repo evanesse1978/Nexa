@@ -1235,6 +1235,7 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
         // FIREBASE SYNC STATE
         let fbUnsubClients = null, fbUnsubPolicies = null, fbUnsubAppointments = null;
         let fbIsApplyingRemote = false;
+        let fbPendingSave = false;
         let fbSaveTimer = null;
         let fbKnownClientIds = new Set();
         let fbKnownPolicyIds = new Set();
@@ -1295,48 +1296,86 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
             fbUnsubClients = FB.onSnapshot(
                 FB.collection(FB.db, `users/${uid}/clients`),
                 (qs) => {
-                    fbIsApplyingRemote = true;
+                fbIsApplyingRemote = true;
+                try{
                     const arr = [];
-                    const known = new Set();
-                    qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
-                    clients = arr;
-                    fbKnownClientIds = known;
-                    fbIsApplyingRemote = false;
+                                        const known = new Set();
+                                        qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
+                                        clients = arr;
+                                        fbKnownClientIds = known;
+                                        fbIsApplyingRemote = false;
+                                        renderClients();
+                                        updateDashboard();
                     renderClients();
-                    updateDashboard();
+                                        updateDashboard();
+                } catch(e){
+                    console.error('onSnapshot clients', e);
+                } finally {
+                    fbIsApplyingRemote = false;
+                    if(fbPendingSave){
+                        fbPendingSave = false;
+                        saveAllData();
+                    }
                 }
+            }
             );
 
             fbUnsubPolicies = FB.onSnapshot(
                 FB.collection(FB.db, `users/${uid}/policies`),
                 (qs) => {
-                    fbIsApplyingRemote = true;
+                fbIsApplyingRemote = true;
+                try{
                     const arr = [];
-                    const known = new Set();
-                    qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
-                    policies = arr;
-                    fbKnownPolicyIds = known;
+                                        const known = new Set();
+                                        qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
+                                        policies = arr;
+                                        fbKnownPolicyIds = known;
+                                        consolidateDuplicatePolicies();
+                                        fbIsApplyingRemote = false;
+                                        renderPolicies(currentActiveClientId, true);
+                                        renderDeadlines();
+                                        updateDashboard();
                     consolidateDuplicatePolicies();
+                                        renderPolicies(currentActiveClientId, true);
+                                        renderDeadlines();
+                                        updateDashboard();
+                } catch(e){
+                    console.error('onSnapshot policies', e);
+                } finally {
                     fbIsApplyingRemote = false;
-                    renderPolicies(currentActiveClientId, true);
-                    renderDeadlines();
-                    updateDashboard();
+                    if(fbPendingSave){
+                        fbPendingSave = false;
+                        saveAllData();
+                    }
                 }
+            }
             );
 
             fbUnsubAppointments = FB.onSnapshot(
                 FB.collection(FB.db, `users/${uid}/appointments`),
                 (qs) => {
-                    fbIsApplyingRemote = true;
+                fbIsApplyingRemote = true;
+                try{
                     const arr = [];
-                    const known = new Set();
-                    qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
-                    appointments = arr;
-                    fbKnownAppointmentIds = known;
-                    fbIsApplyingRemote = false;
+                                        const known = new Set();
+                                        qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
+                                        appointments = arr;
+                                        fbKnownAppointmentIds = known;
+                                        fbIsApplyingRemote = false;
+                                        renderAgendaMain();
+                                        updateDashboard();
                     renderAgendaMain();
-                    updateDashboard();
+                                        updateDashboard();
+                } catch(e){
+                    console.error('onSnapshot appointments', e);
+                } finally {
+                    fbIsApplyingRemote = false;
+                    if(fbPendingSave){
+                        fbPendingSave = false;
+                        saveAllData();
+                    }
                 }
+            }
             );
         }
 
@@ -1416,21 +1455,29 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
   }
 }
 
-function saveAllData() {
-  if (!currentUser || !currentUser.uid) return;
+function saveAllData(){
+            if(!currentUser || !currentUser.uid) return;
 
-  // Backup locale
-  saveLocalBackup();
+            // Backup locale
+            saveLocalBackup();
 
-  // Sync Firebase
-  if (!window.FB || !FB.db) return;
-  if (fbIsApplyingRemote) return;
+            // Sync Firebase
+            if(!window.FB || !FB.db) return;
 
-  clearTimeout(fbSaveTimer);
-  fbSaveTimer = setTimeout(() => {
-    fbFullSyncToFirestore().catch(err => console.error("fbFullSyncToFirestore", err));
-  }, 350);
-}
+            // Se sto applicando dati arrivati da Firebase, metto in coda il salvataggio
+            if(fbIsApplyingRemote){
+                fbPendingSave = true;
+                return;
+            }
+
+            clearTimeout(fbSaveTimer);
+            fbSaveTimer = setTimeout(() => {
+                fbFullSyncToFirestore().catch(err => {
+                    console.error('fbFullSyncToFirestore', err);
+                    alert('Errore salvataggio: ' + (err?.message || err));
+                });
+            }, 350);
+        }
 
         // SALVATAGGIO MANUALE (forza sync immediato)
         async function manualSaveAll(btn){
@@ -1445,6 +1492,12 @@ function saveAllData() {
 
                 // Backup locale + sync Firebase immediato
                 saveLocalBackup();
+
+                if(window.FB && FB.db && fbIsApplyingRemote){
+                    fbPendingSave = true;
+                    throw new Error('Salvataggio in coda: attendo fine sincronizzazione...');
+                }
+
 
                 if(window.FB && FB.db && !fbIsApplyingRemote){
                     clearTimeout(fbSaveTimer);
@@ -3509,15 +3562,26 @@ function getClientNameById(cid){
         fbUnsubClaims = FB.onSnapshot(
           FB.collection(FB.db, `users/${uid}/claims`),
           (qs) => {
-            fbIsApplyingRemote = true;
-            const arr = [];
-            const known = new Set();
-            qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
-            claims = arr;
-            fbKnownClaimIds = known;
-            fbIsApplyingRemote = false;
-            renderClaims();
-          }
+                fbIsApplyingRemote = true;
+                try{
+                    const arr = [];
+                                const known = new Set();
+                                qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
+                                claims = arr;
+                                fbKnownClaimIds = known;
+                                fbIsApplyingRemote = false;
+                                renderClaims();
+                    renderClaims();
+                } catch(e){
+                    console.error('onSnapshot claims', e);
+                } finally {
+                    fbIsApplyingRemote = false;
+                    if(fbPendingSave){
+                        fbPendingSave = false;
+                        saveAllData();
+                    }
+                }
+            }
         );
       } catch(e){ console.error('fbStartListeners claims', e); }
     };
