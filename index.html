@@ -1110,7 +1110,12 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
                         <div class="space-y-4"><input type="text" id="inputName" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Cognome Nome"><input type="text" id="inputCF" required oninput="parseCF()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white uppercase" placeholder="Codice Fiscale"><input type="email" id="inputEmail" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Email"><input type="tel" id="inputPhone" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Telefono"></div>
                         <div class="space-y-4"><div class="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50"><label class="block text-xs text-slate-400 mb-1 ml-1">Data di Nascita</label><input type="date" id="inputBirthDate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div><input type="text" id="inputAddress" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Residenza"><div class="bg-slate-800/30 p-3 rounded-lg border border-slate-700/50"><label class="block text-xs text-slate-400 mb-1">Parente</label><div class="flex gap-2"><select id="relationSelect" class="w-2/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs"><option value="">Nessuno</option></select><select id="relationType" class="w-1/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option></select></div></div><textarea id="inputNotes" rows="3" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="Note..."></textarea></div>
                     </div>
-                    <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300">Annulla</button><button type="submit" id="submitBtn" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400">Salva</button></div>
+                    <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300">Annulla</button>
+
+                    <button type="button" id="btnDeleteClient" onclick="deleteClient()" class="px-4 py-3 rounded-xl border border-slate-700 text-red-400 hover:bg-red-500 hover:text-white transition-all font-bold" title="Elimina anagrafica">
+                        <i class="fa-solid fa-trash mr-2"></i>Elimina
+                    </button>
+<button type="submit" id="submitBtn" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400">Salva</button></div>
                 </form>
             </div>
         </div>
@@ -2175,7 +2180,7 @@ function initApp() {
             }; 
             reader.readAsText(file); 
         }
-        function processLegacyImport(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const legacyData = JSON.parse(e.target.result); if (!Array.isArray(legacyData)) return alert("Formato non valido"); let newC=0, newP=0; const splitMap = { 'Annuale': 1, 'Semestrale': 2, 'Trimestrale': 4, 'Quadrimestrale': 3, 'Mensile': 12, 'Mensile con SDD': 12 }; legacyData.forEach(item => { let client = clients.find(c => (item.codiceFiscale && c.cf === item.codiceFiscale) || c.name === item.nomeCliente); if (!client) { client = { id: Date.now() + Math.floor(Math.random() * 1000), name: item.nomeCliente, cf: item.codiceFiscale || '', email: item.email || '', phone: item.cellulare || '', address: '', notes: item.linkedProfiles || '', relation: null, createdAt: new Date().toLocaleDateString('it-IT') }; clients.push(client); newC++; } const split = splitMap[item.frazionamento] || (item.isAnnual ? 1 : 2); const annual = parseFloat(item.premio) || 0; const comm = parseFloat(item.provvigioni) || 0; let ramo = 'RAMI VARI'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('AUTO')) ramo = 'AUTO'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('VITA')) ramo = 'VITA'; let titles = []; let count = (split === 1 ? 1 : split); let amt = annual / count; let expiryDate = new Date(item.dataScadenza); let effectDate = new Date(expiryDate); effectDate.setFullYear(effectDate.getFullYear() - 1); for(let i=0; i<count; i++){ let titleDate = new Date(item.dataScadenza); titleDate.setFullYear(titleDate.getFullYear() - 1); if(i > 0) titleDate.setMonth(titleDate.getMonth() + (12/count * i)); let status = 'DA INCASSARE'; let pDate = null; if(item.pagato && i===0) { status = 'INCASSATO'; pDate = item.dataIncasso; } titles.push({ id: Date.now() + Math.floor(Math.random()*1000000), n: i+1, dueDate: titleDate.toISOString().split('T')[0], amount: amt, status: status, commTotal: comm, commPers: comm * 0.35, paymentDate: pDate }); } const newPol = { id: Date.now() + Math.floor(Math.random() * 10000), clientId: client.id, ramo: ramo, company: item.compagnia, notes: item.tipoPolizza || '', policyNumber: item.numeroPolizza || '', effect: effectDate.toISOString().split('T')[0], expiry: item.dataScadenza, split: split, annualPremium: annual, commPerc: 35, status: item.status === 'attiva' ? 'ATTIVA' : 'ANNULLATA', titles: titles }; policies.push(newPol); newP++; }); saveAllData(); alert(`Importati ${newC} clienti e ${newP} polizze.`); location.reload(); } catch (err) { console.error(err); alert("Errore nel file JSON."); } }; reader.readAsText(file); }
+        function processLegacyImport(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const legacyData = JSON.parse(e.target.result); if (!Array.isArray(legacyData)) return alert("Formato non valido"); let newC=0, newP=0; const splitMap = { 'Annuale': 1, 'Semestrale': 2, 'Trimestrale': 4, 'Quadrimestrale': 3, 'Mensile': 12, 'Mensile con SDD': 12 }; legacyData.forEach(item => { let client = clients.find(c => (item.codiceFiscale && c.cf === item.codiceFiscale) || c.name === item.nomeCliente); if (!client) { client = { id: Date.now() + Math.floor(Math.random() * 1000), name: item.nomeCliente, cf: item.codiceFiscale || '', email: item.email || '', phone: item.cellulare || '', address: '', notes: item.linkedProfiles || '', relation: null, createdAt: new Date().toLocaleDateString('it-IT') }; clients.push(client); newC++; } const split = splitMap[item.frazionamento] || (item.isAnnual ? 1 : 2); const annual = parseFloat(item.premio) || 0; const comm = parseFloat(item.provvigioni) || 0; let ramo = 'RAMI VARI'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('AUTO')) ramo = 'AUTO'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('VITA')) ramo = 'VITA'; let titles = []; let count = (split === 1 ? 1 : split); let amt = annual / count; let expiryDate = new Date(item.dataScadenza); let effectDate = new Date(expiryDate); effectDate.setFullYear(effectDate.getFullYear() - 1); for(let i=0; i<count; i++){ let titleDate = new Date(item.dataScadenza); titleDate.setFullYear(titleDate.getFullYear() - 1); if(i > 0) titleDate.setMonth(titleDate.getMonth() + (12/count * i)); let status = 'DA INCASSARE'; let pDate = null; if(item.pagato && i===0) { status = 'INCASSATO'; pDate = item.dataIncasso; } titles.push({ id: Date.now() + Math.floor(Math.random()*1000000), n: i+1, dueDate: localISODate(titleDate), amount: amt, status: status, commTotal: comm, commPers: comm * 0.35, paymentDate: pDate }); } const newPol = { id: Date.now() + Math.floor(Math.random() * 10000), clientId: client.id, ramo: ramo, company: item.compagnia, notes: item.tipoPolizza || '', policyNumber: item.numeroPolizza || '', effect: effectDate.toISOString().split('T')[0], expiry: item.dataScadenza, split: split, annualPremium: annual, commPerc: 35, status: item.status === 'attiva' ? 'ATTIVA' : 'ANNULLATA', titles: titles }; policies.push(newPol); newP++; }); saveAllData(); alert(`Importati ${newC} clienti e ${newP} polizze.`); location.reload(); } catch (err) { console.error(err); alert("Errore nel file JSON."); } }; reader.readAsText(file); }
 
         function renderClients(list = null) {
             const tb = document.getElementById('clientsTableBody');
@@ -2195,7 +2200,8 @@ function initApp() {
         function openModal(id=null, viewOnly=false) { 
             document.getElementById('clientModal').classList.remove('hidden'); 
             if(id){
-                editingClientId=id; 
+                editingClientId=id;
+                    try{ document.getElementById('btnDeleteClient').classList.remove('hidden'); }catch(e){} 
                 const c=clients.find(x=>x.id===id); 
                 if(c){ 
                     document.getElementById('inputName').value=c.name; 
@@ -2209,7 +2215,8 @@ function initApp() {
                     document.getElementById('submitBtn').innerText="Aggiorna"; 
                 }
             } else {
-                editingClientId=null; 
+                editingClientId=null;
+                    try{ document.getElementById('btnDeleteClient').classList.add('hidden'); }catch(e){} 
                 document.getElementById('clientForm').reset(); 
                 document.getElementById('modalTitle').innerText="Nuovo Cliente"; 
                 document.getElementById('submitBtn').innerText="Salva";
@@ -2390,6 +2397,12 @@ function initApp() {
         function closePolicyModal(){document.getElementById('policyModal').classList.add('hidden'); editingPolicyId=null;}
         function checkCustomCompany(){const v=document.getElementById('polCompany').value; const i=document.getElementById('polCustomCompany'); if(v==='ALTRO')i.classList.remove('hidden'); else i.classList.add('hidden');}
         
+        function localISODate(d){
+            const dt = new Date(d);
+            dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+            return dt.toISOString().split('T')[0];
+        }
+
         function safeParseFloat(val) { if(!val) return 0; if(typeof val === 'number') return val; return parseFloat(val.replace(',', '.')); }
 
 
@@ -2569,6 +2582,32 @@ function initApp() {
 
         // Matitina provvigioni (solo rinnovi): modifica provvigione personale (commPers)
         
+
+
+        function editTitleDate(polId, titId){
+            const p = policies.find(x => String(x.id) === String(polId));
+            if(!p) return alert('Polizza non trovata');
+            const t = (p.titles || []).find(x => String(x.id) === String(titId));
+            if(!t) return alert('Titolo non trovato');
+
+            const curr = String(t.dueDate || '').slice(0,10);
+            const val = prompt('Inserisci nuova data scadenza (YYYY-MM-DD)', curr);
+            if(val === null) return;
+            const s = String(val).trim();
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return alert('Formato non valido. Usa YYYY-MM-DD');
+
+            t.dueDate = s;
+
+            // Riordina e rinumera rate
+            (p.titles || []).sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
+            (p.titles || []).forEach((x,i)=> x.n = i+1);
+
+            saveAllData();
+            renderDeadlines();
+            updateDashboard();
+            if(currentViewingPolicyId == p.id) openPolicyTitles(p.id);
+        }
+
 function editRenewalAmount(pid, tid){
             const p = policies.find(x => String(x.id) === String(pid));
             if(!p) return alert('Polizza non trovata');
@@ -2601,7 +2640,34 @@ function editRenewalAmount(pid, tid){
                 });
 
                 p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
-            } else {
+            }
+
+        function deleteClient(){
+            if(!editingClientId) return;
+            const c = clients.find(x => String(x.id) === String(editingClientId));
+            const name = c?.name || 'questa anagrafica';
+            if(!confirm(`Eliminare ${name}?`)) return;
+            if(!confirm('ATTENZIONE: verranno eliminate anche tutte le polizze collegate. Confermi?')) return;
+
+            // Elimina polizze collegate
+            policies = (policies || []).filter(p => String(p.clientId) !== String(editingClientId));
+
+            // Elimina anagrafica
+            clients = (clients || []).filter(x => String(x.id) !== String(editingClientId));
+
+            // Pulisce riferimenti UI
+            if(currentActiveClientId && String(currentActiveClientId) === String(editingClientId)) currentActiveClientId = null;
+            editingClientId = null;
+
+            consolidateDuplicatePolicies();
+            saveAllData();
+            closeModal();
+            renderClients();
+            renderPolicies(currentActiveClientId, true);
+            renderDeadlines();
+            updateDashboard();
+        }
+ else {
                 if(Number(p.annualPremium || 0) === 0) p.annualPremium = newAmt;
             }
 
@@ -2768,7 +2834,7 @@ function editRenewalCommission(pid, tid) {
                     const cTot = (split===12 && i>0) ? 0 : cTotBase;
                     const cPersBase = parseFloat((cTot * (commPerc || 0) / 100).toFixed(2));
                     const cPers = (split===12 && i>0) ? 0 : cPersBase;
-                    titles.push({id:Date.now()+i, n:i+1, dueDate:dd.toISOString().split('T')[0], amount:amt, status:'DA INCASSARE', commTotal:cTot, commPers:cPers});
+                    titles.push({id:Date.now()+i, n:i+1, dueDate:localISODate(dd), amount:amt, status:'DA INCASSARE', commTotal:cTot, commPers:cPers});
                 }
                 const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, company:comp, notes, policyNumber:polNum, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:'ATTIVA', titles};
                 if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); policies[idx]=pData;} else {policies.push(pData);}
@@ -2827,7 +2893,7 @@ function editRenewalCommission(pid, tid) {
                         titles.push({
                             id: Date.now() + Math.floor(Math.random()*1000000),
                             n: i+1,
-                            dueDate: dd.toISOString().split('T')[0],
+                            dueDate: localISODate(dd),
                             amount: 0, // IMPORTO ZERO
                             status: 'DA INCASSARE',
                             commTotal: 0,
@@ -2886,7 +2952,7 @@ function editRenewalCommission(pid, tid) {
                 titles.push({
                     id: Date.now() + Math.floor(Math.random()*1000000),
                     n: 0,
-                    dueDate: dd.toISOString().split('T')[0],
+                    dueDate: localISODate(dd),
                     amount: 0,
                     status: 'DA INCASSARE',
                     commTotal: 0,
