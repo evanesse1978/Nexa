@@ -2980,16 +2980,10 @@ function editRenewalCommission(pid, tid) {
             const polCount = (policies||[]).filter(p => String(p.clientId) === String(clientId)).length;
 
             const msg =
-                "Eliminare l'anagrafica:
-" +
-                "- " + (c.name || "") + "
-" +
-                "- CF: " + (c.cf || "") + "
-
-" +
-                "Verranno eliminate anche " + polCount + " polizze collegate.
-
-" +
+                "Eliminare l'anagrafica:\n" +
+                "- " + (c.name || "") + "\n" +
+                "- CF: " + (c.cf || "") + "\n\n" +
+                "Verranno eliminate anche " + polCount + " polizze collegate.\n\n" +
                 "Confermi?";
 
             if(!confirm(msg)) return;
@@ -3012,7 +3006,6 @@ function editRenewalCommission(pid, tid) {
             renderDeadlines();
             updateDashboard();
         }
-
 
         function suspendPolicy(id) {
             const p = policies.find(x => x.id === id);
