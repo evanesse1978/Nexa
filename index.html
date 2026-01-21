@@ -2976,6 +2976,7 @@ function editRenewalCommission(pid, tid) {
         function deleteClient(clientId){
             const c = (clients||[]).find(x => String(x.id) === String(clientId));
             if(!c) return alert('Cliente non trovato.');
+
             const polCount = (policies||[]).filter(p => String(p.clientId) === String(clientId)).length;
             const msg =
                 "Eliminare l'anagrafica:
@@ -2989,6 +2990,7 @@ function editRenewalCommission(pid, tid) {
 
 " +
                 "Confermi?";
+
             if(!confirm(msg)) return;
 
             (clients||[]).forEach(x => {
@@ -2997,6 +2999,7 @@ function editRenewalCommission(pid, tid) {
 
             policies = (policies||[]).filter(p => String(p.clientId) !== String(clientId));
             clients = (clients||[]).filter(x => String(x.id) !== String(clientId));
+
             if(String(currentActiveClientId) === String(clientId)) currentActiveClientId = null;
 
             saveAllData();
