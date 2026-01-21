@@ -2395,9 +2395,9 @@ function initApp() {
 
 
         function toISODateLocal(d){
-          const x = new Date(d);
-          x.setHours(12,0,0,0);
-          return new Date(x.getTime() - x.getTimezoneOffset()*60000).toISOString().split('T')[0];
+            const x = new Date(d);
+            x.setHours(12,0,0,0);
+            return new Date(x.getTime() - x.getTimezoneOffset()*60000).toISOString().split('T')[0];
         }
 
         // =============================
@@ -2974,30 +2974,36 @@ function editRenewalCommission(pid, tid) {
         
 
         function deleteClient(clientId){
-          const c = clients.find(x => String(x.id) === String(clientId));
-          if(!c) return alert("Cliente non trovato.");
-          const polCount = policies.filter(p => String(p.clientId) === String(clientId)).length;
-          const msg =
-            "Eliminare l'anagrafica:\n" +
-            "- " + (c.name || "") + "\n" +
-            "- CF: " + (c.cf || "") + "\n\n" +
-            "Verranno eliminate anche " + polCount + " polizze collegate.\n\n" +
-            "Confermi?";
-          if(!confirm(msg)) return;
-          // Rimuovi relazione da altri clienti
-          clients.forEach(x => {
-            if(x && x.relation && x.relation.id && String(x.relation.id) === String(clientId)) x.relation = null;
-          });
-          // Elimina polizze collegate
-          policies = policies.filter(p => String(p.clientId) !== String(clientId));
-          // Elimina cliente
-          clients = clients.filter(x => String(x.id) !== String(clientId));
-          if(String(currentActiveClientId) === String(clientId)) currentActiveClientId = null;
-          saveAllData();
-          renderClients();
-          renderPolicies(currentActiveClientId, true);
-          renderDeadlines();
-          updateDashboard();
+            const c = (clients||[]).find(x => String(x.id) === String(clientId));
+            if(!c) return alert('Cliente non trovato.');
+            const polCount = (policies||[]).filter(p => String(p.clientId) === String(clientId)).length;
+            const msg =
+                "Eliminare l'anagrafica:
+" +
+                "- " + (c.name || "") + "
+" +
+                "- CF: " + (c.cf || "") + "
+
+" +
+                "Verranno eliminate anche " + polCount + " polizze collegate.
+
+" +
+                "Confermi?";
+            if(!confirm(msg)) return;
+
+            (clients||[]).forEach(x => {
+                if(x && x.relation && x.relation.id && String(x.relation.id) === String(clientId)) x.relation = null;
+            });
+
+            policies = (policies||[]).filter(p => String(p.clientId) !== String(clientId));
+            clients = (clients||[]).filter(x => String(x.id) !== String(clientId));
+            if(String(currentActiveClientId) === String(clientId)) currentActiveClientId = null;
+
+            saveAllData();
+            renderClients();
+            renderPolicies(currentActiveClientId, true);
+            renderDeadlines();
+            updateDashboard();
         }
 
         function suspendPolicy(id) {
@@ -3091,7 +3097,7 @@ function editRenewalCommission(pid, tid) {
                     : '';
 
                 const dateBtn = canEditDelete
-                    ? '<button onclick=\"editTitleDate('+polId+','+t.id+')\" class=\"text-sky-300 hover:text-white px-2 py-1 rounded text-xs\" title=\"Modifica data\"><i class=\"fa-solid fa-calendar-day\"></i></button>'
+                    ? '<button onclick="editTitleDate('+polId+','+t.id+')" class="text-sky-300 hover:text-white px-2 py-1 rounded text-xs" title="Modifica data"><i class="fa-solid fa-calendar-day"></i></button>'
                     : '';
 
                 const delBtn = canEditDelete
@@ -3198,24 +3204,31 @@ function editRenewalCommission(pid, tid) {
         // MODIFICATO PER GESTIRE IL PROMPT O IL CALCOLO DI NUOVO IMPORTO
         
         function editTitleDate(polId, titId){
-          const p = policies.find(x => String(x.id) === String(polId));
-          if(!p) return alert('Polizza non trovata.');
-          const t = (p.titles||[]).find(x => String(x.id) === String(titId));
-          if(!t) return alert('Titolo non trovato.');
-          if(t.status === 'INCASSATO' || t.status === 'ANNULLATO') return alert('Non è possibile modificare la data di un titolo INCASSATO o ANNULLATO.');
-          const curr = String(t.dueDate || '').slice(0,10);
-          const val = prompt('Nuova data scadenza (AAAA-MM-GG):', curr);
-          if(val === null) return;
-          const newDate = String(val).trim();
-          if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return alert('Formato data non valido. Usa AAAA-MM-GG.');
-          t.dueDate = newDate;
-          p.titles = (p.titles||[]).sort((a,b)=> new Date(String(a.dueDate||'1970-01-01')) - new Date(String(b.dueDate||'1970-01-01')));
-          (p.titles||[]).forEach((x,i)=> x.n = i+1);
-          saveAllData();
-          renderDeadlines();
-          updateDashboard();
-          if(currentViewingPolicyId && String(currentViewingPolicyId) === String(polId)) openPolicyTitles(polId);
-          renderPolicies(currentActiveClientId, true);
+            const p = (policies||[]).find(x => String(x.id) === String(polId));
+            if(!p) return alert('Polizza non trovata.');
+            const t = (p.titles||[]).find(x => String(x.id) === String(titId));
+            if(!t) return alert('Titolo non trovato.');
+
+            if(t.status === 'INCASSATO' || t.status === 'ANNULLATO')
+                return alert('Non è possibile modificare la data di un titolo INCASSATO o ANNULLATO.');
+
+            const curr = String(t.dueDate || '').slice(0,10);
+            const val = prompt('Nuova data scadenza (AAAA-MM-GG):', curr);
+            if(val === null) return;
+
+            const newDate = String(val).trim();
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate))
+                return alert('Formato data non valido. Usa AAAA-MM-GG.');
+
+            t.dueDate = newDate;
+            p.titles = (p.titles||[]).sort((a,b)=> new Date(String(a.dueDate||'1970-01-01')) - new Date(String(b.dueDate||'1970-01-01')));
+            (p.titles||[]).forEach((x,i)=> x.n = i+1);
+
+            saveAllData();
+            renderDeadlines();
+            updateDashboard();
+            if(currentViewingPolicyId && String(currentViewingPolicyId) === String(polId)) openPolicyTitles(polId);
+            renderPolicies(currentActiveClientId, true);
         }
 
 function editTitle(polId, titId){ 
