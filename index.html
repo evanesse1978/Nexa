@@ -2986,7 +2986,7 @@ function editRenewalCommission(pid, tid) {
           if(!confirm(msg)) return;
           // Rimuovi relazione da altri clienti
           clients.forEach(x => {
-            if(x?.relation?.id && String(x.relation.id) === String(clientId)) x.relation = null;
+            if(x && x.relation && x.relation.id && String(x.relation.id) === String(clientId)) x.relation = null;
           });
           // Elimina polizze collegate
           policies = policies.filter(p => String(p.clientId) !== String(clientId));
@@ -3089,9 +3089,10 @@ function editRenewalCommission(pid, tid) {
                 const editBtn = canEditDelete
                     ? '<button onclick="editTitle('+polId+','+t.id+')" class="text-yellow-400 hover:text-white px-2 py-1 rounded text-xs" title="Modifica importo"><i class="fa-solid fa-pen-to-square"></i></button>'
                     : '';
-              const dateBtn = canEditDelete
-                ? `<button onclick=\"editTitleDate(${polId},${t.id})\" class=\"text-sky-300 hover:text-white px-2 py-1 rounded text-xs\" title=\"Modifica data\"><i class=\\"fa-solid fa-calendar-day\\"></i></button>`
-                : \"\";
+
+                const dateBtn = canEditDelete
+                    ? '<button onclick=\"editTitleDate('+polId+','+t.id+')\" class=\"text-sky-300 hover:text-white px-2 py-1 rounded text-xs\" title=\"Modifica data\"><i class=\"fa-solid fa-calendar-day\"></i></button>'
+                    : '';
 
                 const delBtn = canEditDelete
                     ? '<button onclick="deleteTitle('+polId+','+t.id+')" class="text-red-400 hover:text-red-300 px-2 py-1 rounded text-xs" title="Elimina titolo"><i class="fa-solid fa-trash"></i></button>'
@@ -3199,7 +3200,7 @@ function editRenewalCommission(pid, tid) {
         function editTitleDate(polId, titId){
           const p = policies.find(x => String(x.id) === String(polId));
           if(!p) return alert('Polizza non trovata.');
-          const t = p.titles?.find(x => String(x.id) === String(titId));
+          const t = (p.titles||[]).find(x => String(x.id) === String(titId));
           if(!t) return alert('Titolo non trovato.');
           if(t.status === 'INCASSATO' || t.status === 'ANNULLATO') return alert('Non è possibile modificare la data di un titolo INCASSATO o ANNULLATO.');
           const curr = String(t.dueDate || '').slice(0,10);
@@ -3208,8 +3209,8 @@ function editRenewalCommission(pid, tid) {
           const newDate = String(val).trim();
           if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return alert('Formato data non valido. Usa AAAA-MM-GG.');
           t.dueDate = newDate;
-          p.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
-          p.titles.forEach((x,i) => x.n = i+1);
+          p.titles = (p.titles||[]).sort((a,b)=> new Date(String(a.dueDate||'1970-01-01')) - new Date(String(b.dueDate||'1970-01-01')));
+          (p.titles||[]).forEach((x,i)=> x.n = i+1);
           saveAllData();
           renderDeadlines();
           updateDashboard();
