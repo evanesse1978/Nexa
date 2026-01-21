@@ -2175,7 +2175,7 @@ function initApp() {
             }; 
             reader.readAsText(file); 
         }
-        function processLegacyImport(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const legacyData = JSON.parse(e.target.result); if (!Array.isArray(legacyData)) return alert("Formato non valido"); let newC=0, newP=0; const splitMap = { 'Annuale': 1, 'Semestrale': 2, 'Trimestrale': 4, 'Quadrimestrale': 3, 'Mensile': 12, 'Mensile con SDD': 12 }; legacyData.forEach(item => { let client = clients.find(c => (item.codiceFiscale && c.cf === item.codiceFiscale) || c.name === item.nomeCliente); if (!client) { client = { id: Date.now() + Math.floor(Math.random() * 1000), name: item.nomeCliente, cf: item.codiceFiscale || '', email: item.email || '', phone: item.cellulare || '', address: '', notes: item.linkedProfiles || '', relation: null, createdAt: new Date().toLocaleDateString('it-IT') }; clients.push(client); newC++; } const split = splitMap[item.frazionamento] || (item.isAnnual ? 1 : 2); const annual = parseFloat(item.premio) || 0; const comm = parseFloat(item.provvigioni) || 0; let ramo = 'RAMI VARI'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('AUTO')) ramo = 'AUTO'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('VITA')) ramo = 'VITA'; let titles = []; let count = (split === 1 ? 1 : split); let amt = annual / count; let expiryDate = new Date(item.dataScadenza); let effectDate = new Date(expiryDate); effectDate.setFullYear(effectDate.getFullYear() - 1); for(let i=0; i<count; i++){ let titleDate = new Date(item.dataScadenza); titleDate.setFullYear(titleDate.getFullYear() - 1); if(i > 0) titleDate.setMonth(titleDate.getMonth() + (12/count * i)); let status = 'DA INCASSARE'; let pDate = null; if(item.pagato && i===0) { status = 'INCASSATO'; pDate = item.dataIncasso; } titles.push({ id: Date.now() + Math.floor(Math.random()*1000000), n: i+1, dueDate: toISODateLocal(titleDate), amount: amt, status: status, commTotal: comm, commPers: comm * 0.35, paymentDate: pDate }); } const newPol = { id: Date.now() + Math.floor(Math.random() * 10000), clientId: client.id, ramo: ramo, company: item.compagnia, notes: item.tipoPolizza || '', policyNumber: item.numeroPolizza || '', effect: effectDate.toISOString().split('T')[0], expiry: item.dataScadenza, split: split, annualPremium: annual, commPerc: 35, status: item.status === 'attiva' ? 'ATTIVA' : 'ANNULLATA', titles: titles }; policies.push(newPol); newP++; }); saveAllData(); alert(`Importati ${newC} clienti e ${newP} polizze.`); location.reload(); } catch (err) { console.error(err); alert("Errore nel file JSON."); } }; reader.readAsText(file); }
+        function processLegacyImport(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const legacyData = JSON.parse(e.target.result); if (!Array.isArray(legacyData)) return alert("Formato non valido"); let newC=0, newP=0; const splitMap = { 'Annuale': 1, 'Semestrale': 2, 'Trimestrale': 4, 'Quadrimestrale': 3, 'Mensile': 12, 'Mensile con SDD': 12 }; legacyData.forEach(item => { let client = clients.find(c => (item.codiceFiscale && c.cf === item.codiceFiscale) || c.name === item.nomeCliente); if (!client) { client = { id: Date.now() + Math.floor(Math.random() * 1000), name: item.nomeCliente, cf: item.codiceFiscale || '', email: item.email || '', phone: item.cellulare || '', address: '', notes: item.linkedProfiles || '', relation: null, createdAt: new Date().toLocaleDateString('it-IT') }; clients.push(client); newC++; } const split = splitMap[item.frazionamento] || (item.isAnnual ? 1 : 2); const annual = parseFloat(item.premio) || 0; const comm = parseFloat(item.provvigioni) || 0; let ramo = 'RAMI VARI'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('AUTO')) ramo = 'AUTO'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('VITA')) ramo = 'VITA'; let titles = []; let count = (split === 1 ? 1 : split); let amt = annual / count; let expiryDate = new Date(item.dataScadenza); let effectDate = new Date(expiryDate); effectDate.setFullYear(effectDate.getFullYear() - 1); for(let i=0; i<count; i++){ let titleDate = new Date(item.dataScadenza); titleDate.setFullYear(titleDate.getFullYear() - 1); if(i > 0) titleDate.setMonth(titleDate.getMonth() + (12/count * i)); let status = 'DA INCASSARE'; let pDate = null; if(item.pagato && i===0) { status = 'INCASSATO'; pDate = item.dataIncasso; } titles.push({ id: Date.now() + Math.floor(Math.random()*1000000), n: i+1, dueDate: titleDate.toISOString().split('T')[0], amount: amt, status: status, commTotal: comm, commPers: comm * 0.35, paymentDate: pDate }); } const newPol = { id: Date.now() + Math.floor(Math.random() * 10000), clientId: client.id, ramo: ramo, company: item.compagnia, notes: item.tipoPolizza || '', policyNumber: item.numeroPolizza || '', effect: effectDate.toISOString().split('T')[0], expiry: item.dataScadenza, split: split, annualPremium: annual, commPerc: 35, status: item.status === 'attiva' ? 'ATTIVA' : 'ANNULLATA', titles: titles }; policies.push(newPol); newP++; }); saveAllData(); alert(`Importati ${newC} clienti e ${newP} polizze.`); location.reload(); } catch (err) { console.error(err); alert("Errore nel file JSON."); } }; reader.readAsText(file); }
 
         function renderClients(list = null) {
             const tb = document.getElementById('clientsTableBody');
@@ -2190,7 +2190,7 @@ function initApp() {
                 }
             } document.getElementById('client-count').innerText = data.length; tb.innerHTML = '';
             if (data.length === 0) { tb.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">Nessun cliente trovato.</td></tr>`; return; }
-            data.slice(0, 50).forEach(c => { let badge = c.relation ? `<div class="mt-1 flex items-center gap-1 text-[10px] text-darktext bg-accent px-2 py-0.5 rounded font-bold w-fit"><i class="fa-solid fa-link"></i> ${c.relation.type} di ${c.relation.name}</div>` : ''; const row = `<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 cursor-pointer" onclick="openClientDetail(${c.id})"><td class="px-6 py-4 font-medium text-white"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-accent text-darktext flex items-center justify-center text-sm font-bold">${c.name.charAt(0).toUpperCase()}</div><div><div class="text-sm font-semibold">${c.name}</div>${badge}</div></div></td><td class="px-6 py-4"><div class="font-mono text-xs text-slate-300">${c.cf}</div></td><td class="px-6 py-4 text-sm text-slate-300">${c.phone||'-'}</td><td class="px-6 py-4 text-right space-x-2"><button onclick="alert('Note: ' + ('${c.notes}' || 'Nessuna'))" class="w-8 h-8 rounded-full border border-slate-700 text-yellow-500 hover:bg-slate-700 hover:text-white transition-all"><i class="fa-regular fa-note-sticky"></i></button><button onclick="event.stopPropagation(); filterPoliciesByClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-info hover:bg-info hover:text-white transition-all"><i class="fa-solid fa-file-contract"></i></button><button onclick="event.stopPropagation(); openModal(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-accent hover:bg-accent hover:text-darktext transition-all"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="event.stopPropagation(); deleteClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-all" title="Elimina cliente"><i class="fa-solid fa-trash"></i></button></td></tr>`; tb.innerHTML += row; });
+            data.slice(0, 50).forEach(c => { let badge = c.relation ? `<div class="mt-1 flex items-center gap-1 text-[10px] text-darktext bg-accent px-2 py-0.5 rounded font-bold w-fit"><i class="fa-solid fa-link"></i> ${c.relation.type} di ${c.relation.name}</div>` : ''; const row = `<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 cursor-pointer" onclick="openClientDetail(${c.id})"><td class="px-6 py-4 font-medium text-white"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-accent text-darktext flex items-center justify-center text-sm font-bold">${c.name.charAt(0).toUpperCase()}</div><div><div class="text-sm font-semibold">${c.name}</div>${badge}</div></div></td><td class="px-6 py-4"><div class="font-mono text-xs text-slate-300">${c.cf}</div></td><td class="px-6 py-4 text-sm text-slate-300">${c.phone||'-'}</td><td class="px-6 py-4 text-right space-x-2"><button onclick="alert('Note: ' + ('${c.notes}' || 'Nessuna'))" class="w-8 h-8 rounded-full border border-slate-700 text-yellow-500 hover:bg-slate-700 hover:text-white transition-all"><i class="fa-regular fa-note-sticky"></i></button><button onclick="event.stopPropagation(); filterPoliciesByClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-info hover:bg-info hover:text-white transition-all"><i class="fa-solid fa-file-contract"></i></button><button onclick="event.stopPropagation(); openModal(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-accent hover:bg-accent hover:text-darktext transition-all"><i class="fa-solid fa-pen-to-square"></i></button></td></tr>`; tb.innerHTML += row; });
         }
         function openModal(id=null, viewOnly=false) { 
             document.getElementById('clientModal').classList.remove('hidden'); 
@@ -2392,13 +2392,6 @@ function initApp() {
         
         function safeParseFloat(val) { if(!val) return 0; if(typeof val === 'number') return val; return parseFloat(val.replace(',', '.')); }
 
-
-
-        function toISODateLocal(d){
-            const x = new Date(d);
-            x.setHours(12,0,0,0);
-            return new Date(x.getTime() - x.getTimezoneOffset()*60000).toISOString().split('T')[0];
-        }
 
         // =============================
         // ULTIMI VISTI (Clienti/Polizze)
@@ -2767,7 +2760,7 @@ function editRenewalCommission(pid, tid) {
                 const split=parseInt(document.getElementById('polSplit').value);
                 const annual=safeParseFloat(document.getElementById('polAnnualPremium').value);
                 
-                let titles=[], count=(split===1?1:(split===0?1:split)), amt=annual/count, dateObj=new Date(eff + 'T12:00:00');
+                let titles=[], count=(split===1?1:(split===0?1:split)), amt=annual/count, dateObj=new Date(eff);
                 for(let i=0;i<count;i++){
                     let dd=new Date(dateObj); if(split===2)dd.setMonth(dateObj.getMonth()+(i*6)); else if(split===3)dd.setMonth(dateObj.getMonth()+(i*4)); else if(split===4)dd.setMonth(dateObj.getMonth()+(i*3)); else if(split===12)dd.setMonth(dateObj.getMonth()+i);
                     const ctEl = document.getElementById(`prev-ct-${i}`);
@@ -2775,7 +2768,7 @@ function editRenewalCommission(pid, tid) {
                     const cTot = (split===12 && i>0) ? 0 : cTotBase;
                     const cPersBase = parseFloat((cTot * (commPerc || 0) / 100).toFixed(2));
                     const cPers = (split===12 && i>0) ? 0 : cPersBase;
-                    titles.push({id:Date.now()+i, n:i+1, dueDate:toISODateLocal(dd), amount:amt, status:'DA INCASSARE', commTotal:cTot, commPers:cPers});
+                    titles.push({id:Date.now()+i, n:i+1, dueDate:dd.toISOString().split('T')[0], amount:amt, status:'DA INCASSARE', commTotal:cTot, commPers:cPers});
                 }
                 const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, company:comp, notes, policyNumber:polNum, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:'ATTIVA', titles};
                 if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); policies[idx]=pData;} else {policies.push(pData);}
@@ -2834,7 +2827,7 @@ function editRenewalCommission(pid, tid) {
                         titles.push({
                             id: Date.now() + Math.floor(Math.random()*1000000),
                             n: i+1,
-                            dueDate: toISODateLocal(dd),
+                            dueDate: dd.toISOString().split('T')[0],
                             amount: 0, // IMPORTO ZERO
                             status: 'DA INCASSARE',
                             commTotal: 0,
@@ -2893,7 +2886,7 @@ function editRenewalCommission(pid, tid) {
                 titles.push({
                     id: Date.now() + Math.floor(Math.random()*1000000),
                     n: 0,
-                    dueDate: toISODateLocal(dd),
+                    dueDate: dd.toISOString().split('T')[0],
                     amount: 0,
                     status: 'DA INCASSARE',
                     commTotal: 0,
@@ -2972,43 +2965,6 @@ function editRenewalCommission(pid, tid) {
         function replacePolicy(id){const old=policies.find(x=>x.id===id); if(!old)return; if(!confirm("Sostituire?"))return; const d=new Date().toISOString().split('T')[0]; old.status='SOSTITUITA'; old.titles.forEach(t=>{if(t.dueDate>=d && t.status==='DA INCASSARE')t.status='ANNULLATO';}); openPolicyModal(null,null); document.getElementById('polClientSelect').value=old.clientId; document.querySelector(`input[name="ramo"][value="${old.ramo}"]`).checked=true; if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(old.company))document.getElementById('polCompany').value=old.company; else{document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=old.company;document.getElementById('polCustomCompany').classList.remove('hidden');} document.getElementById('polNotes').value="Sostituzione"; document.getElementById('polEffectDate').value=d; document.getElementById('polExpiryDate').value=old.expiry; document.getElementById('polSplit').value=old.split; document.getElementById('polAnnualPremium').value=old.annualPremium; saveAllData(); renderPolicies();}
         function deletePolicy(id){if(confirm("Eliminare?")){policies=policies.filter(p=>p.id!==id); saveAllData(); renderPolicies(); updateDashboard();}}
         
-
-        function deleteClient(clientId){
-            const c = (clients||[]).find(x => String(x.id) === String(clientId));
-            if(!c) return alert('Cliente non trovato.');
-
-            const polCount = (policies||[]).filter(p => String(p.clientId) === String(clientId)).length;
-            const msg =
-                "Eliminare l'anagrafica:
-" +
-                "- " + (c.name || "") + "
-" +
-                "- CF: " + (c.cf || "") + "
-
-" +
-                "Verranno eliminate anche " + polCount + " polizze collegate.
-
-" +
-                "Confermi?";
-
-            if(!confirm(msg)) return;
-
-            (clients||[]).forEach(x => {
-                if(x && x.relation && x.relation.id && String(x.relation.id) === String(clientId)) x.relation = null;
-            });
-
-            policies = (policies||[]).filter(p => String(p.clientId) !== String(clientId));
-            clients = (clients||[]).filter(x => String(x.id) !== String(clientId));
-
-            if(String(currentActiveClientId) === String(clientId)) currentActiveClientId = null;
-
-            saveAllData();
-            renderClients();
-            renderPolicies(currentActiveClientId, true);
-            renderDeadlines();
-            updateDashboard();
-        }
-
         function suspendPolicy(id) {
             const p = policies.find(x => x.id === id);
             if (!p || (p.status !== 'ATTIVA' && p.status !== 'SOSPESA')) return; 
@@ -3099,10 +3055,6 @@ function editRenewalCommission(pid, tid) {
                     ? '<button onclick="editTitle('+polId+','+t.id+')" class="text-yellow-400 hover:text-white px-2 py-1 rounded text-xs" title="Modifica importo"><i class="fa-solid fa-pen-to-square"></i></button>'
                     : '';
 
-                const dateBtn = canEditDelete
-                    ? '<button onclick="editTitleDate('+polId+','+t.id+')" class="text-sky-300 hover:text-white px-2 py-1 rounded text-xs" title="Modifica data"><i class="fa-solid fa-calendar-day"></i></button>'
-                    : '';
-
                 const delBtn = canEditDelete
                     ? '<button onclick="deleteTitle('+polId+','+t.id+')" class="text-red-400 hover:text-red-300 px-2 py-1 rounded text-xs" title="Elimina titolo"><i class="fa-solid fa-trash"></i></button>'
                     : '';
@@ -3115,7 +3067,7 @@ function editRenewalCommission(pid, tid) {
                     <td><input type="number" class="bg-deep border border-slate-700 w-20 px-1 rounded text-xs text-white" value="${t.commTotal||0}" oninput="calcLivePersonale(${t.id}, this.value, ${perc})" onchange="updateCommTotal(${polId}, ${t.id}, this.value)"></td>
                     <td><input type="number" id="pers-${t.id}" class="bg-deep border border-slate-700 w-20 px-1 rounded text-xs text-accent font-bold" value="${t.commPers||0}" onchange="updateCommPersonal(${polId}, ${t.id}, this.value)"></td>
                     <td class="px-4 py-3 text-xs ${st}">${sl}</td>
-                    <td class="px-4 py-3 text-right space-x-2">${payBtn}${undoBtn}${editBtn}${dateBtn}${delBtn}</td>
+                    <td class="px-4 py-3 text-right space-x-2">${payBtn}${undoBtn}${editBtn}${delBtn}</td>
                 </tr>`;
             });
         }
@@ -3205,36 +3157,7 @@ function editRenewalCommission(pid, tid) {
         }
         
         // MODIFICATO PER GESTIRE IL PROMPT O IL CALCOLO DI NUOVO IMPORTO
-        
-        function editTitleDate(polId, titId){
-            const p = (policies||[]).find(x => String(x.id) === String(polId));
-            if(!p) return alert('Polizza non trovata.');
-            const t = (p.titles||[]).find(x => String(x.id) === String(titId));
-            if(!t) return alert('Titolo non trovato.');
-
-            if(t.status === 'INCASSATO' || t.status === 'ANNULLATO')
-                return alert('Non è possibile modificare la data di un titolo INCASSATO o ANNULLATO.');
-
-            const curr = String(t.dueDate || '').slice(0,10);
-            const val = prompt('Nuova data scadenza (AAAA-MM-GG):', curr);
-            if(val === null) return;
-
-            const newDate = String(val).trim();
-            if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate))
-                return alert('Formato data non valido. Usa AAAA-MM-GG.');
-
-            t.dueDate = newDate;
-            p.titles = (p.titles||[]).sort((a,b)=> new Date(String(a.dueDate||'1970-01-01')) - new Date(String(b.dueDate||'1970-01-01')));
-            (p.titles||[]).forEach((x,i)=> x.n = i+1);
-
-            saveAllData();
-            renderDeadlines();
-            updateDashboard();
-            if(currentViewingPolicyId && String(currentViewingPolicyId) === String(polId)) openPolicyTitles(polId);
-            renderPolicies(currentActiveClientId, true);
-        }
-
-function editTitle(polId, titId){ 
+        function editTitle(polId, titId){ 
             const p=policies.find(x=>x.id===polId);
             const t=p.titles.find(x=>x.id===titId);
             const n=prompt("Nuovo importo:", t.amount); 
