@@ -1819,12 +1819,13 @@ function initApp() {
                 if(!Array.isArray(policies) || policies.length===0) return;
                 const now = new Date();
                 const todayStr = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().split('T')[0];
+                const todayIT = formatDateIT(todayStr);
                 let changed = false;
                 policies.forEach(p => {
                     if(p.status !== 'ATTIVA') return;
                     if(Number(p.split) !== 12) return;
                     (p.titles || []).forEach(t => {
-                        if(t.status === 'DA INCASSARE' && String(t.dueDate) === todayStr){
+                        if(t.status === 'DA INCASSARE' && String(t.dueDate) === todayIT){
                             t.status = 'INCASSATO';
                             t.paymentDate = t.dueDate ? String(t.dueDate) : todayStr;
                             t.paymentMethod = 'SDD';
@@ -2180,7 +2181,7 @@ function initApp() {
             }; 
             reader.readAsText(file); 
         }
-        function processLegacyImport(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const legacyData = JSON.parse(e.target.result); if (!Array.isArray(legacyData)) return alert("Formato non valido"); let newC=0, newP=0; const splitMap = { 'Annuale': 1, 'Semestrale': 2, 'Trimestrale': 4, 'Quadrimestrale': 3, 'Mensile': 12, 'Mensile con SDD': 12 }; legacyData.forEach(item => { let client = clients.find(c => (item.codiceFiscale && c.cf === item.codiceFiscale) || c.name === item.nomeCliente); if (!client) { client = { id: Date.now() + Math.floor(Math.random() * 1000), name: item.nomeCliente, cf: item.codiceFiscale || '', email: item.email || '', phone: item.cellulare || '', address: '', notes: item.linkedProfiles || '', relation: null, createdAt: new Date().toLocaleDateString('it-IT') }; clients.push(client); newC++; } const split = splitMap[item.frazionamento] || (item.isAnnual ? 1 : 2); const annual = parseFloat(item.premio) || 0; const comm = parseFloat(item.provvigioni) || 0; let ramo = 'RAMI VARI'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('AUTO')) ramo = 'AUTO'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('VITA')) ramo = 'VITA'; let titles = []; let count = (split === 1 ? 1 : split); let amt = annual / count; let expiryDate = new Date(item.dataScadenza); let effectDate = new Date(expiryDate); effectDate.setFullYear(effectDate.getFullYear() - 1); for(let i=0; i<count; i++){ let titleDate = new Date(item.dataScadenza); titleDate.setFullYear(titleDate.getFullYear() - 1); if(i > 0) titleDate.setMonth(titleDate.getMonth() + (12/count * i)); let status = 'DA INCASSARE'; let pDate = null; if(item.pagato && i===0) { status = 'INCASSATO'; pDate = item.dataIncasso; } titles.push({ id: Date.now() + Math.floor(Math.random()*1000000), n: i+1, dueDate: localISODate(titleDate), amount: amt, status: status, commTotal: comm, commPers: comm * 0.35, paymentDate: pDate }); } const newPol = { id: Date.now() + Math.floor(Math.random() * 10000), clientId: client.id, ramo: ramo, company: item.compagnia, notes: item.tipoPolizza || '', policyNumber: item.numeroPolizza || '', effect: effectDate.toISOString().split('T')[0], expiry: item.dataScadenza, split: split, annualPremium: annual, commPerc: 35, status: item.status === 'attiva' ? 'ATTIVA' : 'ANNULLATA', titles: titles }; policies.push(newPol); newP++; }); saveAllData(); alert(`Importati ${newC} clienti e ${newP} polizze.`); location.reload(); } catch (err) { console.error(err); alert("Errore nel file JSON."); } }; reader.readAsText(file); }
+        function processLegacyImport(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const legacyData = JSON.parse(e.target.result); if (!Array.isArray(legacyData)) return alert("Formato non valido"); let newC=0, newP=0; const splitMap = { 'Annuale': 1, 'Semestrale': 2, 'Trimestrale': 4, 'Quadrimestrale': 3, 'Mensile': 12, 'Mensile con SDD': 12 }; legacyData.forEach(item => { let client = clients.find(c => (item.codiceFiscale && c.cf === item.codiceFiscale) || c.name === item.nomeCliente); if (!client) { client = { id: Date.now() + Math.floor(Math.random() * 1000), name: item.nomeCliente, cf: item.codiceFiscale || '', email: item.email || '', phone: item.cellulare || '', address: '', notes: item.linkedProfiles || '', relation: null, createdAt: new Date().toLocaleDateString('it-IT') }; clients.push(client); newC++; } const split = splitMap[item.frazionamento] || (item.isAnnual ? 1 : 2); const annual = parseFloat(item.premio) || 0; const comm = parseFloat(item.provvigioni) || 0; let ramo = 'RAMI VARI'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('AUTO')) ramo = 'AUTO'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('VITA')) ramo = 'VITA'; let titles = []; let count = (split === 1 ? 1 : split); let amt = annual / count; let expiryDate = new Date(item.dataScadenza); let effectDate = new Date(expiryDate); effectDate.setFullYear(effectDate.getFullYear() - 1); for(let i=0; i<count; i++){ let titleDate = new Date(item.dataScadenza); titleDate.setFullYear(titleDate.getFullYear() - 1); if(i > 0) titleDate.setMonth(titleDate.getMonth() + (12/count * i)); let status = 'DA INCASSARE'; let pDate = null; if(item.pagato && i===0) { status = 'INCASSATO'; pDate = item.dataIncasso; } titles.push({ id: Date.now() + Math.floor(Math.random()*1000000), n: i+1, dueDate: formatDateIT(localISODate(titleDate)), amount: amt, status: status, commTotal: comm, commPers: comm * 0.35, paymentDate: pDate }); } const newPol = { id: Date.now() + Math.floor(Math.random() * 10000), clientId: client.id, ramo: ramo, company: item.compagnia, notes: item.tipoPolizza || '', policyNumber: item.numeroPolizza || '', effect: effectDate.toISOString().split('T')[0], expiry: item.dataScadenza, split: split, annualPremium: annual, commPerc: 35, status: item.status === 'attiva' ? 'ATTIVA' : 'ANNULLATA', titles: titles }; policies.push(newPol); newP++; }); saveAllData(); alert(`Importati ${newC} clienti e ${newP} polizze.`); location.reload(); } catch (err) { console.error(err); alert("Errore nel file JSON."); } }; reader.readAsText(file); }
 
         function renderClients(list = null) {
             const tb = document.getElementById('clientsTableBody');
@@ -2403,6 +2404,35 @@ function initApp() {
             return dt.toISOString().split('T')[0];
         }
 
+        function formatDateIT(iso){
+            if(!iso) return '';
+            const s = String(iso).slice(0,10);
+            if(/^\d{2}-\d{2}-\d{4}$/.test(s)) return s; // already IT
+            if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+                const [y,m,d] = s.split('-');
+                return `${d}-${m}-${y}`;
+            }
+            return s;
+        }
+
+        function toISODateFromIT(it){
+            if(!it) return '';
+            const s = String(it).trim();
+            if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+            const m = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+            if(!m) return '';
+            const dd=m[1], mm=m[2], yyyy=m[3];
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function parseITDateToDate(it){
+            const iso = toISODateFromIT(it);
+            if(!iso) return null;
+            // usa mezzogiorno per evitare slittamenti timezone
+            return new Date(iso + 'T12:00:00');
+        }
+
+
         function safeParseFloat(val) { if(!val) return 0; if(typeof val === 'number') return val; return parseFloat(val.replace(',', '.')); }
 
 
@@ -2498,7 +2528,7 @@ function initApp() {
             const dueStr = (() => {
                 if (!deadline.dueDate) return '';
                 try {
-                    const d = new Date(String(deadline.dueDate).slice(0,10) + 'T12:00:00');
+                    const d = parseITDateToDate(String(deadline.dueDate).slice(0,10) + 'T12:00:00');
                     return d.toLocaleDateString('it-IT');
                 } catch (e) {
                     return String(deadline.dueDate);
@@ -2591,15 +2621,19 @@ function initApp() {
             if(!t) return alert('Titolo non trovato');
 
             const curr = String(t.dueDate || '').slice(0,10);
-            const val = prompt('Inserisci nuova data scadenza (YYYY-MM-DD)', curr);
+            const val = prompt('Inserisci nuova data scadenza (DD-MM-YYYY)', curr);
             if(val === null) return;
             const s = String(val).trim();
-            if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return alert('Formato non valido. Usa YYYY-MM-DD');
+            if(!/^\d{2}-\d{2}-\d{4}$/.test(s)) return alert('Formato non valido. Usa DD-MM-YYYY');
 
             t.dueDate = s;
 
             // Riordina e rinumera rate
-            (p.titles || []).sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
+            (p.titles || []).sort((a,b)=>{
+                const da = parseITDateToDate(a.dueDate);
+                const db = parseITDateToDate(b.dueDate);
+                return (da?da.getTime():0) - (db?db.getTime():0);
+            });
             (p.titles || []).forEach((x,i)=> x.n = i+1);
 
             saveAllData();
@@ -2640,7 +2674,15 @@ function editRenewalAmount(pid, tid){
                 });
 
                 p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
+            } else {
+                if(Number(p.annualPremium || 0) === 0) p.annualPremium = newAmt;
             }
+
+            saveAllData();
+            renderDeadlines();
+            updateDashboard();
+            if(currentViewingPolicyId == p.id) openPolicyTitles(p.id);
+        }
 
         function deleteClient(){
             if(!editingClientId) return;
@@ -2703,10 +2745,10 @@ function editRenewalCommission(pid, tid) {
             if(!p) return;
             const t = (p.titles || []).find(x => x.id === titId);
             if(!t) return;
-            if(!confirm('Eliminare il titolo (rata) ' + (t.n || '') + ' del ' + (new Date(t.dueDate).toLocaleDateString('it-IT')) + '?')) return;
+            if(!confirm('Eliminare il titolo (rata) ' + (t.n || '') + ' del ' + (parseITDateToDate(t.dueDate).toLocaleDateString('it-IT')) + '?')) return;
 
             p.titles = (p.titles || []).filter(x => x.id !== titId);
-            p.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+            p.titles.sort((a,b) => parseITDateToDate(a.dueDate) - parseITDateToDate(b.dueDate));
             p.titles.forEach((x, i) => { x.n = i+1; });
 
             saveAllData();
@@ -2752,7 +2794,7 @@ function editRenewalCommission(pid, tid) {
                     mergedTitles.push(t);
                 });
 
-                mergedTitles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+                mergedTitles.sort((a,b) => parseITDateToDate(a.dueDate) - parseITDateToDate(b.dueDate));
                 mergedTitles.forEach((t, idx) => { t.n = idx + 1; });
 
                 const maxExpiry = list.reduce((mx, p) => {
@@ -2834,7 +2876,7 @@ function editRenewalCommission(pid, tid) {
                     const cTot = (split===12 && i>0) ? 0 : cTotBase;
                     const cPersBase = parseFloat((cTot * (commPerc || 0) / 100).toFixed(2));
                     const cPers = (split===12 && i>0) ? 0 : cPersBase;
-                    titles.push({id:Date.now()+i, n:i+1, dueDate:localISODate(dd), amount:amt, status:'DA INCASSARE', commTotal:cTot, commPers:cPers});
+                    titles.push({id:Date.now()+i, n:i+1, dueDate:formatDateIT(localISODate(dd)), amount:amt, status:'DA INCASSARE', commTotal:cTot, commPers:cPers});
                 }
                 const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, company:comp, notes, policyNumber:polNum, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:'ATTIVA', titles};
                 if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); policies[idx]=pData;} else {policies.push(pData);}
@@ -2893,7 +2935,7 @@ function editRenewalCommission(pid, tid) {
                         titles.push({
                             id: Date.now() + Math.floor(Math.random()*1000000),
                             n: i+1,
-                            dueDate: localISODate(dd),
+                            dueDate: formatDateIT(localISODate(dd)),
                             amount: 0, // IMPORTO ZERO
                             status: 'DA INCASSARE',
                             commTotal: 0,
@@ -2952,7 +2994,7 @@ function editRenewalCommission(pid, tid) {
                 titles.push({
                     id: Date.now() + Math.floor(Math.random()*1000000),
                     n: 0,
-                    dueDate: localISODate(dd),
+                    dueDate: formatDateIT(localISODate(dd)),
                     amount: 0,
                     status: 'DA INCASSARE',
                     commTotal: 0,
@@ -2962,7 +3004,7 @@ function editRenewalCommission(pid, tid) {
             }
 
             p.titles = (p.titles || []).concat(titles);
-            p.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+            p.titles.sort((a,b) => parseITDateToDate(a.dueDate) - parseITDateToDate(b.dueDate));
             p.titles.forEach((t, idx) => { t.n = idx + 1; });
             p.expiry = newExp.toISOString().split('T')[0];
 
@@ -3069,7 +3111,7 @@ function editRenewalCommission(pid, tid) {
             const sIso = d1.toISOString().split('T')[0];
             p.titles.forEach(t => {
                 if(t.status === 'DA INCASSARE' && t.dueDate > sIso) {
-                    let d = new Date(t.dueDate);
+                    let d = parseITDateToDate(t.dueDate);
                     d.setDate(d.getDate() + days);
                     t.dueDate = d.toISOString().split('T')[0];
                 }
@@ -3127,7 +3169,7 @@ function editRenewalCommission(pid, tid) {
 
                 tb.innerHTML += `
                 <tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${t.status==='ANNULLATO'?'status-cancelled':''}">
-                    <td class="px-4 py-3 font-mono text-xs text-white">${new Date(t.dueDate).toLocaleDateString('it-IT')}</td>
+                    <td class="px-4 py-3 font-mono text-xs text-white">${parseITDateToDate(t.dueDate).toLocaleDateString('it-IT')}</td>
                     <td class="px-4 py-3 text-xs text-slate-400">${t.n || ''}</td>
                     <td class="px-4 py-3 font-mono text-white">€ ${Number(t.amount||0).toFixed(2)}</td>
                     <td><input type="number" class="bg-deep border border-slate-700 w-20 px-1 rounded text-xs text-white" value="${t.commTotal||0}" oninput="calcLivePersonale(${t.id}, this.value, ${perc})" onchange="updateCommTotal(${polId}, ${t.id}, this.value)"></td>
@@ -3152,7 +3194,7 @@ function editRenewalCommission(pid, tid) {
             // FIX SDD mensile (split=12): provvigioni annuali SOLO sulla 1ª rata di rinnovo
             if(Number(p.split) === 12 && t.isRenewal === true){
                 const rts = (p.titles || []).filter(x => x.isRenewal === true)
-                    .sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
+                    .sort((a,b)=> parseITDateToDate(a.dueDate) - parseITDateToDate(b.dueDate));
                 const first = rts[0];
 
                 if(first && String(t.id) !== String(first.id)){
@@ -3195,7 +3237,7 @@ function editRenewalCommission(pid, tid) {
             // FIX SDD mensile (split=12): provvigioni annuali SOLO sulla 1ª rata di rinnovo
             if(Number(p.split) === 12 && t.isRenewal === true){
                 const rts = (p.titles || []).filter(x => x.isRenewal === true)
-                    .sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
+                    .sort((a,b)=> parseITDateToDate(a.dueDate) - parseITDateToDate(b.dueDate));
                 const first = rts[0];
 
                 if(first && String(t.id) !== String(first.id)){
@@ -3274,7 +3316,7 @@ function editRenewalCommission(pid, tid) {
                     });
                 });
             });
-            return all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+            return all.sort((a,b) => parseITDateToDate(a.dueDate) - parseITDateToDate(b.dueDate));
         }
 
         function renderDeadlines(){
@@ -3298,7 +3340,7 @@ function editRenewalCommission(pid, tid) {
                 let statusIcon = "";
                 let payBtn = "";
 
-                const dueDate = new Date(t.dueDate);
+                const dueDate = parseITDateToDate(t.dueDate);
                 const diffTime = today - dueDate; 
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
 
@@ -3381,7 +3423,7 @@ function editRenewalCommission(pid, tid) {
                 totalAmount += item.amount || 0;
                 totalComm += item.commPers || 0;
                 return [
-                    new Date(item.dueDate).toLocaleDateString('it-IT'),
+                    parseITDateToDate(item.dueDate).toLocaleDateString('it-IT'),
                     item.cname,
                     item.comp + "\n(" + (item.polNum || '-') + ")",
                     "Rata " + item.n,
