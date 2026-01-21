@@ -1468,7 +1468,7 @@ function saveAllData(){
                     console.error('fbFullSyncToFirestore', err);
                     alert('Errore salvataggio: ' + (err?.message || err));
                 });
-            }, 350);
+            }, 1200);
         }
 
         // SALVATAGGIO MANUALE (forza sync immediato)
@@ -1811,6 +1811,7 @@ function initApp() {
         // ==================================================
         function autoCollectSDDTitles(){
             try{
+                if(fbIsApplyingRemote) return;
                 if(!Array.isArray(policies) || policies.length===0) return;
                 const now = new Date();
                 const todayStr = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().split('T')[0];
@@ -2918,7 +2919,12 @@ function editRenewalCommission(pid, tid) {
 
         // RENDER POLIZZE - CORRETTO PER SOSPENSIONE
         function renderPolicies(filteredList = null, showMonthOnly = true) {
-            let list = filteredList || policies;
+            let list = (policies || []);
+            if(Array.isArray(filteredList)) {
+                list = filteredList;
+            } else if(filteredList !== null && filteredList !== undefined && String(filteredList) !== '') {
+                list = list.filter(p => String(p.clientId) === String(filteredList));
+            }
             if (!filteredList && showMonthOnly) {
                 const now = new Date();
                 list = list.filter(p => { const d = new Date(p.expiry); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
