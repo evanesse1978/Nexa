@@ -4197,6 +4197,13 @@ function switchSection(sectionName){
   }
 }
 </script>
-
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('Service Worker registrato!'))
+      .catch((error) => console.log('Errore SW:', error));
+  }
+</script>
+    
 </body>
 </html>
