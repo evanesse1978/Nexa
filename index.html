@@ -496,18 +496,37 @@ body { min-height: 100dvh; height: 100dvh; }
 }
 
 /* Su schermi piccoli: sidebar sopra e contenuto sotto (niente compressione orizzontale) */
-@media (max-width: 768px) {
+/* MODIFICA FOLD: Limite abbassato a 600px. 
+   Sotto i 600px (Fold chiuso) è mobile. 
+   Sopra i 600px (Fold aperto) diventa Desktop puro. */
+@media (max-width: 600px) {
   #app-container { flex-direction: column !important; }
 
   #app-container > aside {
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
-    max-height: 45vh;
+    max-height: 35vh; /* Menu più compatto da chiuso */
     overflow-y: auto;
     border-right: 0 !important;
     border-bottom: 1px solid rgba(148,163,184,0.35) !important;
   }
+
+  main > header {
+    height: auto !important;
+    padding: 0.5rem 0.75rem !important; /* Meno spazio inutile nell'header */
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Riduciamo drasticamente i margini quando è chiuso per guadagnare spazio */
+  main > div.flex-1 {
+    padding: 0.5rem !important; 
+  }
+  
+  /* Titoli più piccoli su schermo stretto */
+  h3 { font-size: 1.1rem !important; }
+}
 
   main > header {
     height: auto !important;
@@ -844,13 +863,13 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
             <div class="flex-1 overflow-y-auto p-8 z-10 relative scroll-smooth">
                 
                 <div id="section-home" class="fade-in space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="glass-effect p-5 rounded-2xl border-l-4 border-accent relative overflow-hidden"><i class="fa-solid fa-users absolute right-4 top-4 text-6xl text-accent opacity-10"></i><p class="text-xs font-bold text-slate-500 uppercase">I Tuoi Clienti</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-total-clients">0</h3></div>
                         <div class="glass-effect p-5 rounded-2xl border-l-4 border-warning relative overflow-hidden"><i class="fa-solid fa-file-contract absolute right-4 top-4 text-6xl text-warning opacity-10"></i><p class="text-xs font-bold text-slate-500 uppercase">Polizze Attive</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-total-policies">0</h3></div>
                         <div class="glass-effect p-5 rounded-2xl border-l-4 border-danger relative overflow-hidden"><i class="fa-solid fa-circle-exclamation absolute right-4 top-4 text-6xl text-danger opacity-10"></i><p class="text-xs font-bold text-slate-500 uppercase">Da Incassare del mese</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-pending-money">€ 0</h3></div>
                         <div class="glass-effect p-5 rounded-2xl border-l-4 border-success relative overflow-hidden"><i class="fa-solid fa-chart-line absolute right-4 top-4 text-6xl text-success opacity-10"></i><p class="text-xs font-bold text-slate-500 uppercase">Incassato (Mese)</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-month-inc">€ 0</h3></div>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-calendar-check text-accent mr-2"></i>Prossimi Appuntamenti</h3>
