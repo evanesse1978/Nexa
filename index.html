@@ -749,6 +749,57 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
   --tw-gradient-to: rgba(37,99,235,0) var(--tw-gradient-to-position) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
+/* ===============================================
+   FIX VISUALIZZAZIONE GALAXY FOLD / TABLET
+   =============================================== */
+
+/* 1. RISOLUZIONE BUG RIGA IN BASSO */
+/* Nasconde forzatamente eventuali footer di tabella o elementi ghost in basso */
+tfoot { display: none !important; }
+/* Assicura che l'header della tabella stia in alto e non scivoli giù */
+thead { top: 0 !important; bottom: auto !important; }
+
+
+/* 2. TABELLA FULL SCREEN (A telefono aperto) */
+/* Questa regola scatta solo su schermi tra 600px e 1200px (Fold Aperto / Tablet) */
+@media (min-width: 600px) and (max-width: 1200px) {
+  
+  /* Riduciamo drasticamente i margini interni delle celle (da px-6 a padding ridotto) */
+  table th, 
+  table td {
+    padding-left: 0.4rem !important;  /* Molto più stretto */
+    padding-right: 0.4rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    
+    /* Permettiamo al testo di andare a capo se serve, invece di allargare la colonna */
+    white-space: normal !important;
+    
+    /* Font leggermente più piccolo per far stare tutto */
+    font-size: 0.7rem !important;
+  }
+
+  /* Gestione specifica per la colonna DATA (che è font-mono) */
+  table td.font-mono {
+    font-size: 0.65rem !important;
+    letter-spacing: -0.5px; /* Stringe leggermente i caratteri della data */
+    white-space: nowrap !important; /* La data non deve andare a capo */
+  }
+
+  /* Riduciamo la colonna delle icone azioni (l'ultima a destra) */
+  table td:last-child {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: right;
+  }
+  
+  /* Nascondiamo le etichette lunghe nello stato se necessario, lasciando solo l'icona e il colore */
+  /* (Opzionale: rimuovi questo blocco se vuoi vedere tutto il testo dello stato) */
+  .row-expired span, .row-warning span, .row-paid span {
+    font-size: 0.6rem !important;
+  }
+}
+
 
 </style>
 </head>
