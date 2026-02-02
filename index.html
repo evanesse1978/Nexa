@@ -750,83 +750,48 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 /* ============================================================
-   FIX DEFINITIVO GLOBALE (PC + SMARTPHONE)
+   FIX DEFINITIVO V5: GALAXY FOLD + TABLET
    ============================================================ */
 
-/* --- PARTE 1: PULIZIA GLOBALE (PC E MOBILE) --- */
-/* Queste regole valgono per TUTTI i dispositivi per eliminare la riga fantasma */
-
-/* Nasconde footer e intestazioni duplicate ovunque */
-tfoot, table > tfoot { display: none !important; }
-table > thead:not(:first-of-type) { display: none !important; }
-
-/* Rimuove i bordi dall'ultima riga della tabella per evitare la "doppia linea" in fondo */
+/* 1. Pulizia generale */
+tfoot { display: none !important; }
 tbody tr:last-child { border-bottom: none !important; }
-tbody tr:last-child td { border-bottom: none !important; }
+.overflow-x-auto { padding-bottom: 0 !important; margin-bottom: 0 !important; border: none !important; }
 
-/* Forza il contenitore a non avere padding o bordi extra in basso */
-.overflow-x-auto { 
-    padding-bottom: 0 !important; 
-    margin-bottom: 0 !important;
-    border-bottom: none !important; 
-}
-
-/* Nasconde eventuali righe vuote generate per errore */
-tbody tr:empty { display: none !important; }
-
-
-/* --- PARTE 2: OTTIMIZZAZIONE SOLO PER GALAXY FOLD / TABLET --- */
-/* Queste regole scattano SOLO su schermi medi (Fold Aperto / Tablet) */
-@media (min-width: 600px) and (max-width: 1200px) {
+/* 2. Visualizzazione Fold Aperto / Tablet (600px - 1300px) */
+@media (min-width: 600px) and (max-width: 1300px) {
   
-  /* Permettiamo alla tabella di usare tutto lo spazio necessario */
+  /* Forza la tabella a NON uscire dallo schermo */
   table {
+    table-layout: fixed !important; /* Questo è il comando magico */
     width: 100% !important;
-    table-layout: auto !important;
+    min-width: 100% !important;
   }
 
-  /* Rimpiccioliamo font e spazi per far stare tutto nello schermo senza scroll */
+  /* Adatta le celle per far stare tutto in una schermata */
   table th, 
   table td {
-    padding: 6px 2px !important; /* Spazio laterale minimo */
-    font-size: 10px !important;  /* Testo più piccolo */
-    white-space: normal !important; /* Testo a capo */
-    height: auto !important;
-    line-height: 1.2 !important;
+    padding: 6px 2px !important; /* Margini laterali minimi */
+    font-size: 9px !important;   /* Testo ridotto per far entrare tutte le colonne */
+    white-space: normal !important; /* Testo a capo consentito */
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    vertical-align: middle !important;
   }
 
-  /* Colonna Data e Importi: numeri leggermente più piccoli */
+  /* Colonna Data: evitiamo che vada a capo male */
   table td.font-mono {
-    white-space: nowrap !important;
-    font-size: 9px !important;
+    font-size: 8.5px !important;
     letter-spacing: -0.5px;
+    white-space: nowrap !important;
   }
 
-  /* Gestione specifica per i bottoni "AZIONI" (incassa, whatsapp, ecc) */
+  /* Colonna Azioni (bottoni a destra) */
+  table th:last-child, 
   table td:last-child {
+    width: 90px !important; /* Larghezza fissa per i bottoni */
     text-align: right !important;
-    min-width: 80px !important;
-    white-space: normal !important; 
-    padding-right: 2px !important;
-  }
-  
-  /* Icone dei bottoni più piccole */
-  table td:last-child button {
-    font-size: 9px !important;
-    padding: 2px 4px !important;
-  }
-
-  /* Nascondiamo testo superfluo negli stati (es. "SCADUTO") lasciando solo icona/colore */
-  .row-expired span, .row-warning span {
-    font-size: 0 !important; /* Nasconde il testo */
-  }
-  .row-expired span::before {
-    content: "!"; /* Sostituisce con un punto esclamativo */
-    font-size: 12px !important;
-  }
-  .row-warning span::before {
-    content: "⏱"; /* Sostituisce con un orologio */
-    font-size: 12px !important;
+    white-space: nowrap !important; 
   }
 }
 
@@ -1285,15 +1250,7 @@ tbody tr:empty { display: none !important; }
         </div>
     </div>
 </div>
-                <div class="overflow-x-auto max-h-[60vh]">
-                    <table class="w-full text-left text-sm text-slate-400">
-                        <thead class="bg-slate-900/50 text-slate-200 text-xs uppercase font-bold sticky top-0"><tr><th>Scadenza</th><th>Rata</th><th>Importo</th><th>Provv. Totali</th><th>Provv. Pers.</th><th>Stato</th><th class="text-right">Azioni</th></tr></thead>
-                        <tbody id="policyTitlesBody" class="divide-y divide-slate-800/50"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+                
 
     <div id="paymentModal" class="fixed inset-0 z-50 hidden"><div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePaymentModal()"></div><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm"><div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-success"><h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-coins text-success mr-2"></i>Registra Incasso</h3><input type="hidden" id="payPolicyId"><input type="hidden" id="payTitleId"><div class="space-y-4"><div><label class="block text-xs text-slate-500 font-bold mb-1">Data</label><input type="date" id="payDate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white"></div><div><label class="block text-xs text-slate-500 font-bold mb-1">Metodo</label><select id="payMethod" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="CONTANTI">CONTANTI</option><option value="POS">POS</option><option value="BONIFICO">BONIFICO</option><option value="ASSEGNO">ASSEGNO</option><option value="ONLINE">PAGAMENTO ONLINE</option><option value="SDD">SDD</option>
 </select></div><button onclick="confirmPayment()" class="w-full py-2 bg-success text-white rounded-lg font-bold hover:bg-green-600 mt-4">Conferma</button></div></div></div></div>
