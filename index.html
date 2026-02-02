@@ -749,40 +749,52 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
   --tw-gradient-to: rgba(37,99,235,0) var(--tw-gradient-to-position) !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
-/* ===============================================
-   FIX SUPER-AGGRESSIVO RIGA FANTASMA
-   =============================================== */
+/* ============================================================
+   FIX UNIFICATO: GALAXY FOLD + RIMOZIONE RIGA FANTASMA
+   ============================================================ */
 
-/* 1. Nasconde il footer standard */
-tfoot { 
-    display: none !important; 
-    height: 0 !important; 
-    opacity: 0 !important; 
-    visibility: hidden !important; 
-    position: absolute !important;
-    bottom: -9999px !important;
-}
+/* --- PARTE 1: ELIMINAZIONE TOTALE RIGA FANTASMA --- */
+tfoot { display: none !important; } /* Nasconde footer standard */
+table > thead:not(:first-of-type) { display: none !important; } /* Nasconde intestazioni duplicate in basso */
+tbody tr:empty { display: none !important; } /* Nasconde righe vuote */
 
-/* 2. Nasconde eventuali duplicati dell'intestazione in basso */
-/* Se il browser replica il THEAD in fondo, questo lo nasconde */
-table > thead:not(:first-child) { 
-    display: none !important; 
-}
+/* Fix specifico per il bordo finale che sembra una riga */
+tbody tr:last-child td { border-bottom: none !important; }
+.overflow-x-auto { padding-bottom: 0 !important; margin-bottom: 0 !important; }
 
-/* 3. Nasconde bordi residui in fondo alla tabella */
-table { 
-    border-bottom: none !important; 
-}
 
-/* 4. Nasconde l'ultima riga se è vuota o di servizio */
-tbody tr:empty { 
-    display: none !important; 
-}
+/* --- PARTE 2: OTTIMIZZAZIONE VISUALE FOLD APERTO (TABLET) --- */
+/* Questa parte fa vedere bene la tabella quando apri il telefono */
+@media (min-width: 600px) and (max-width: 1200px) {
+  
+  /* Riduciamo padding e font per far stare tutto in una schermata */
+  table th, 
+  table td {
+    padding: 0.5rem 0.3rem !important; /* Spazio ridotto */
+    font-size: 0.7rem !important;      /* Testo più piccolo */
+    white-space: normal !important;    /* Permette al testo di andare a capo */
+    height: auto !important;
+  }
 
-/* 5. Forza il contenitore a tagliare tutto ciò che sborda */
-.overflow-x-auto {
-    overflow-y: hidden !important; /* Taglia via elementi ghost verticali */
-    padding-bottom: 2px !important; /* Piccolo margine per chiudere pulito */
+  /* La colonna data deve rimanere su una riga */
+  table td.font-mono {
+    white-space: nowrap !important;
+    font-size: 0.65rem !important;
+    letter-spacing: -0.5px;
+  }
+
+  /* Gestione colonna azioni (i pulsanti a destra) */
+  table td:last-child {
+    white-space: nowrap !important;
+    padding-right: 0 !important;
+    width: auto !important;
+    text-align: right;
+  }
+  
+  /* Nascondiamo eventuali barre di scorrimento orizzontali se non servono */
+  .overflow-x-auto {
+    overflow-x: hidden; 
+  }
 }
 
 
