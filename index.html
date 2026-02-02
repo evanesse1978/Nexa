@@ -3175,65 +3175,68 @@ function addManualTitle(pid) {
         }
 
         function openPolicyTitles(polId){
-            pushRecentId(recentPoliciesKey(), polId, 5);
-            currentViewingPolicyId = polId;
-            document.getElementById('policyTitlesModal').classList.remove('hidden');
-            const p = (policies||[]).find(x=>x.id===polId);
-            const tb = document.getElementById('policyTitlesBody');
-            tb.innerHTML = '';
-            if(!p){ return; }
-            const perc = p.commPerc || 0;
+    pushRecentId(recentPoliciesKey(), polId, 5);
+    currentViewingPolicyId = polId;
+    document.getElementById('policyTitlesModal').classList.remove('hidden');
+    const p = (policies||[]).find(x=>x.id===polId);
+    const tb = document.getElementById('policyTitlesBody');
+    tb.innerHTML = '';
+    if(!p){ return; }
+    const perc = p.commPerc || 0;
 
-            (p.titles||[]).forEach(t=>{
-                let st = 'text-white';
-                let sl = t.status;
+    (p.titles||[]).forEach(t=>{
+        let st = 'text-white';
+        let sl = t.status;
 
-                if(t.status === 'INCASSATO'){
-                    st = 'text-success font-bold';
-                    const d = t.paymentDate ? new Date(t.paymentDate).toLocaleDateString('it-IT') : '';
-                    const md = t.paymentMethod ? (' - ' + t.paymentMethod) : '';
-                    if(d) sl += ' (' + d + md + ')';
-                } else if(t.status === 'ANNULLATO'){
-                    st = 'text-red-500';
-                }
-
-                const pay = (t.status==='DA INCASSARE' && p.status!=='ANNULLATA' && p.status!=='SOSTITUITA');
-                const canUndo = (t.status==='INCASSATO' && p.status!=='ANNULLATA' && p.status!=='SOSTITUITA');
-
-                const payBtn = pay
-                    ? '<button onclick="openPaymentModal('+polId+','+t.id+')" class="bg-success text-white px-2 py-1 rounded text-xs font-bold hover:bg-green-600" title="Incassa"><i class="fa-solid fa-coins"></i></button>'
-                    : '';
-
-                const undoBtn = canUndo
-                    ? '<button onclick="cancelPayment('+polId+','+t.id+')" class="bg-slate-700 text-white px-2 py-1 rounded text-xs font-bold hover:bg-slate-600" title="Annulla incasso"><i class="fa-solid fa-rotate-left"></i></button>'
-                    : '';
-
-                const canEditDelete = (t.status !== 'INCASSATO' && t.status !== 'ANNULLATO');
-
-                const editBtn = canEditDelete
-                    ? '<button onclick="editTitle('+polId+','+t.id+')" class="text-yellow-400 hover:text-white px-2 py-1 rounded text-xs" title="Modifica importo"><i class="fa-solid fa-pen-to-square"></i></button>'
-                    : '';
-
-                const dateBtn = canEditDelete
-                    ? '<button onclick="editTitleDate('+polId+','+t.id+')" class="text-sky-300 hover:text-white px-2 py-1 rounded text-xs" title="Modifica data"><i class="fa-solid fa-calendar-day"></i></button>'
-                    : '';
-
-                const delBtn = canEditDelete
-                    ? '<button onclick="deleteTitle('+polId+','+t.id+')" class="text-red-400 hover:text-red-300 px-2 py-1 rounded text-xs" title="Elimina titolo"><i class="fa-solid fa-trash"></i></button>'
-                    : '';
-
-                tb.innerHTML += `
-                <tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${t.status==='ANNULLATO'?'status-cancelled':''}">
-                    <td class="px-4 py-3 font-mono text-xs text-white">${new Date(t.dueDate).toLocaleDateString('it-IT')}</td>
-                    <td class="px-4 py-3 text-xs text-slate-400">${t.n || ''}</td>
-                    <td class="px-4 py-3 font-mono text-white">€ ${Number(t.amount||0).toFixed(2)}</td>
-                    <td><input type="number" class="bg-deep border border-slate-700 w-20 px-1 rounded text-xs text-white" value="${t.commTotal||0}" oninput="calcLivePersonale(${t.id}, this.value, ${perc})" onchange="updateCommTotal(${polId}, ${t.id}, this.value)"></td>
-                    <td><input type="number" id="pers-${t.id}" class="bg-deep border border-slate-700 w-20 px-1 rounded text-xs text-accent font-bold" value="${t.commPers||0}" onchange="updateCommPersonal(${polId}, ${t.id}, this.value)"></td>
-                    <td class="px-4 py-3 text-xs ${st}">${sl}</td>
-                    <td class="px-4 py-3 text-right space-x-2">${payBtn}${undoBtn}${editBtn}${dateBtn}${delBtn}</td>
-                </tr>`;
-            });
+        if(t.status === 'INCASSATO'){
+            st = 'text-success font-bold';
+            const d = t.paymentDate ? new Date(t.paymentDate).toLocaleDateString('it-IT') : '';
+            const md = t.paymentMethod ? (' - ' + t.paymentMethod) : '';
+            if(d) sl += ' (' + d + md + ')';
+        } else if(t.status === 'ANNULLATO'){
+            st = 'text-red-500';
         }
+
+        // --- MODIFICA QUI: Rimosso il blocco che impediva l'incasso su polizze annullate ---
+        // Ora basta che il titolo sia 'DA INCASSARE' (quindi vale per lo Storno)
+        const pay = (t.status==='DA INCASSARE'); 
+        
+        const canUndo = (t.status==='INCASSATO'); // Permetti annullo incasso anche su polizze annullate se necessario
+
+        const payBtn = pay
+            ? '<button onclick="openPaymentModal('+polId+','+t.id+')" class="bg-success text-white px-2 py-1 rounded text-xs font-bold hover:bg-green-600" title="Incassa"><i class="fa-solid fa-coins"></i></button>'
+            : '';
+
+        const undoBtn = canUndo
+            ? '<button onclick="cancelPayment('+polId+','+t.id+')" class="bg-slate-700 text-white px-2 py-1 rounded text-xs font-bold hover:bg-slate-600" title="Annulla incasso"><i class="fa-solid fa-rotate-left"></i></button>'
+            : '';
+
+        const canEditDelete = (t.status !== 'INCASSATO' && t.status !== 'ANNULLATO');
+
+        const editBtn = canEditDelete
+            ? '<button onclick="editTitle('+polId+','+t.id+')" class="text-yellow-400 hover:text-white px-2 py-1 rounded text-xs" title="Modifica importo"><i class="fa-solid fa-pen-to-square"></i></button>'
+            : '';
+
+        const dateBtn = canEditDelete
+            ? '<button onclick="editTitleDate('+polId+','+t.id+')" class="text-sky-300 hover:text-white px-2 py-1 rounded text-xs" title="Modifica data"><i class="fa-solid fa-calendar-day"></i></button>'
+            : '';
+
+        const delBtn = canEditDelete
+            ? '<button onclick="deleteTitle('+polId+','+t.id+')" class="text-red-400 hover:text-red-300 px-2 py-1 rounded text-xs" title="Elimina titolo"><i class="fa-solid fa-trash"></i></button>'
+            : '';
+
+        tb.innerHTML += `
+        <tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${t.status==='ANNULLATO'?'status-cancelled':''}">
+            <td class="px-4 py-3 font-mono text-xs text-white">${new Date(t.dueDate).toLocaleDateString('it-IT')}</td>
+            <td class="px-4 py-3 text-xs text-slate-400">${t.n || ''}</td>
+            <td class="px-4 py-3 font-mono text-white">€ ${Number(t.amount||0).toFixed(2)}</td>
+            <td><input type="number" class="bg-deep border border-slate-700 w-20 px-1 rounded text-xs text-white" value="${t.commTotal||0}" oninput="calcLivePersonale(${t.id}, this.value, ${perc})" onchange="updateCommTotal(${polId}, ${t.id}, this.value)"></td>
+            <td><input type="number" id="pers-${t.id}" class="bg-deep border border-slate-700 w-20 px-1 rounded text-xs text-accent font-bold" value="${t.commPers||0}" onchange="updateCommPersonal(${polId}, ${t.id}, this.value)"></td>
+            <td class="px-4 py-3 text-xs ${st}">${sl}</td>
+            <td class="px-4 py-3 text-right space-x-2">${payBtn}${undoBtn}${editBtn}${dateBtn}${delBtn}</td>
+        </tr>`;
+    });
+}
         function closePolicyTitles(){document.getElementById('policyTitlesModal').classList.add('hidden'); currentViewingPolicyId=null;}
         function calcLivePersonale(tid, val, perc) { const tot = safeParseFloat(val); const pers = (tot * perc / 100).toFixed(2); document.getElementById('pers-'+tid).value = pers; }
         // UPDATE FUNZIONI: ORA CHIAMANO renderDeadlines() invece di renderTitles()
@@ -3373,35 +3376,41 @@ function editTitle(polId, titId){
         // SCADENZARIO TITOLI (LOGICA COLORI + EXPORT PDF)
         // ==========================================
         function getFilteredDeadlines() {
-            const fMo = document.getElementById('filterMonthDeadlines').value; 
-            const fPayDate = document.getElementById('filterPayDateDeadlines').value; 
-            const fStat = document.getElementById('filterStatusDeadlines').value; 
-            const fComp = document.getElementById('filterCompDeadlines').value; 
+    const fMo = document.getElementById('filterMonthDeadlines').value; 
+    const fPayDate = document.getElementById('filterPayDateDeadlines').value; 
+    const fStat = document.getElementById('filterStatusDeadlines').value; 
+    const fComp = document.getElementById('filterCompDeadlines').value; 
 
-            let all = [];
-            policies.forEach(p => {
-                if(fComp && p.company !== fComp) return;
-                if(p.status === 'ANNULLATA' || p.status === 'SOSTITUITA') return;
+    let all = [];
+    policies.forEach(p => {
+        if(fComp && p.company !== fComp) return;
+        
+        // --- MODIFICA QUI: Abbiamo rimosso il blocco che saltava ANNULLATA/SOSTITUITA ---
+        // Prima c'era: if(p.status === 'ANNULLATA' || p.status === 'SOSTITUITA') return;
 
-                p.titles.forEach(t => {
-                    if(fStat && t.status !== fStat) return;
-                    if(fMo && !t.dueDate.startsWith(fMo)) return;
-                    if(fPayDate) {
-                        if(t.status !== 'INCASSATO') return;
-                        if(!t.paymentDate || !t.paymentDate.startsWith(fPayDate)) return;
-                    }
+        p.titles.forEach(t => {
+            // Se la polizza è annullata, mostriamo SOLO i titoli attivi (Storni o rate insolute pre-annullamento)
+            // Nascondiamo i titoli che sono stati marcati come 'ANNULLATO'
+            if(t.status === 'ANNULLATO') return; 
 
-                    all.push({
-                        ...t, 
-                        pid: p.id, 
-                        cname: clients.find(c => c.id == p.clientId)?.name || 'Unknown', 
-                        comp: p.company,
-                        polNum: p.policyNumber // ADDED FOR PDF & VIEW
-                    });
-                });
+            if(fStat && t.status !== fStat) return;
+            if(fMo && !t.dueDate.startsWith(fMo)) return;
+            if(fPayDate) {
+                if(t.status !== 'INCASSATO') return;
+                if(!t.paymentDate || !t.paymentDate.startsWith(fPayDate)) return;
+            }
+
+            all.push({
+                ...t, 
+                pid: p.id, 
+                cname: clients.find(c => c.id == p.clientId)?.name || 'Unknown', 
+                comp: p.company,
+                polNum: p.policyNumber
             });
-            return all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
-        }
+        });
+    });
+    return all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+}
 
         function renderDeadlines(){
             autoCollectSDDTitles();
