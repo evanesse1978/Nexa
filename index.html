@@ -750,67 +750,83 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 /* ============================================================
-   FIX DEFINITIVO V3: GALAXY FOLD + TABLET
+   FIX DEFINITIVO GLOBALE (PC + SMARTPHONE)
    ============================================================ */
 
-/* --- PARTE 1: RIMOZIONE TOTALE RIGA FANTASMA --- */
-/* Nasconde footer e intestazioni duplicate */
-tfoot { display: none !important; }
+/* --- PARTE 1: PULIZIA GLOBALE (PC E MOBILE) --- */
+/* Queste regole valgono per TUTTI i dispositivi per eliminare la riga fantasma */
+
+/* Nasconde footer e intestazioni duplicate ovunque */
+tfoot, table > tfoot { display: none !important; }
 table > thead:not(:first-of-type) { display: none !important; }
 
-/* Rimuove i bordi dall'ultima riga e dal contenitore */
+/* Rimuove i bordi dall'ultima riga della tabella per evitare la "doppia linea" in fondo */
 tbody tr:last-child { border-bottom: none !important; }
 tbody tr:last-child td { border-bottom: none !important; }
+
+/* Forza il contenitore a non avere padding o bordi extra in basso */
 .overflow-x-auto { 
-    border: none !important;
     padding-bottom: 0 !important; 
     margin-bottom: 0 !important;
-    box-shadow: none !important; /* Rimuove eventuali ombre che sembrano righe */
+    border-bottom: none !important; 
 }
 
-/* Nasconde righe vuote che potrebbero generarsi per errore */
+/* Nasconde eventuali righe vuote generate per errore */
 tbody tr:empty { display: none !important; }
 
 
-/* --- PARTE 2: VISUALIZZAZIONE "FIT-TO-SCREEN" (FOLD APERTO) --- */
-/* Scatta su schermi tra 600px (Fold chiuso/aperto limite) e 1200px (Laptop) */
+/* --- PARTE 2: OTTIMIZZAZIONE SOLO PER GALAXY FOLD / TABLET --- */
+/* Queste regole scattano SOLO su schermi medi (Fold Aperto / Tablet) */
 @media (min-width: 600px) and (max-width: 1200px) {
   
-  /* Forza la tabella a stare DENTRO lo schermo, adattando le colonne */
+  /* Permettiamo alla tabella di usare tutto lo spazio necessario */
   table {
-    table-layout: fixed !important; /* FONDAMENTALE: Calcola larghezza in base allo schermo */
     width: 100% !important;
-    min-width: 100% !important;
+    table-layout: auto !important;
   }
 
-  /* Gestione intelligente del contenuto delle celle */
+  /* Rimpiccioliamo font e spazi per far stare tutto nello schermo senza scroll */
   table th, 
   table td {
-    padding: 0.5rem 0.2rem !important; /* Padding laterale minimo per guadagnare spazio */
-    font-size: 0.65rem !important;     /* Font ridotto per far stare tutto */
-    white-space: normal !important;    /* Il testo va a capo se serve */
-    word-wrap: break-word !important;  /* Spezza le parole lunghe se necessario */
-    overflow: visible !important;      /* Mostra tutto il contenuto */
+    padding: 6px 2px !important; /* Spazio laterale minimo */
+    font-size: 10px !important;  /* Testo più piccolo */
+    white-space: normal !important; /* Testo a capo */
+    height: auto !important;
+    line-height: 1.2 !important;
   }
 
-  /* Colonna Data e Importi: evitiamo che vadano a capo male */
+  /* Colonna Data e Importi: numeri leggermente più piccoli */
   table td.font-mono {
     white-space: nowrap !important;
-    font-size: 0.6rem !important;
-    letter-spacing: -0.3px;
+    font-size: 9px !important;
+    letter-spacing: -0.5px;
   }
 
-  /* Colonna Azioni (ultima a destra): diamo priorità allo spazio */
-  table th:last-child, 
+  /* Gestione specifica per i bottoni "AZIONI" (incassa, whatsapp, ecc) */
   table td:last-child {
-    width: 110px !important; /* Larghezza fissa sufficiente per i bottoni */
     text-align: right !important;
-    white-space: nowrap !important; /* I bottoni restano in linea */
+    min-width: 80px !important;
+    white-space: normal !important; 
+    padding-right: 2px !important;
+  }
+  
+  /* Icone dei bottoni più piccole */
+  table td:last-child button {
+    font-size: 9px !important;
+    padding: 2px 4px !important;
   }
 
-  /* Rimuove lo scorrimento orizzontale perché ora tutto si adatta */
-  .overflow-x-auto {
-    overflow-x: visible !important; 
+  /* Nascondiamo testo superfluo negli stati (es. "SCADUTO") lasciando solo icona/colore */
+  .row-expired span, .row-warning span {
+    font-size: 0 !important; /* Nasconde il testo */
+  }
+  .row-expired span::before {
+    content: "!"; /* Sostituisce con un punto esclamativo */
+    font-size: 12px !important;
+  }
+  .row-warning span::before {
+    content: "⏱"; /* Sostituisce con un orologio */
+    font-size: 12px !important;
   }
 }
 
