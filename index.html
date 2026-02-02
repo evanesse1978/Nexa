@@ -750,50 +750,67 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 /* ============================================================
-   FIX UNIFICATO: GALAXY FOLD + RIMOZIONE RIGA FANTASMA
+   FIX DEFINITIVO V3: GALAXY FOLD + TABLET
    ============================================================ */
 
-/* --- PARTE 1: ELIMINAZIONE TOTALE RIGA FANTASMA --- */
-tfoot { display: none !important; } /* Nasconde footer standard */
-table > thead:not(:first-of-type) { display: none !important; } /* Nasconde intestazioni duplicate in basso */
-tbody tr:empty { display: none !important; } /* Nasconde righe vuote */
+/* --- PARTE 1: RIMOZIONE TOTALE RIGA FANTASMA --- */
+/* Nasconde footer e intestazioni duplicate */
+tfoot { display: none !important; }
+table > thead:not(:first-of-type) { display: none !important; }
 
-/* Fix specifico per il bordo finale che sembra una riga */
+/* Rimuove i bordi dall'ultima riga e dal contenitore */
+tbody tr:last-child { border-bottom: none !important; }
 tbody tr:last-child td { border-bottom: none !important; }
-.overflow-x-auto { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+.overflow-x-auto { 
+    border: none !important;
+    padding-bottom: 0 !important; 
+    margin-bottom: 0 !important;
+    box-shadow: none !important; /* Rimuove eventuali ombre che sembrano righe */
+}
+
+/* Nasconde righe vuote che potrebbero generarsi per errore */
+tbody tr:empty { display: none !important; }
 
 
-/* --- PARTE 2: OTTIMIZZAZIONE VISUALE FOLD APERTO (TABLET) --- */
-/* Questa parte fa vedere bene la tabella quando apri il telefono */
+/* --- PARTE 2: VISUALIZZAZIONE "FIT-TO-SCREEN" (FOLD APERTO) --- */
+/* Scatta su schermi tra 600px (Fold chiuso/aperto limite) e 1200px (Laptop) */
 @media (min-width: 600px) and (max-width: 1200px) {
   
-  /* Riduciamo padding e font per far stare tutto in una schermata */
+  /* Forza la tabella a stare DENTRO lo schermo, adattando le colonne */
+  table {
+    table-layout: fixed !important; /* FONDAMENTALE: Calcola larghezza in base allo schermo */
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  /* Gestione intelligente del contenuto delle celle */
   table th, 
   table td {
-    padding: 0.5rem 0.3rem !important; /* Spazio ridotto */
-    font-size: 0.7rem !important;      /* Testo più piccolo */
-    white-space: normal !important;    /* Permette al testo di andare a capo */
-    height: auto !important;
+    padding: 0.5rem 0.2rem !important; /* Padding laterale minimo per guadagnare spazio */
+    font-size: 0.65rem !important;     /* Font ridotto per far stare tutto */
+    white-space: normal !important;    /* Il testo va a capo se serve */
+    word-wrap: break-word !important;  /* Spezza le parole lunghe se necessario */
+    overflow: visible !important;      /* Mostra tutto il contenuto */
   }
 
-  /* La colonna data deve rimanere su una riga */
+  /* Colonna Data e Importi: evitiamo che vadano a capo male */
   table td.font-mono {
     white-space: nowrap !important;
-    font-size: 0.65rem !important;
-    letter-spacing: -0.5px;
+    font-size: 0.6rem !important;
+    letter-spacing: -0.3px;
   }
 
-  /* Gestione colonna azioni (i pulsanti a destra) */
+  /* Colonna Azioni (ultima a destra): diamo priorità allo spazio */
+  table th:last-child, 
   table td:last-child {
-    white-space: nowrap !important;
-    padding-right: 0 !important;
-    width: auto !important;
-    text-align: right;
+    width: 110px !important; /* Larghezza fissa sufficiente per i bottoni */
+    text-align: right !important;
+    white-space: nowrap !important; /* I bottoni restano in linea */
   }
-  
-  /* Nascondiamo eventuali barre di scorrimento orizzontali se non servono */
+
+  /* Rimuove lo scorrimento orizzontale perché ora tutto si adatta */
   .overflow-x-auto {
-    overflow-x: hidden; 
+    overflow-x: visible !important; 
   }
 }
 
