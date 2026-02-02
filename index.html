@@ -1619,10 +1619,11 @@ function saveAllData(){
                         const surname = (prof && prof.surname) ? prof.surname : '';
 
                         currentUser = {
-                            uid: user.uid,
-                            email: user.email || (prof ? prof.email : ''),
-                            name,
-                            surname
+                        uid: user.uid,
+                        email: user.email || (prof ? prof.email : ''),
+                        name,
+                        surname,
+                        avatarId: prof ? prof.avatarId : null // <--- QUESTA RIGA MANCAVA
                         };
 
                         document.getElementById('auth-container').classList.add('hidden');
