@@ -1163,11 +1163,28 @@ body.theme-light #settingsModal input[name="theme"]:checked + div::after,
         </div>
     </div>
 
-    <div id="policyTitlesModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePolicyTitles()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl">
-            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative">
-                <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3"><h3 class="text-lg font-bold text-white"><i class="fa-solid fa-list-ol mr-2 text-accent"></i>Dettaglio Rate & Provvigioni</h3><button onclick="closePolicyTitles()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+<div id="policyTitlesModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePolicyTitles()"></div>
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl">
+        <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                <div class="flex items-center gap-4">
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-list-ol mr-2 text-accent"></i>Dettaglio Rate & Provvigioni</h3>
+                    <button onclick="addManualTitle(currentViewingPolicyId)" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded border border-slate-600 flex items-center gap-2">
+                        <i class="fa-solid fa-plus text-accent"></i> Aggiungi Rata
+                    </button>
+                </div>
+                <button onclick="closePolicyTitles()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="overflow-x-auto max-h-[60vh]">
+                <table class="w-full text-left text-sm text-slate-400">
+                    <thead class="bg-slate-900/50 text-slate-200 text-xs uppercase font-bold sticky top-0"><tr><th>Scadenza</th><th>Rata</th><th>Importo</th><th>Provv. Totali</th><th>Provv. Pers.</th><th>Stato</th><th class="text-right">Azioni</th></tr></thead>
+                    <tbody id="policyTitlesBody" class="divide-y divide-slate-800/50"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
                 <div class="overflow-x-auto max-h-[60vh]">
                     <table class="w-full text-left text-sm text-slate-400">
                         <thead class="bg-slate-900/50 text-slate-200 text-xs uppercase font-bold sticky top-0"><tr><th>Scadenza</th><th>Rata</th><th>Importo</th><th>Provv. Totali</th><th>Provv. Pers.</th><th>Stato</th><th class="text-right">Azioni</th></tr></thead>
@@ -2981,7 +2998,94 @@ function editRenewalCommission(pid, tid) {
         
         function filterPoliciesByClient(id){switchSection('contracts'); currentActiveClientId=id; pushRecentId(recentClientsKey(), id, 5); const c=clients.find(x=>x.id==id); if(c){document.getElementById('contract-subtitle').innerText=`Filtro: ${c.name}`; renderPolicies(policies.filter(p=>p.clientId==id)); document.getElementById('btn-show-all-contracts').classList.remove('hidden');} }
         function resetContractFilter(showAll=false){ currentActiveClientId=null; renderPolicies(null, !showAll); }
-        function cancelPolicy(id){const p=policies.find(x=>x.id===id); if(!p||p.status!=='ATTIVA')return; const d=prompt("Data annullamento (AAAA-MM-GG):", new Date().toISOString().split('T')[0]); if(!d)return; p.status='ANNULLATA'; p.titles.forEach(t=>{if(t.dueDate>=d && t.status==='DA INCASSARE')t.status='ANNULLATO';}); saveAllData(); renderPolicies(); updateDashboard();}
+        function cancelPolicy(id) {
+    const p = policies.find(x => x.id === id);
+    if (!p || p.status !== 'ATTIVA') return;
+
+    // 1. Chiedi data annullamento
+    const d = prompt("Data annullamento (AAAA-MM-GG):", new Date().toISOString().split('T')[0]);
+    if (!d) return;
+
+    // 2. Imposta stato ANNULLATA e annulla i titoli futuri
+    p.status = 'ANNULLATA';
+    p.titles.forEach(t => {
+        if (t.dueDate >= d && t.status === 'DA INCASSARE') {
+            t.status = 'ANNULLATO';
+        }
+    });
+
+    // 3. NUOVA FUNZIONALITA: Chiedi se inserire titolo di conguaglio
+    if (confirm("Vuoi inserire un titolo di conguaglio/annullamento (es. storno o appendice)?")) {
+        const amountStr = prompt("Inserisci importo (usa il MENO per rimborsi/storni negativi):", "0.00");
+        if (amountStr !== null) {
+            const amt = safeParseFloat(amountStr);
+            
+            // Calcolo provvigione di default (basata sulla % della polizza)
+            const defaultComm = (amt * (p.commPerc || 0) / 100).toFixed(2);
+            const commStr = prompt("Inserisci le tue provvigioni su questo titolo:", defaultComm);
+            const comm = safeParseFloat(commStr);
+
+            // Aggiungo il titolo
+            p.titles.push({
+                id: Date.now(),
+                n: "STORNO", // Etichetta speciale per riconoscerlo
+                dueDate: d, // Data coincidente con annullamento
+                amount: amt,
+                status: 'DA INCASSARE', // Rimane da gestire (incassare o rimborsare)
+                commTotal: 0,
+                commPers: comm
+            });
+            
+            // Riordino i titoli per data
+            p.titles.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+        }
+    }
+
+    saveAllData();
+    renderPolicies();
+    updateDashboard();
+}
+function addManualTitle(pid) {
+    const p = policies.find(x => x.id === pid);
+    if (!p) return alert("Errore: Polizza non trovata");
+
+    // 1. Chiedi Data
+    const d = prompt("Data scadenza rata (AAAA-MM-GG):", new Date().toISOString().split('T')[0]);
+    if (!d) return;
+
+    // 2. Chiedi Etichetta (Numero rata)
+    const label = prompt("Descrizione rata (es. 'EXTRA', 'APPENDICE', '5'):", "EXTRA");
+    if (label === null) return;
+
+    // 3. Chiedi Importo
+    const amountStr = prompt("Importo (€):", "0.00");
+    if (amountStr === null) return;
+    const amt = safeParseFloat(amountStr);
+
+    // 4. Chiedi Provvigioni
+    const defaultComm = (amt * (p.commPerc || 0) / 100).toFixed(2);
+    const commStr = prompt("Provvigioni personali (€):", defaultComm);
+    const comm = safeParseFloat(commStr);
+
+    // 5. Crea e salva
+    p.titles.push({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        n: label, // Qui usiamo l'input libero per il numero rata
+        dueDate: d,
+        amount: amt,
+        status: 'DA INCASSARE',
+        commTotal: 0, 
+        commPers: comm
+    });
+
+    // Riordina per data
+    p.titles.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+    saveAllData();
+    openPolicyTitles(pid); // Ricarica la modale per mostrare la nuova rata
+    renderDeadlines();
+    updateDashboard();
+}
         function replacePolicy(id){const old=policies.find(x=>x.id===id); if(!old)return; if(!confirm("Sostituire?"))return; const d=new Date().toISOString().split('T')[0]; old.status='SOSTITUITA'; old.titles.forEach(t=>{if(t.dueDate>=d && t.status==='DA INCASSARE')t.status='ANNULLATO';}); openPolicyModal(null,null); document.getElementById('polClientSelect').value=old.clientId; document.querySelector(`input[name="ramo"][value="${old.ramo}"]`).checked=true; if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(old.company))document.getElementById('polCompany').value=old.company; else{document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=old.company;document.getElementById('polCustomCompany').classList.remove('hidden');} document.getElementById('polNotes').value="Sostituzione"; document.getElementById('polEffectDate').value=d; document.getElementById('polExpiryDate').value=old.expiry; document.getElementById('polSplit').value=old.split; document.getElementById('polAnnualPremium').value=old.annualPremium; saveAllData(); renderPolicies();}
         function deletePolicy(id){if(confirm("Eliminare?")){policies=policies.filter(p=>p.id!==id); saveAllData(); renderPolicies(); updateDashboard();}}
         
