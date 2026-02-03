@@ -1421,6 +1421,24 @@ tbody tr:last-child { border-bottom: none !important; }
                     clients = arr;
                     fbKnownClientIds = known;
 renderClients();
+function sendBirthdayWishes(name, phone, email, channel) {
+    // Messaggio amichevole con emoji
+    const msg = `Tanti auguri di buon compleanno ${name}! 🎂🥳🎉\n\nTi auguro una splendida giornata!`;
+    const enc = encodeURIComponent(msg);
+
+    if (channel === 'whatsapp') {
+        const waPhone = cleanPhoneForWhatsApp(phone);
+        // Se c'è il numero apre la chat specifica, altrimenti apre WhatsApp generico
+        const url = waPhone ? `https://wa.me/${waPhone.replace('+', '')}?text=${enc}` : `https://wa.me/?text=${enc}`;
+        window.open(url, '_blank');
+    } else if (channel === 'sms') {
+        const smsTo = phone ? cleanPhoneForWhatsApp(phone).replace('+', '') : '';
+        window.location.href = `sms:${smsTo}?&body=${enc}`;
+    } else if (channel === 'email') {
+        const subject = encodeURIComponent(`Buon Compleanno ${name}! 🎂`);
+        window.location.href = `mailto:${email || ''}?subject=${subject}&body=${enc}`;
+    }
+}
                     updateDashboard();
                 
                 } catch(e){
@@ -2068,28 +2086,58 @@ function initApp() {
                 const diffDays = Math.ceil((nextBday - today) / (1000*60*60*24));
                 if(diffDays >= 0 && diffDays <= 30){
                     const age = nextBday.getFullYear() - bdate.getFullYear();
-                    upcomingBirthdays.push({ name: c.name, date: nextBday, age, diffDays });
+                    // MODIFICA: Ora salviamo anche telefono ed email per i pulsanti
+                    upcomingBirthdays.push({ 
+                        name: c.name, 
+                        date: nextBday, 
+                        age, 
+                        diffDays,
+                        phone: c.phone || '',
+                        email: c.email || ''
+                    });
                 }
             });
 
             upcomingBirthdays.sort((a,b) => a.diffDays - b.diffDays);
+            
             if(upcomingBirthdays.length === 0){
                 bList.innerHTML = '<p class="text-slate-500 text-xs text-center mt-10">Nessun compleanno nei prossimi 30 giorni.</p>';
             } else {
                 upcomingBirthdays.forEach(b => {
                     const dayText = b.diffDays === 0 ? 'Oggi!' : (b.diffDays === 1 ? 'Domani' : ('Tra ' + b.diffDays + ' gg'));
                     const colorClass = b.diffDays === 0 ? 'text-accent font-bold' : 'text-slate-400';
-                    bList.innerHTML += `<div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 border border-slate-700/50 hover:bg-slate-800 transition-all">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-pink-900/50 text-pink-400 flex items-center justify-center text-xs border border-pink-500/30">
-                                <i class="fa-solid fa-cake-candles"></i>
+                    
+                    // Prepariamo i dati sicuri per l'onclick (gestione apostrofi nei nomi)
+                    const sName = b.name.replace(/'/g, "\\'");
+                    const sPhone = b.phone.replace(/'/g, "\\'");
+                    const sEmail = b.email.replace(/'/g, "\\'");
+
+                    bList.innerHTML += `
+                    <div class="p-3 rounded-lg bg-slate-800/40 border border-slate-700/50 hover:bg-slate-800 transition-all mb-2">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-pink-900/50 text-pink-400 flex items-center justify-center text-xs border border-pink-500/30">
+                                    <i class="fa-solid fa-cake-candles"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-bold text-white leading-none">${b.name}</div>
+                                    <div class="text-10px text-slate-500 mt-1">${b.date.getDate()} ${b.date.toLocaleString('it-IT', {month:'long'})} <span class="text-pink-400">${b.age} anni</span></div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="text-sm font-bold text-white leading-none">${b.name}</div>
-                                <div class="text-10px text-slate-500 mt-1">${b.date.getDate()} ${b.date.toLocaleString('it-IT', {month:'long'})} <span class="text-pink-400">${b.age} anni</span></div>
-                            </div>
+                            <div class="text-xs ${colorClass}">${dayText}</div>
                         </div>
-                        <div class="text-xs ${colorClass}">${dayText}</div>
+                        
+                        <div class="flex gap-2 justify-end pt-2 border-t border-slate-700/30">
+                            <button onclick="sendBirthdayWishes('${sName}', '${sPhone}', '${sEmail}', 'whatsapp')" class="text-xs bg-green-900/30 hover:bg-green-600 text-green-400 hover:text-white border border-green-700/50 rounded px-2 py-1 transition-colors" title="Invia Auguri WhatsApp">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </button>
+                            <button onclick="sendBirthdayWishes('${sName}', '${sPhone}', '${sEmail}', 'sms')" class="text-xs bg-sky-900/30 hover:bg-sky-600 text-sky-400 hover:text-white border border-sky-700/50 rounded px-2 py-1 transition-colors" title="Invia Auguri SMS">
+                                <i class="fa-solid fa-comment-sms"></i>
+                            </button>
+                            <button onclick="sendBirthdayWishes('${sName}', '${sPhone}', '${sEmail}', 'email')" class="text-xs bg-slate-700/50 hover:bg-slate-600 text-slate-300 hover:text-white border border-slate-600 rounded px-2 py-1 transition-colors" title="Invia Email">
+                                <i class="fa-solid fa-envelope"></i>
+                            </button>
+                        </div>
                     </div>`;
                 });
             }
