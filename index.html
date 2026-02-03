@@ -156,7 +156,7 @@
 
         const rowsOut = [];
         cur.rows.forEach(p => {
-            const c = clients.find(x => x.id === p.clientId);
+            const c = clients.find(x => String(x.id) === String(p.clientId));
             const cname = c ? c.name : 'Sconosciuto';
             const prem = safeParseFloat(p.annualPremium).toFixed(2);
             
@@ -804,18 +804,32 @@ tbody tr:last-child { border-bottom: none !important; }
     align-items: center !important;
   }
 
-  /* Forza la dimensione dei bottoni per essere cliccabili col dito */
+/* --- GESTIONE BOTTONI AZIONI (CORRETTA PER TESTO E ICONE) --- */
+  
+  /* 1. Regola base per le ICONE (Whatsapp, Email, Cestino, etc) */
   table td:last-child button {
-      width: 20px !important;
-      height: 20px !important;
-      font-size: 10px !important;
+      width: 24px !important;       /* Quadrati un po' più comodi */
+      height: 24px !important;
+      font-size: 11px !important;
       padding: 0 !important;
       display: inline-flex !important;
       justify-content: center !important;
       align-items: center !important;
       margin: 1px !important;
+      border-radius: 6px !important; /* Arrotondati */
   }
-}
+
+  /* 2. Regola specifica per i tasti con TESTO (Incassa/Annulla) */
+  /* Se il bottone ha lo sfondo verde (success) o grigio scuro (slate-700), si adatta al testo */
+  table td:last-child button.bg-success,
+  table td:last-child button.bg-slate-700 {
+      width: auto !important;       /* Larghezza automatica */
+      height: 24px !important;      /* Stessa altezza delle icone per allineamento */
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+      font-size: 9px !important;    /* Testo leggibile */
+      font-weight: bold !important;
+  }
 
 
 </style>
