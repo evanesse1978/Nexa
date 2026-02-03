@@ -1872,7 +1872,7 @@ function initApp() {
 
   const dn = (currentUser && currentUser.displayName) ? currentUser.displayName : (`${currentUser?.name || ""} ${currentUser?.surname || ""}`.trim());
   const safeName = dn || (currentUser?.email ? String(currentUser.email).split("@")[0] : "User");
-  renderUserHeader(safeName, currentUser?.email || "");
+  renderUserHeader(safeName, currentUser?.email || "", currentUser?.avatarId);
 
   clients = clients || [];
   policies = policies || [];
