@@ -1421,44 +1421,7 @@ tbody tr:last-child { border-bottom: none !important; }
                     clients = arr;
                     fbKnownClientIds = known;
 renderClients();
-function sendBirthdayWishes(name, phone, email, channel) {
-    try {
-        // 1. Logica di pulizia numero (integrata qui per sicurezza)
-        let p = String(phone || '').trim();
-        p = p.replace(/[^0-9+]/g, ''); // Rimuove tutto tranne numeri e +
-        if(p && !p.startsWith('+')) {
-            p = '+39' + p.replace(/^0+/, ''); // Aggiunge +39 se manca
-        }
-
-        // 2. Preparazione Messaggio
-        const msg = `Tanti auguri di buon compleanno ${name}! 🎂🥳🎉\n\nTi auguro una splendida giornata!`;
-        const enc = encodeURIComponent(msg);
-
-        // 3. Gestione Canali
-        if (channel === 'whatsapp') {
-            // Se c'è il numero apre la chat specifica, altrimenti apre la lista chat di WA
-            const url = p ? `https://wa.me/${p.replace('+', '')}?text=${enc}` : `https://wa.me/?text=${enc}`;
-            window.open(url, '_blank');
-        
-        } else if (channel === 'sms') {
-            // SMS (funziona su smartphone)
-            const smsTo = p ? p.replace('+', '') : '';
-            window.location.href = `sms:${smsTo}${navigator.userAgent.match(/iPhone|iPad|iPod/i) ? '&' : '?'}body=${enc}`;
-        
-        } else if (channel === 'email') {
-            // Email
-            if (!email) {
-                alert("Nessuna email presente per questo cliente.");
-                return;
-            }
-            const subject = encodeURIComponent(`Buon Compleanno ${name}! 🎂`);
-            window.location.href = `mailto:${email}?subject=${subject}&body=${enc}`;
-        }
-    } catch (e) {
-        console.error("Errore invio auguri:", e);
-        alert("Si è verificato un errore nell'apertura dell'applicazione.");
-    }
-}
+  
                     updateDashboard();
                 
                 } catch(e){
@@ -2036,7 +1999,45 @@ function initApp() {
                 renderAgendaMain();
             }
         }
+// --- FUNZIONE AUGURI (POSIZIONE CORRETTA) ---
+function sendBirthdayWishes(name, phone, email, channel) {
+    try {
+        // 1. Logica di pulizia numero
+        let p = String(phone || '').trim();
+        p = p.replace(/[^0-9+]/g, ''); 
+        if(p && !p.startsWith('+')) {
+            p = '+39' + p.replace(/^0+/, '');
+        }
 
+        // 2. Preparazione Messaggio
+        const msg = `Tanti auguri di buon compleanno ${name}! 🎂🥳🎉\n\nTi auguro una splendida giornata!`;
+        const enc = encodeURIComponent(msg);
+
+        // 3. Gestione Canali
+        if (channel === 'whatsapp') {
+            const url = p ? `https://wa.me/${p.replace('+', '')}?text=${enc}` : `https://wa.me/?text=${enc}`;
+            window.open(url, '_blank');
+        
+        } else if (channel === 'sms') {
+            const smsTo = p ? p.replace('+', '') : '';
+            // Fix per compatibilità iOS/Android
+            const separator = navigator.userAgent.match(/iPhone|iPad|iPod/i) ? '&' : '?';
+            window.location.href = `sms:${smsTo}${separator}body=${enc}`;
+        
+        } else if (channel === 'email') {
+            if (!email) {
+                alert("Nessuna email presente per questo cliente.");
+                return;
+            }
+            const subject = encodeURIComponent(`Buon Compleanno ${name}! 🎂`);
+            window.location.href = `mailto:${email}?subject=${subject}&body=${enc}`;
+        }
+    } catch (e) {
+        console.error("Errore invio auguri:", e);
+        alert("Si è verificato un errore nell'apertura dell'applicazione.");
+    }
+}
+// --- FINE FUNZIONE AUGURI ---
         function updateDashboard(){
             autoCollectSDDTitles();
             document.getElementById('dash-total-clients').innerText = clients.length;
