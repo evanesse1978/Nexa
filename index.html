@@ -786,12 +786,34 @@ tbody tr:last-child { border-bottom: none !important; }
     white-space: nowrap !important;
   }
 
-  /* Colonna Azioni (bottoni a destra) */
-  table th:last-child, 
+  /* Colonna Azioni (bottoni a destra) - MODIFICATO PER TASTI VISIBILI */
+  table th:last-child {
+      width: 95px !important;
+      text-align: right !important;
+  }
+
   table td:last-child {
-    width: 90px !important; /* Larghezza fissa per i bottoni */
+    width: 95px !important; 
     text-align: right !important;
-    white-space: nowrap !important; 
+    white-space: normal !important; /* Permette di andare a capo */
+    overflow: visible !important;   /* Rende visibile ciò che esce */
+    display: flex !important;       /* Usa flexbox per i bottoni */
+    flex-wrap: wrap !important;     /* Manda a capo i bottoni */
+    justify-content: flex-end !important; /* Allinea a destra */
+    gap: 2px !important;            /* Spazio tra i bottoni */
+    align-items: center !important;
+  }
+
+  /* Forza la dimensione dei bottoni per essere cliccabili col dito */
+  table td:last-child button {
+      width: 20px !important;
+      height: 20px !important;
+      font-size: 10px !important;
+      padding: 0 !important;
+      display: inline-flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      margin: 1px !important;
   }
 }
 
