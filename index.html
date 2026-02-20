@@ -1293,22 +1293,12 @@ tbody tr:last-child { border-bottom: none !important; }
 <script type="module" id="firebase-init">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
   import {
-    getAuth,
-    onAuthStateChanged,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut
+    getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut
   } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
   import {
-    getFirestore,
-    doc,
-    setDoc,
-    getDoc,
-    collection,
-    onSnapshot,
-    writeBatch,
-    serverTimestamp
+    getFirestore, doc, setDoc, getDoc, collection, onSnapshot, writeBatch, serverTimestamp,
+    deleteDoc, enableIndexedDbPersistence // <-- NUOVE IMPORTAZIONI
   } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1324,21 +1314,15 @@ tbody tr:last-child { border-bottom: none !important; }
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // Attiva la cache offline per caricamenti istantanei
+  enableIndexedDbPersistence(db).catch((err) => {
+    console.warn("Avviso cache offline:", err.code);
+  });
+
   window.FB = {
-    app,
-    auth,
-    db,
-    onAuthStateChanged,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    doc,
-    setDoc,
-    getDoc,
-    collection,
-    onSnapshot,
-    writeBatch,
-    serverTimestamp
+    app, auth, db, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+    doc, setDoc, getDoc, collection, onSnapshot, writeBatch, serverTimestamp,
+    deleteDoc // <-- ESPORTATO PER L'USO GLOBALE
   };
 
   window.__FIREBASE_READY__ = true;
@@ -1368,6 +1352,24 @@ tbody tr:last-child { border-bottom: none !important; }
         // ==============================
         // FIREBASE HELPERS
         // ==============================
+// ==============================
+// MICROSALVATAGGI (GRANULARI)
+// ==============================
+async function fbSaveSingleDoc(collectionName, docObj) {
+    if(!currentUser || !currentUser.uid || !window.FB || !FB.db) return;
+    try {
+        const ref = FB.doc(FB.db, `users/${currentUser.uid}/${collectionName}/${docObj.id}`);
+        await FB.setDoc(ref, { ...docObj, updatedAt: FB.serverTimestamp() }, { merge: true });
+    } catch(e) { console.error(`Errore salvataggio ${collectionName}:`, e); }
+}
+
+async function fbDeleteSingleDoc(collectionName, docId) {
+    if(!currentUser || !currentUser.uid || !window.FB || !FB.db) return;
+    try {
+        const ref = FB.doc(FB.db, `users/${currentUser.uid}/${collectionName}/${docId}`);
+        await FB.deleteDoc(ref);
+    } catch(e) { console.error(`Errore eliminazione ${collectionName}:`, e); }
+}
         function waitForFirebase(timeoutMs = 15000) {
             return new Promise((resolve, reject) => {
                 const start = Date.now();
@@ -2501,12 +2503,17 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     };
                 }
             }
-                consolidateDuplicatePolicies();
+    // --- INIZIO NUOVO SALVATAGGIO GRANULARE ---
+            fbSaveSingleDoc('clients', d); 
+            if(ri && typeof targetIdx !== 'undefined' && targetIdx !== -1) {
+                 fbSaveSingleDoc('clients', clients[targetIdx]);
+            }
+            saveLocalBackup();
+            // --- FINE NUOVO SALVATAGGIO ---
 
-            saveAllData(); 
             closeModal(); 
             renderClients([d]); 
-            updateDashboard(); // Aggiorna widget compleanni
+            updateDashboard(); 
         }
 
         // --- FUNZIONE PARSE CF ---
@@ -2828,22 +2835,24 @@ function editRenewalCommission(pid, tid) {
 
         // Elimina titolo (rata)
         function deleteTitle(polId, titId) {
-            const p = policies.find(x => x.id === polId);
-            if(!p) return;
-            const t = (p.titles || []).find(x => x.id === titId);
-            if(!t) return;
-            if(!confirm('Eliminare il titolo (rata) ' + (t.n || '') + ' del ' + (new Date(t.dueDate).toLocaleDateString('it-IT')) + '?')) return;
+    const p = policies.find(x => x.id === polId);
+    if(!p) return;
+    const t = (p.titles || []).find(x => x.id === titId);
+    if(!t) return;
+    if(!confirm('Eliminare il titolo (rata) ' + (t.n || '') + ' del ' + (new Date(t.dueDate).toLocaleDateString('it-IT')) + '?')) return;
 
-            p.titles = (p.titles || []).filter(x => x.id !== titId);
-            p.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
-            p.titles.forEach((x, i) => { x.n = i+1; });
+    p.titles = (p.titles || []).filter(x => x.id !== titId);
+    p.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+    p.titles.forEach((x, i) => { x.n = i+1; });
 
-            saveAllData();
-            renderDeadlines();
-            updateDashboard();
-            if(currentViewingPolicyId === polId) openPolicyTitles(polId);
-            renderPolicies(currentActiveClientId, true);
-        }
+    fbSaveSingleDoc('policies', p);
+    saveLocalBackup();
+
+    renderDeadlines();
+    updateDashboard();
+    if(currentViewingPolicyId === polId) openPolicyTitles(polId);
+    renderPolicies(currentActiveClientId, true);
+}
 
         // Unisce eventuali polizze duplicate (stesso Cliente + Compagnia + Numero polizza)
         // Mantiene una polizza "principale" e accorpa i titoli, aggiornando la scadenza al massimo.
@@ -2966,8 +2975,10 @@ function editRenewalCommission(pid, tid) {
                     titles.push({id:Date.now()+i, n:i+1, dueDate:toISODateLocal(dd), amount:amt, status:'DA INCASSARE', commTotal:cTot, commPers:cPers});
                 }
                 const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, company:comp, notes, policyNumber:polNum, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:'ATTIVA', titles};
-                if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); policies[idx]=pData;} else {policies.push(pData);}
-                saveAllData(); closePolicyModal(); renderPolicies(); updateDashboard();
+if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); policies[idx]=pData;} else {policies.push(pData);}
+                fbSaveSingleDoc('policies', pData);
+                saveLocalBackup();
+                closePolicyModal(); renderPolicies(); updateDashboard();
             } catch(err) {
                 alert("Errore salvataggio: " + err.message);
             }
@@ -3165,11 +3176,9 @@ function editRenewalCommission(pid, tid) {
     const p = policies.find(x => x.id === id);
     if (!p || p.status !== 'ATTIVA') return;
 
-    // 1. Chiedi data annullamento
     const d = prompt("Data annullamento (AAAA-MM-GG):", new Date().toISOString().split('T')[0]);
     if (!d) return;
 
-    // 2. Imposta stato ANNULLATA e annulla i titoli futuri
     p.status = 'ANNULLATA';
     p.titles.forEach(t => {
         if (t.dueDate >= d && t.status === 'DA INCASSARE') {
@@ -3177,37 +3186,34 @@ function editRenewalCommission(pid, tid) {
         }
     });
 
-    // 3. NUOVA FUNZIONALITA: Chiedi se inserire titolo di conguaglio
     if (confirm("Vuoi inserire un titolo di conguaglio/annullamento (es. storno o appendice)?")) {
         const amountStr = prompt("Inserisci importo (usa il MENO per rimborsi/storni negativi):", "0.00");
         if (amountStr !== null) {
             const amt = safeParseFloat(amountStr);
-            
-            // Calcolo provvigione di default (basata sulla % della polizza)
             const defaultComm = (amt * (p.commPerc || 0) / 100).toFixed(2);
             const commStr = prompt("Inserisci le tue provvigioni su questo titolo:", defaultComm);
             const comm = safeParseFloat(commStr);
 
-            // Aggiungo il titolo
             p.titles.push({
                 id: Date.now(),
-                n: "STORNO", // Etichetta speciale per riconoscerlo
-                dueDate: d, // Data coincidente con annullamento
+                n: "STORNO",
+                dueDate: d, 
                 amount: amt,
-                status: 'DA INCASSARE', // Rimane da gestire (incassare o rimborsare)
+                status: 'DA INCASSARE',
                 commTotal: 0,
                 commPers: comm
             });
-            
-            // Riordino i titoli per data
             p.titles.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
         }
     }
 
-    saveAllData();
+    fbSaveSingleDoc('policies', p);
+    saveLocalBackup();
+
     renderPolicies();
     updateDashboard();
 }
+
 function addManualTitle(pid) {
     const p = policies.find(x => x.id === pid);
     if (!p) return alert("Errore: Polizza non trovata");
@@ -3244,13 +3250,24 @@ function addManualTitle(pid) {
     // Riordina per data
     p.titles.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-    saveAllData();
+    // --- INIZIO SALVATAGGIO GRANULARE ---
+    fbSaveSingleDoc('policies', p);
+    saveLocalBackup();
+    // --- FINE SALVATAGGIO GRANULARE ---
     openPolicyTitles(pid); // Ricarica la modale per mostrare la nuova rata
     renderDeadlines();
     updateDashboard();
 }
         function replacePolicy(id){const old=policies.find(x=>x.id===id); if(!old)return; if(!confirm("Sostituire?"))return; const d=new Date().toISOString().split('T')[0]; old.status='SOSTITUITA'; old.titles.forEach(t=>{if(t.dueDate>=d && t.status==='DA INCASSARE')t.status='ANNULLATO';}); openPolicyModal(null,null); document.getElementById('polClientSelect').value=old.clientId; document.querySelector(`input[name="ramo"][value="${old.ramo}"]`).checked=true; if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(old.company))document.getElementById('polCompany').value=old.company; else{document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=old.company;document.getElementById('polCustomCompany').classList.remove('hidden');} document.getElementById('polNotes').value="Sostituzione"; document.getElementById('polEffectDate').value=d; document.getElementById('polExpiryDate').value=old.expiry; document.getElementById('polSplit').value=old.split; document.getElementById('polAnnualPremium').value=old.annualPremium; saveAllData(); renderPolicies();}
-        function deletePolicy(id){if(confirm("Eliminare?")){policies=policies.filter(p=>p.id!==id); saveAllData(); renderPolicies(); updateDashboard();}}
+function deletePolicy(id){
+    if(confirm("Eliminare?")){
+        policies=policies.filter(p=>p.id!==id); 
+        fbDeleteSingleDoc('policies', id);
+        saveLocalBackup();
+        renderPolicies(); 
+        updateDashboard();
+    }
+}
         
 
         function deleteClient(clientId){
@@ -3272,15 +3289,19 @@ function addManualTitle(pid) {
             (clients||[]).forEach(x => {
                 if(x && x.relation && x.relation.id && String(x.relation.id) === String(clientId)) x.relation = null;
             });
-
-            // Elimina polizze collegate
+// Elimina polizze collegate su Firebase e in locale
+            const policiesToDelete = (policies||[]).filter(p => String(p.clientId) === String(clientId));
+            policiesToDelete.forEach(p => fbDeleteSingleDoc('policies', p.id));
             policies = (policies||[]).filter(p => String(p.clientId) !== String(clientId));
-            // Elimina cliente
+            
+            // Elimina cliente su Firebase e in locale
+            fbDeleteSingleDoc('clients', clientId);
             clients = (clients||[]).filter(x => String(x.id) !== String(clientId));
 
             if(String(currentActiveClientId) === String(clientId)) currentActiveClientId = null;
 
-            saveAllData();
+            saveLocalBackup();
+
             renderClients();
             renderPolicies(currentActiveClientId, true);
             renderDeadlines();
@@ -3487,53 +3508,28 @@ function addManualTitle(pid) {
         
         // MODIFICATO PER GESTIRE IL PROMPT O IL CALCOLO DI NUOVO IMPORTO
         
-        function editTitleDate(polId, titId){
-            const p = (policies||[]).find(x => String(x.id) === String(polId));
-            if(!p) return alert('Polizza non trovata.');
-            const t = (p.titles||[]).find(x => String(x.id) === String(titId));
-            if(!t) return alert('Titolo non trovato.');
-
-            if(t.status === 'INCASSATO' || t.status === 'ANNULLATO')
-                return alert('Non è possibile modificare la data di un titolo INCASSATO o ANNULLATO.');
-
-            const curr = String(t.dueDate || '').slice(0,10);
-            const val = prompt('Nuova data scadenza (AAAA-MM-GG):', curr);
-            if(val === null) return;
-
-            const newDate = String(val).trim();
-            if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate))
-                return alert('Formato data non valido. Usa AAAA-MM-GG.');
-
-            t.dueDate = newDate;
-            p.titles = (p.titles||[]).sort((a,b)=> new Date(String(a.dueDate||'1970-01-01')) - new Date(String(b.dueDate||'1970-01-01')));
-            (p.titles||[]).forEach((x,i)=> x.n = i+1);
-
-            saveAllData();
-            renderDeadlines();
-            updateDashboard();
-            if(currentViewingPolicyId && String(currentViewingPolicyId) === String(polId)) openPolicyTitles(polId);
-            renderPolicies(currentActiveClientId, true);
-        }
-
 function editTitle(polId, titId){ 
-            const p=policies.find(x=>x.id===polId);
-            const t=p.titles.find(x=>x.id===titId);
-            const n=prompt("Nuovo importo:", t.amount); 
-            
-            if(n){
-                const newAmt = safeParseFloat(n);
-                t.amount=newAmt;
-                
-                // Aggiorna anche il totale polizza se è un rinnovo a zero
-                if(p.annualPremium === 0) {
-                    p.annualPremium = newAmt; // Semplificazione: assume rata unica o aggiorna solo display
-                }
-                
-                saveAllData(); 
-                if(currentViewingPolicyId===polId) openPolicyTitles(polId); 
-                renderDeadlines();
-            } 
+    const p=policies.find(x=>x.id===polId);
+    if(!p) return;
+    const t=p.titles.find(x=>x.id===titId);
+    if(!t) return;
+    const n=prompt("Nuovo importo:", t.amount); 
+    
+    if(n){
+        const newAmt = safeParseFloat(n);
+        t.amount=newAmt;
+        
+        if(p.annualPremium === 0) {
+            p.annualPremium = newAmt; 
         }
+        
+        fbSaveSingleDoc('policies', p);
+        saveLocalBackup(); 
+
+        if(currentViewingPolicyId===polId) openPolicyTitles(polId); 
+        renderDeadlines();
+    } 
+}
 
         // ==========================================
         // SCADENZARIO TITOLI (LOGICA COLORI + EXPORT PDF)
@@ -3719,76 +3715,78 @@ function editTitle(polId, titId){
         function closePaymentModal(){document.getElementById('paymentModal').classList.add('hidden');}
         
         function confirmPayment() {
-  try {
-    const policyId = String(document.getElementById('payPolicyId').value || '').trim();
-    const titleId = String(document.getElementById('payTitleId').value || '').trim();
-    const payDate = document.getElementById('payDate').value; // YYYY-MM-DD
-    const method = document.getElementById('payMethod').value;
+            try {
+                const policyId = String(document.getElementById('payPolicyId').value || '').trim();
+                const titleId = String(document.getElementById('payTitleId').value || '').trim();
+                const payDate = document.getElementById('payDate').value; 
+                const method = document.getElementById('payMethod').value;
 
-    if (!policyId || !titleId) return alert('Dati mancanti.');
+                if (!policyId || !titleId) return alert('Dati mancanti.');
 
-    const pol = policies.find(p => String(p.id) === policyId);
-    if (!pol) return alert('Polizza non trovata.');
+                const pol = policies.find(p => String(p.id) === policyId);
+                if (!pol) return alert('Polizza non trovata.');
 
-    const t = (pol.titles || []).find(x => String(x.id) === titleId);
-    if (!t) return alert('Titolo non trovato.');
+                const t = (pol.titles || []).find(x => String(x.id) === titleId);
+                if (!t) return alert('Titolo non trovato.');
 
-    const isoPayDate = (payDate && String(payDate).trim()) ? String(payDate).trim() : null;
+                const isoPayDate = (payDate && String(payDate).trim()) ? String(payDate).trim() : null;
 
-    // SDD mensile: se incassi con SDD, incassa tutte le 12 rate e imposta paymentDate = dueDate
-    if (method === 'SDD' && Number(pol.split) === 12) {
-      (pol.titles || []).forEach(tt => {
-        tt.status = 'INCASSATO';
-        tt.paymentMethod = 'SDD';
-        tt.paymentDate = tt.dueDate ? String(tt.dueDate) : isoPayDate;
-      });
+                if (method === 'SDD' && Number(pol.split) === 12) {
+                    (pol.titles || []).forEach(tt => {
+                        tt.status = 'INCASSATO';
+                        tt.paymentMethod = 'SDD';
+                        tt.paymentDate = tt.dueDate ? String(tt.dueDate) : isoPayDate;
+                    });
 
-      saveAllData();
-      closePaymentModal();
-      renderDeadlines();
-      updateDashboard();
-      if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
-      return;
-    }
+                    fbSaveSingleDoc('policies', pol);
+                    saveLocalBackup();
 
-    // Standard: incassa solo il titolo selezionato
-    t.status = 'INCASSATO';
-    t.paymentMethod = method;
-    t.paymentDate = isoPayDate;
+                    closePaymentModal();
+                    renderDeadlines();
+                    updateDashboard();
+                    if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
+                    return;
+                }
 
-    saveAllData();
-    closePaymentModal();
-    renderDeadlines();
-    updateDashboard();
-    if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
-  } catch (e) {
-    console.error(e);
-    alert('Errore registrazione incasso.');
-  }
-}
+                t.status = 'INCASSATO';
+                t.paymentMethod = method;
+                t.paymentDate = isoPayDate;
 
+                fbSaveSingleDoc('policies', pol);
+                saveLocalBackup();
 
+                closePaymentModal();
+                renderDeadlines();
+                updateDashboard();
+                if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
+            } catch (e) {
+                console.error(e);
+                alert('Errore registrazione incasso.');
+            }
+        }
 
         function cancelPayment(pid, tid) {
-  try {
-    if (!confirm("Annullare l'incasso del titolo?")) return;
-    const p = policies.find(x => String(x.id) === String(pid));
-    if (!p) return;
-    const t = (p.titles || []).find(x => String(x.id) === String(tid));
-    if (!t) return;
+            try {
+                if (!confirm("Annullare l'incasso del titolo?")) return;
+                const p = policies.find(x => String(x.id) === String(pid));
+                if (!p) return;
+                const t = (p.titles || []).find(x => String(x.id) === String(tid));
+                if (!t) return;
 
-    t.status = 'DA INCASSARE';
-    t.paymentDate = null;
-    t.paymentMethod = null;
+                t.status = 'DA INCASSARE';
+                t.paymentDate = null;
+                t.paymentMethod = null;
 
-    saveAllData();
-    renderDeadlines();
-    updateDashboard();
-    if (currentViewingPolicyId && String(currentViewingPolicyId) === String(pid)) openPolicyTitles(pid);
-  } catch (e) {
-    console.log('cancelPayment', e);
-  }
-}
+                fbSaveSingleDoc('policies', p);
+                saveLocalBackup();
+
+                renderDeadlines();
+                updateDashboard();
+                if (currentViewingPolicyId && String(currentViewingPolicyId) === String(pid)) openPolicyTitles(pid);
+            } catch (e) {
+                console.log('cancelPayment', e);
+            }
+        }
 
 
 
