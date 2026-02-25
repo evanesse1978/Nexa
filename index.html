@@ -3513,26 +3513,49 @@ function deletePolicy(id){
         
         // MODIFICATO PER GESTIRE IL PROMPT O IL CALCOLO DI NUOVO IMPORTO
         
-function editTitle(polId, titId){ 
-    const p=policies.find(x=>x.id===polId);
-    if(!p) return;
-    const t=p.titles.find(x=>x.id===titId);
-    if(!t) return;
-    const n=prompt("Nuovo importo:", t.amount); 
+function editTitle(polId, titId) { 
+    const p = policies.find(x => x.id === polId);
+    if (!p) return;
+    const t = (p.titles || []).find(x => x.id === titId);
+    if (!t) return;
     
-    if(n){
+    const n = prompt("Nuovo importo rata (€):", t.amount); 
+    
+    if (n !== null) {
         const newAmt = safeParseFloat(n);
-        t.amount=newAmt;
+        t.amount = newAmt;
         
-        if(p.annualPremium === 0) {
-            p.annualPremium = newAmt; 
+        // AUTOMAZIONE SDD MENSILE: se è frazionamento mensile (12)
+        if (Number(p.split) === 12) {
+            let propagated = false;
+            
+            (p.titles || []).forEach(otherT => {
+                if (otherT.id !== t.id && otherT.status === 'DA INCASSARE') {
+                    if (otherT.amount === 0 || otherT.isRenewal === true) {
+                        otherT.amount = newAmt;
+                        propagated = true;
+                    }
+                }
+            });
+
+            if (propagated || Number(p.annualPremium || 0) === 0) {
+                p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
+            }
+        } else {
+            if (Number(p.annualPremium || 0) === 0) {
+                const count = (p.split === 0 || p.split === 1) ? 1 : p.split;
+                p.annualPremium = parseFloat((newAmt * count).toFixed(2)); 
+            }
         }
         
-        fbSaveSingleDoc('policies', p);
-        saveLocalBackup(); 
+        if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', p);
+        if (typeof saveLocalBackup === 'function') saveLocalBackup(); 
 
-        if(currentViewingPolicyId===polId) openPolicyTitles(polId); 
-        renderDeadlines();
+        if (typeof currentViewingPolicyId !== 'undefined' && currentViewingPolicyId === polId) {
+            openPolicyTitles(polId); 
+        }
+        if (typeof renderDeadlines === 'function') renderDeadlines();
+        if (typeof updateDashboard === 'function') updateDashboard();
     } 
 }
 
