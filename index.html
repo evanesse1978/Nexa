@@ -989,24 +989,14 @@ tbody tr:last-child { border-bottom: none !important; }
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
                         <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
                             <div><h3 class="text-lg font-bold text-white uppercase tracking-wide">Polizze & Contratti <span id="policy-count" class="text-slate-500 text-sm normal-case ml-2">0</span></h3><p class="text-sm text-slate-400 mt-1" id="contract-subtitle">Gestione portafoglio.</p></div>
-                            <div class="flex items-center gap-3 flex-wrap justify-end">
-                                <button onclick="resetContractFilter(true)" id="btn-show-all-contracts" class="hidden border border-accent text-accent hover:bg-accent hover:text-darktext px-4 py-2 rounded-lg text-sm transition-all"><i class="fa-solid fa-list mr-2"></i>Mostra Tutto</button>
-                                <button onclick="switchSection('clients')" class="border border-slate-700 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-sm transition-all"><i class="fa-solid fa-arrow-left mr-2"></i>Indietro</button>
-                                <button onclick="openPolicyModalWithFilter()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2"><i class="fa-solid fa-file-circle-plus"></i> Nuova</button>
-                                <div>
-                                    <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Stato Polizze</label>
-                                    <select id="filterContractStatus" onchange="refreshPolicyView()" class="bg-deep border border-slate-700 rounded px-2 py-2 text-xs text-white">
-                                        <option value="IN_ESSERE">Solo In Essere</option>
-                                        <option value="TUTTE">Tutte</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">N° Polizza</label>
-                                    <input type="text" id="searchPolicyNumber" onkeyup="searchPoliciesByNumber()" placeholder="Es. 123456..."
-                                           class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-44">
-                                </div>
-                            </div>
-                        
+                            <div class="flex items-center gap-3"><button onclick="resetContractFilter(true)" id="btn-show-all-contracts" class="hidden border border-accent text-accent hover:bg-accent hover:text-darktext px-4 py-2 rounded-lg text-sm transition-all"><i class="fa-solid fa-list mr-2"></i>Mostra Tutto</button><button onclick="switchSection('clients')" class="border border-slate-700 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-sm transition-all"><i class="fa-solid fa-arrow-left mr-2"></i>Indietro</button><button onclick="openPolicyModalWithFilter()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2"><i class="fa-solid fa-file-circle-plus"></i> Nuova Polizza</button>
+                <div>
+                    <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">N° Polizza</label>
+                    <input type="text" id="searchPolicyNumber" onkeyup="searchPoliciesByNumber()" placeholder="Es. 123456..."
+                           class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-44">
+                </div>
+</div>
+                        </div>
                         <div class="overflow-x-auto rounded-lg border border-slate-800"><table class="w-full text-left text-sm text-slate-400"><thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider"><tr><th class="px-6 py-4">Stato</th><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Compagnia (Polizza)</th><th class="px-6 py-4">Scadenza</th><th class="px-6 py-4 text-right">Premio Annuo</th><th class="px-6 py-4 text-center">Azioni</th></tr></thead><tbody id="policiesTableBody" class="divide-y divide-slate-800/50"></tbody></table></div>
                     </div>
                 </div>
@@ -3126,20 +3116,6 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
         }
 
         // RENDER POLIZZE - CORRETTO PER SOSPENSIONE
-// FUNZIONE AGGIUNTIVA PER IL FILTRO A TENDINA
-        function refreshPolicyView() {
-            const q = (document.getElementById('searchPolicyNumber')?.value || '').trim();
-            if (q) {
-                searchPoliciesByNumber();
-            } else if (currentActiveClientId) {
-                filterPoliciesByClient(currentActiveClientId);
-            } else {
-                const isShowingAll = document.getElementById('contract-subtitle').innerText === "Tutte le polizze";
-                renderPolicies(null, !isShowingAll);
-            }
-        }
-
-        // RENDER POLIZZE - AGGIORNATO CON FILTRO STATO
         function renderPolicies(filteredList = null, showMonthOnly = true) {
             let list = (policies || []);
             if(Array.isArray(filteredList)) {
@@ -3157,17 +3133,11 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                 document.getElementById('btn-show-all-contracts').classList.add('hidden');
             }
             
-            // --- NUOVO FILTRO: MOSTRA SOLO IN ESSERE O TUTTE ---
-            const statusFilter = document.getElementById('filterContractStatus');
-            if (statusFilter && statusFilter.value === 'IN_ESSERE') {
-                list = list.filter(p => p.status === 'ATTIVA' || p.status === 'SOSPESA');
-            }
-            
             const tb = document.getElementById('policiesTableBody'); 
             document.getElementById('policy-count').innerText=list.length; 
             
             if(list.length===0){
-                tb.innerHTML='<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500">Nessuna polizza trovata per i criteri selezionati.</td></tr>';
+                tb.innerHTML='<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">Nessuna polizza trovata per i criteri selezionati.</td></tr>';
                 return;
             } 
             
