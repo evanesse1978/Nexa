@@ -3536,6 +3536,42 @@ function editTitle(polId, titId){
     } 
 }
 
+function editTitleDate(polId, titId) {
+    const p = policies.find(x => x.id === polId);
+    if (!p) return;
+    
+    const t = (p.titles || []).find(x => x.id === titId);
+    if (!t) return;
+
+    // Chiede la nuova data proponendo quella attuale
+    const currentVal = t.dueDate ? t.dueDate : new Date().toISOString().split('T')[0];
+    const newVal = prompt("Nuova data di scadenza rata (AAAA-MM-GG):", currentVal);
+
+    if (newVal) {
+        // Validazione base della data
+        const d = new Date(newVal);
+        if (isNaN(d.getTime())) {
+            return alert("Formato data non valido. Usa AAAA-MM-GG.");
+        }
+
+        t.dueDate = newVal;
+
+        // Opzionale ma consigliato: riordina le rate cronologicamente dopo la modifica
+        p.titles.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+        // Salva i dati
+        if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', p);
+        if (typeof saveLocalBackup === 'function') saveLocalBackup();
+
+        // Aggiorna l'interfaccia
+        if (typeof currentViewingPolicyId !== 'undefined' && currentViewingPolicyId === polId) {
+            openPolicyTitles(polId);
+        }
+        if (typeof renderDeadlines === 'function') renderDeadlines();
+        if (typeof updateDashboard === 'function') updateDashboard();
+    }
+}
+
         // ==========================================
         // SCADENZARIO TITOLI (LOGICA COLORI + EXPORT PDF)
         // ==========================================
