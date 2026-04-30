@@ -1033,6 +1033,13 @@ tbody tr:last-child { border-bottom: none !important; }
                                 <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Stato:</label><select id="filterStatusDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="">Tutti gli stati</option><option value="DA INCASSARE">Da Incassare del mese</option><option value="INCASSATO">Incassati</option></select></div>
                                 <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Compagnia:</label><select id="filterCompDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="">Tutte</option><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="HELVETIA">HELVETIA</option><option value="GENIALPIU">GENIALPIU</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option>
 </select></div>
+<div>
+    <label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Rate Mensili:</label>
+    <select id="filterMonthlyDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white">
+        <option value="ALL">Mostra tutte</option>
+        <option value="ANNUAL_ONLY">Solo prima rata (Scadenza Annua)</option>
+    </select>
+</div>
                             </div>
                         </div>
 
@@ -3417,7 +3424,9 @@ function deletePolicy(id){
         tb.innerHTML += `
         <tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${t.status==='ANNULLATO'?'status-cancelled':''}">
             <td class="px-4 py-3 font-mono text-xs text-white">${new Date(t.dueDate).toLocaleDateString('it-IT')}</td>
-            <td class="px-4 py-3 text-xs text-slate-400">${t.n || ''}</td>
+<td class="px-4 py-3 text-xs text-slate-400">
+                <input type="text" class="bg-deep border border-slate-700 w-24 px-1 rounded text-xs text-white uppercase" value="${t.n || ''}" onchange="updateTitleLabel(${polId}, ${t.id}, this.value)">
+            </td>
             <td class="px-4 py-3 font-mono text-white">€ ${Number(t.amount||0).toFixed(2)}</td>
             <td><input type="number" class="bg-deep border border-slate-700 w-20 px-1 rounded text-xs text-white" value="${t.commTotal||0}" oninput="calcLivePersonale(${t.id}, this.value, ${perc})" onchange="updateCommTotal(${polId}, ${t.id}, this.value)"></td>
             <td><input type="number" id="pers-${t.id}" class="bg-deep border border-slate-700 w-20 px-1 rounded text-xs text-accent font-bold" value="${t.commPers||0}" onchange="updateCommPersonal(${polId}, ${t.id}, this.value)"></td>
@@ -3473,90 +3482,61 @@ function deletePolicy(id){
             renderDeadlines();
         }
         function updateCommPersonal(polId, titId, val) {
-            const p = policies.find(x => x.id === polId);
-            if(!p) return;
-            const t = (p.titles || []).find(x => x.id === titId);
-            if(!t) return;
-
-            const newVal = safeParseFloat(val);
-            if(isNaN(newVal)) return;
-
-            // FIX SDD mensile (split=12): provvigioni annuali SOLO sulla 1ª rata di rinnovo
-            if(Number(p.split) === 12 && t.isRenewal === true){
-                const rts = (p.titles || []).filter(x => x.isRenewal === true)
-                    .sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
-                const first = rts[0];
-
-                if(first && String(t.id) !== String(first.id)){
-                    alert('SDD mensile: le provvigioni vanno inserite solo sul 1° titolo di rinnovo.');
-                    t.commPers = 0;
-                    t.commTotal = 0;
-                } else {
-                    t.commPers = newVal;
-                    // tutte le altre rate rinnovo sempre a 0
-                    rts.forEach(x => {
-                        if(first && String(x.id) !== String(first.id)){
-                            x.commTotal = 0;
-                            x.commPers = 0;
-                        }
-                    });
-                }
-            } else {
-                // comportamento standard: aggiorna solo questo titolo
-                t.commPers = newVal;
-            }
-
-            saveAllData();
-            openPolicyTitles(polId);
-            renderDeadlines();
-        }
-        
-        // MODIFICATO PER GESTIRE IL PROMPT O IL CALCOLO DI NUOVO IMPORTO
-        
-function editTitle(polId, titId) { 
     const p = policies.find(x => x.id === polId);
-    if (!p) return;
+    if(!p) return;
     const t = (p.titles || []).find(x => x.id === titId);
-    if (!t) return;
-    
-    const n = prompt("Nuovo importo rata (€):", t.amount); 
-    
-    if (n !== null) {
-        const newAmt = safeParseFloat(n);
-        t.amount = newAmt;
-        
-        // AUTOMAZIONE SDD MENSILE: se è frazionamento mensile (12)
-        if (Number(p.split) === 12) {
-            let propagated = false;
-            
-            (p.titles || []).forEach(otherT => {
-                if (otherT.id !== t.id && otherT.status === 'DA INCASSARE') {
-                    if (otherT.amount === 0 || otherT.isRenewal === true) {
-                        otherT.amount = newAmt;
-                        propagated = true;
-                    }
+    if(!t) return;
+
+    const newVal = safeParseFloat(val);
+    if(isNaN(newVal)) return;
+
+    // FIX SDD mensile (split=12): provvigioni annuali SOLO sulla 1ª rata di rinnovo
+    if(Number(p.split) === 12 && t.isRenewal === true){
+        const rts = (p.titles || []).filter(x => x.isRenewal === true)
+            .sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
+        const first = rts[0];
+
+        if(first && String(t.id) !== String(first.id)){
+            alert('SDD mensile: le provvigioni vanno inserite solo sul 1° titolo di rinnovo.');
+            t.commPers = 0;
+            t.commTotal = 0;
+        } else {
+            t.commPers = newVal;
+            // tutte le altre rate rinnovo sempre a 0
+            rts.forEach(x => {
+                if(first && String(x.id) !== String(first.id)){
+                    x.commTotal = 0;
+                    x.commPers = 0;
                 }
             });
-
-            if (propagated || Number(p.annualPremium || 0) === 0) {
-                p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
-            }
-        } else {
-            if (Number(p.annualPremium || 0) === 0) {
-                const count = (p.split === 0 || p.split === 1) ? 1 : p.split;
-                p.annualPremium = parseFloat((newAmt * count).toFixed(2)); 
-            }
         }
-        
-        if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', p);
-        if (typeof saveLocalBackup === 'function') saveLocalBackup(); 
+    } else {
+        // comportamento standard: aggiorna solo questo titolo
+        t.commPers = newVal;
+    }
 
-        if (typeof currentViewingPolicyId !== 'undefined' && currentViewingPolicyId === polId) {
-            openPolicyTitles(polId); 
-        }
-        if (typeof renderDeadlines === 'function') renderDeadlines();
-        if (typeof updateDashboard === 'function') updateDashboard();
-    } 
+    saveAllData();
+    openPolicyTitles(polId);
+    renderDeadlines();
+}
+
+// --- NUOVA FUNZIONE SEPARATA PER MODIFICARE IL TESTO DELLA RATA ---
+function updateTitleLabel(polId, titId, val) {
+    const p = policies.find(x => x.id === polId);
+    if(!p) return;
+    const t = (p.titles || []).find(x => x.id === titId);
+    if(!t) return;
+
+    // Salva il nuovo testo trasformandolo in maiuscolo per uniformità
+    t.n = String(val).toUpperCase(); 
+
+    // Salvataggio su database locale e Firebase
+    if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', p);
+    if (typeof saveLocalBackup === 'function') saveLocalBackup();
+
+    // Aggiorna la tabella scadenze dietro le quinte
+    if (typeof renderDeadlines === 'function') renderDeadlines();
+    if (typeof updateDashboard === 'function') updateDashboard();
 }
 
 function editTitleDate(polId, titId) {
@@ -3598,22 +3578,20 @@ function editTitleDate(polId, titId) {
         // ==========================================
         // SCADENZARIO TITOLI (LOGICA COLORI + EXPORT PDF)
         // ==========================================
-        function getFilteredDeadlines() {
+function getFilteredDeadlines() {
     const fMo = document.getElementById('filterMonthDeadlines').value; 
     const fPayDate = document.getElementById('filterPayDateDeadlines').value; 
     const fStat = document.getElementById('filterStatusDeadlines').value; 
     const fComp = document.getElementById('filterCompDeadlines').value; 
+    // Recupero il valore del nuovo filtro
+    const fMonthly = document.getElementById('filterMonthlyDeadlines')?.value || 'ALL'; 
 
     let all = [];
     policies.forEach(p => {
         if(fComp && p.company !== fComp) return;
-        
-        // --- MODIFICA QUI: Abbiamo rimosso il blocco che saltava ANNULLATA/SOSTITUITA ---
-        // Prima c'era: if(p.status === 'ANNULLATA' || p.status === 'SOSTITUITA') return;
 
         p.titles.forEach(t => {
             // Se la polizza è annullata, mostriamo SOLO i titoli attivi (Storni o rate insolute pre-annullamento)
-            // Nascondiamo i titoli che sono stati marcati come 'ANNULLATO'
             if(t.status === 'ANNULLATO') return; 
 
             if(fStat && t.status !== fStat) return;
@@ -3621,6 +3599,19 @@ function editTitleDate(polId, titId) {
             if(fPayDate) {
                 if(t.status !== 'INCASSATO') return;
                 if(!t.paymentDate || !t.paymentDate.startsWith(fPayDate)) return;
+            }
+
+            // LOGICA NUOVO FILTRO RATE MENSILI (Corretta per rinnovi 13, 25, 37...)
+            if(fMonthly === 'ANNUAL_ONLY') {
+                if (Number(p.split) === 12) {
+                    const numN = parseInt(t.n);
+                    // Controlla se è un numero. Se lo è, verifica che sia 1, 13, 25, 37, ecc.
+                    if (!isNaN(numN)) {
+                        if ((numN - 1) % 12 !== 0) {
+                            return; // Nasconde la rata se non è una scadenza annuale
+                        }
+                    }
+                }
             }
 
             all.push({
