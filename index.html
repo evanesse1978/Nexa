@@ -2778,47 +2778,52 @@ function sendBirthdayWishes(name, phone, email, channel) {
 
         // Matitina provvigioni (solo rinnovi): modifica provvigione personale (commPers)
         
-function editRenewalAmount(pid, tid){
-            const p = policies.find(x => String(x.id) === String(pid));
-            if(!p) return alert('Polizza non trovata');
+function editTitle(pid, tid){
+    const p = policies.find(x => String(x.id) === String(pid));
+    if(!p) return alert('Polizza non trovata');
 
-            const t = (p.titles || []).find(x => String(x.id) === String(tid));
-            if(!t || t.isRenewal !== true) return alert('Funzione disponibile solo sui rinnovi.');
+    const t = (p.titles || []).find(x => String(x.id) === String(tid));
+    if(!t) return alert('Titolo non trovato');
 
-            const curr = Number(t.amount || 0).toFixed(2);
-            const val = prompt('Inserisci premio titolo (rinnovo)', curr);
-            if(val === null) return;
+    const curr = Number(t.amount || 0).toFixed(2);
+    const val = prompt('Inserisci premio del titolo (€):', curr);
+    if(val === null) return;
 
-            const newAmt = safeParseFloat(val);
-            if(isNaN(newAmt)) return alert('Valore non valido');
+    const newAmt = safeParseFloat(val);
+    if(isNaN(newAmt)) return alert('Valore non valido');
 
-            t.amount = newAmt;
+    t.amount = newAmt;
 
-            // Mensile (split 12): se modifichi una rata di rinnovo, aggiorna anche le altre rate di rinnovo dello stesso anno
-            if(Number(p.split) === 12 && t.dueDate){
-                const y = String(t.dueDate).slice(0,4);
-                (p.titles || []).forEach(tt => {
-                    if(tt === t) return;
-                    if(tt.isRenewal === true && String(tt.dueDate || '').slice(0,4) === y){
-                        tt.amount = newAmt;
-                        // Provvigioni solo sulla prima rata dell'anno
-                        if(Number(tt.n) !== 1){
-                            tt.commTotal = 0;
-                            tt.commPers = 0;
-                        }
-                    }
-                });
-
-                p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
-            } else {
-                if(Number(p.annualPremium || 0) === 0) p.annualPremium = newAmt;
+    // --- AUTOMATISMO SDD MENSILE (Split 12) ---
+    // Se la polizza è mensile, copia il nuovo importo sulle altre rate dello stesso anno
+    if(Number(p.split) === 12 && t.dueDate){
+        const y = String(t.dueDate).slice(0,4);
+        (p.titles || []).forEach(tt => {
+            if(tt === t) return;
+            
+            // Trova le altre rate dello stesso anno e aggiorna l'importo
+            if(String(tt.dueDate || '').slice(0,4) === y){
+                tt.amount = newAmt;
+                // Azzera le provvigioni sulle rate successive alla prima
+                if(Number(tt.n) !== 1){
+                    tt.commTotal = 0;
+                    tt.commPers = 0;
+                }
             }
+        });
+        
+        // Aggiorna anche il premio annuo totale (moltiplicato per 12)
+        p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
+    } else {
+        // Se non è mensile e il premio annuo era 0, lo imposta uguale alla rata
+        if(Number(p.annualPremium || 0) === 0) p.annualPremium = newAmt;
+    }
 
-            saveAllData();
-            renderDeadlines();
-            updateDashboard();
-            if(currentViewingPolicyId == p.id) openPolicyTitles(p.id);
-        }
+    saveAllData();
+    renderDeadlines();
+    updateDashboard();
+    if(currentViewingPolicyId == p.id) openPolicyTitles(p.id);
+}
         function editRenewalCommissionTotal(pid, tid){const p=policies.find(x=>String(x.id)==String(pid));if(!p)return alert('Polizza non trovata');const t=p.titles.find(x=>String(x.id)==String(tid));if(!t||t.isRenewal!==true)return alert('Funzione disponibile solo sui rinnovi.');const curr=Number(t.commTotal||0).toFixed(2);const val=prompt('Inserisci provvigione totale (rinnovo)',curr);if(val===null)return;const newTot=safeParseFloat(val);if(isNaN(newTot))return alert('Valore non valido');t.commTotal=newTot;const perc=safeParseFloat(p.commPerc||0);t.commPers=parseFloat((newTot*perc/100).toFixed(2));saveAllData();renderDeadlines();updateDashboard();if(currentViewingPolicyId==p.id)openPolicyTitles(p.id);}
 function editRenewalCommission(pid, tid) {
             const p = policies.find(x => x.id == pid);
@@ -3044,7 +3049,8 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                             amount: 0, // IMPORTO ZERO
                             status: 'DA INCASSARE',
                             commTotal: 0,
-                            commPers: 0
+                            commPers: 0,
+                            isRenewal: true //
                         });
                     }
 
