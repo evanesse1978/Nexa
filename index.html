@@ -951,28 +951,20 @@ tbody tr:last-child { border-bottom: none !important; }
     <div class="glass-effect p-5 rounded-2xl border-l-4 border-danger relative overflow-hidden"><i class="fa-solid fa-circle-exclamation absolute right-4 top-4 text-6xl text-danger opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Da Incassare del mese</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-pending-money">€ 0</h3></div>
     <div class="glass-effect p-5 rounded-2xl border-l-4 border-success relative overflow-hidden"><i class="fa-solid fa-chart-line absolute right-4 top-4 text-6xl text-success opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Incassato (Mese)</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-month-inc">€ 0</h3></div>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-calendar-check text-accent mr-2"></i>Prossimi Appuntamenti</h3>
-            <button onclick="switchSection('agenda')" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded text-white border border-slate-600">Vedi Tutto</button>
-        </div>
-        <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-agenda-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun appuntamento imminente.</p></div>
-    </div>
-    
-    <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col">
-        <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-cake-candles text-pink-500 mr-2"></i>Compleanni in Arrivo</h3>
-        <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-birthdays-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun compleanno nei prossimi 30 giorni.</p></div>
-    </div>
-
-    <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col border-t-4 border-red-500/80">
-        <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-shield-halved text-red-500 mr-2"></i>Allerta Copertura</h3>
-        <p class="text-[10px] text-slate-500 mb-3 leading-tight">Titoli che perdono i 15gg di mora nei prossimi 5gg o già fuori copertura (da max 30gg).</p>
-        <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-out-of-coverage-list">
-            <p class="text-slate-500 text-xs text-center mt-10">Nessun titolo in allerta.</p>
-        </div>
-    </div>
-</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-calendar-check text-accent mr-2"></i>Prossimi Appuntamenti</h3>
+                                <button onclick="switchSection('agenda')" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded text-white border border-slate-600">Vedi Tutto</button>
+                            </div>
+                            <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-agenda-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun appuntamento imminente.</p></div>
+                        </div>
+                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col">
+                            <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-cake-candles text-pink-500 mr-2"></i>Compleanni in Arrivo</h3>
+                            <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-birthdays-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun compleanno nei prossimi 30 giorni.</p></div>
+                        </div>
+                    </div>
+                </div>
 
                 <div id="section-agenda" class="hidden fade-in h-full flex flex-col">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative flex-1 flex flex-col">
@@ -2179,98 +2171,6 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     </div>`;
                 });
             }
-// ==========================================
-    // WIDGET: TITOLI FUORI COPERTURA (15GG MORA)
-    // ==========================================
-    const outListContainer = document.getElementById('dash-out-of-coverage-list');
-    if (outListContainer) {
-        outListContainer.innerHTML = '';
-        const todayZero = new Date();
-        todayZero.setHours(0,0,0,0);
-
-        let outTitles = [];
-
-        policies.forEach(p => {
-            // Analizziamo solo le polizze attive o sospese
-            if (p.status !== 'ATTIVA' && p.status !== 'SOSPESA') return; 
-            
-            const client = clients.find(c => c.id == p.clientId);
-            const cname = client ? client.name : 'Sconosciuto';
-
-            (p.titles || []).forEach(t => {
-                if (t.status === 'DA INCASSARE' && t.dueDate) {
-                    const d = new Date(t.dueDate);
-                    
-                    // Aggiungiamo i 15 giorni di extracopertura
-                    const endCoverage = new Date(d);
-                    endCoverage.setDate(endCoverage.getDate() + 15);
-                    endCoverage.setHours(0,0,0,0);
-
-                    // Calcoliamo i giorni rimanenti (o passati) rispetto ad oggi
-                    const diffDays = Math.ceil((endCoverage - todayZero) / (1000 * 60 * 60 * 24));
-
-                    // Includi se scade nei prossimi 5 giorni (diffDays <= 5) 
-                    // e se è scaduto da massimo 30 giorni (diffDays >= -30)
-                    if (diffDays <= 5 && diffDays >= -30) {
-                        outTitles.push({
-                            pid: p.id,
-                            tid: t.id,
-                            cname: cname,
-                            company: p.company,
-                            ramo: p.ramo,
-                            policyNumber: p.policyNumber,
-                            dueDate: d,
-                            endCoverage: endCoverage,
-                            diffDays: diffDays,
-                            amount: t.amount
-                        });
-                    }
-                }
-            });
-        });
-
-        // Ordiniamo mettendo in cima quelli già fuori copertura da più tempo (numeri più bassi/negativi)
-        outTitles.sort((a,b) => a.diffDays - b.diffDays);
-
-        if (outTitles.length === 0) {
-            outListContainer.innerHTML = '<p class="text-slate-500 text-xs text-center mt-10"><i class="fa-solid fa-check-circle text-2xl mb-2 text-slate-600 block"></i>Nessun titolo in allerta copertura.</p>';
-        } else {
-            outTitles.forEach(t => {
-                let statusText = '';
-                let colorClass = '';
-                let borderClass = '';
-                
-                if (t.diffDays < 0) {
-                    statusText = `Fuori copertura da ${Math.abs(t.diffDays)} gg`;
-                    colorClass = 'text-red-500 font-bold';
-                    borderClass = 'border-red-900/50 bg-red-900/10';
-                } else if (t.diffDays === 0) {
-                    statusText = 'Ultimo giorno di copertura!';
-                    colorClass = 'text-red-500 font-bold';
-                    borderClass = 'border-red-900/50 bg-red-900/10';
-                } else {
-                    statusText = `Copertura scade tra ${t.diffDays} gg`;
-                    colorClass = 'text-warning font-bold';
-                    borderClass = 'border-yellow-900/30 bg-yellow-900/10';
-                }
-
-                outListContainer.innerHTML += `
-                <div class="p-3 rounded-lg border ${borderClass} hover:bg-slate-800 transition-all mb-2 cursor-pointer" onclick="switchSection('deadlines');">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="text-sm font-bold text-white leading-none truncate pr-2">${t.cname}</div>
-                        <div class="text-xs ${colorClass} whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${statusText}</div>
-                    </div>
-                    <div class="flex justify-between items-end mt-2">
-                        <div>
-                            <div class="text-[10px] text-slate-400 uppercase">${t.company} <span class="text-slate-600 px-1">•</span> ${t.ramo}</div>
-                            <div class="text-[10px] text-slate-500">Rata del: <span class="text-white">${t.dueDate.toLocaleDateString('it-IT')}</span></div>
-                        </div>
-                        <div class="text-sm font-mono text-white font-bold">€ ${t.amount.toFixed(2)}</div>
-                    </div>
-                </div>`;
-            });
-        }
-    }
         }
 
         // ==========================================
