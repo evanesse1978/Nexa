@@ -891,6 +891,7 @@ tbody tr:last-child { border-bottom: none !important; }
             <nav class="flex-1 space-y-3">
                 <a href="#" onclick="switchSection('home')" id="nav-home" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group nav-active"><i class="fa-solid fa-house w-5 text-center"></i> <span class="font-medium">Home Dashboard</span></a>
                 <a href="#" onclick="switchSection('agenda')" id="nav-agenda" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-regular fa-calendar-check w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Agenda & Calendario</span></a>
+<a href="#" onclick="switchSection('quotes')" id="nav-quotes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-calculator w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Preventivi</span></a>
                 <a href="#" onclick="switchSection('clients')" id="nav-clients" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-users w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Anagrafica clienti</span></a>
                 <a href="#" onclick="switchSection('contracts'); resetContractFilter(); renderContractsDefault();" id="nav-contracts" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-file-contract w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Contratti / Polizze</span></a>
                 
@@ -951,22 +952,29 @@ tbody tr:last-child { border-bottom: none !important; }
     <div class="glass-effect p-5 rounded-2xl border-l-4 border-danger relative overflow-hidden"><i class="fa-solid fa-circle-exclamation absolute right-4 top-4 text-6xl text-danger opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Da Incassare del mese</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-pending-money">€ 0</h3></div>
     <div class="glass-effect p-5 rounded-2xl border-l-4 border-success relative overflow-hidden"><i class="fa-solid fa-chart-line absolute right-4 top-4 text-6xl text-success opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Incassato (Mese)</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-month-inc">€ 0</h3></div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-calendar-check text-accent mr-2"></i>Prossimi Appuntamenti</h3>
-                                <button onclick="switchSection('agenda')" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded text-white border border-slate-600">Vedi Tutto</button>
-                            </div>
-                            <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-agenda-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun appuntamento imminente.</p></div>
-                        </div>
-                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col">
-                            <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-cake-candles text-pink-500 mr-2"></i>Compleanni in Arrivo</h3>
-                            <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-birthdays-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun compleanno nei prossimi 30 giorni.</p></div>
-                        </div>
-                    </div>
-                </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-calendar-check text-accent mr-2"></i>Prossimi Appuntamenti</h3>
+            <button onclick="switchSection('agenda')" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded text-white border border-slate-600">Vedi Tutto</button>
+        </div>
+        <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-agenda-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun appuntamento imminente.</p></div>
+    </div>
+    
+    <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col">
+        <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-cake-candles text-pink-500 mr-2"></i>Compleanni in Arrivo</h3>
+        <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-birthdays-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun compleanno nei prossimi 30 giorni.</p></div>
+    </div>
 
-                <div id="section-agenda" class="hidden fade-in h-full flex flex-col">
+    <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col border-t-4 border-red-500/80">
+        <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-shield-halved text-red-500 mr-2"></i>Allerta Copertura</h3>
+        <p class="text-[10px] text-slate-500 mb-3 leading-tight">Titoli che perdono i 15gg di mora nei prossimi 5gg o già fuori copertura (da max 30gg).</p>
+        <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-out-of-coverage-list">
+                <p class="text-slate-500 text-xs text-center mt-10">Nessun titolo in allerta.</p>
+            </div>
+        </div>
+    </div>
+</div> <div id="section-agenda" class="hidden fade-in h-full flex flex-col">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative flex-1 flex flex-col">
                         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                             <div class="flex items-center gap-4"><h3 class="text-lg font-bold text-white uppercase tracking-wide">Agenda</h3><div class="flex bg-slate-800 rounded-lg p-1 border border-slate-700"><button onclick="changeAgendaView('month')" id="btn-view-month" class="px-3 py-1 rounded text-xs font-bold text-white bg-slate-700">Mese</button><button onclick="changeAgendaView('week')" id="btn-view-week" class="px-3 py-1 rounded text-xs font-bold text-slate-400 hover:text-white">Settimana</button><button onclick="changeAgendaView('day')" id="btn-view-day" class="px-3 py-1 rounded text-xs font-bold text-slate-400 hover:text-white">Giorno</button></div></div>
@@ -978,6 +986,36 @@ tbody tr:last-child { border-bottom: none !important; }
                     </div>
                 </div>
 
+<div id="section-quotes" class="hidden fade-in">
+                    <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
+                        <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-white uppercase tracking-wide">Gestione Preventivi <span id="quotes-count" class="text-slate-500 text-sm normal-case ml-2">0</span></h3>
+                                <p class="text-sm text-slate-400 mt-1">Archivio e pianificazione dei ricontatti.</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <input type="text" id="searchQuotesInput" onkeyup="renderQuotes()" placeholder="Cerca preventivo..." class="bg-deep/50 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:border-accent outline-none">
+                                <button onclick="openQuoteModal()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2"><i class="fa-solid fa-plus"></i> Nuovo Preventivo</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-slate-800">
+                            <table class="w-full text-left text-sm text-slate-400">
+                                <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Numero</th>
+                                        <th class="px-6 py-4">Cliente</th>
+                                        <th class="px-6 py-4">Ramo / Tipo Polizza</th>
+                                        <th class="px-6 py-4">Compagnia</th>
+                                        <th class="px-6 py-4">Decorrenza</th>
+                                        <th class="px-6 py-4 text-right">Prezzo Proposto</th>
+                                        <th class="px-6 py-4 text-right">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quotesTableBody" class="divide-y divide-slate-800/50"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
                 <div id="section-clients" class="hidden fade-in">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
                         <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6 relative z-10"><div><h3 class="text-lg font-bold text-white uppercase tracking-wide">I Tuoi Clienti <span id="client-count" class="text-slate-500 text-sm normal-case ml-2">0</span></h3></div><div class="flex items-center gap-3"><input type="text" id="searchInput" onkeyup="searchClients()" placeholder="Cerca..." class="bg-deep/50 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:border-accent"><button onclick="openModal()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2"><i class="fa-solid fa-plus"></i> Nuovo</button></div></div>
@@ -2171,6 +2209,98 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     </div>`;
                 });
             }
+// ==========================================
+    // WIDGET: TITOLI FUORI COPERTURA (15GG MORA)
+    // ==========================================
+    const outListContainer = document.getElementById('dash-out-of-coverage-list');
+    if (outListContainer) {
+        outListContainer.innerHTML = '';
+        const todayZero = new Date();
+        todayZero.setHours(0,0,0,0);
+
+        let outTitles = [];
+
+        policies.forEach(p => {
+            // Analizziamo solo le polizze attive o sospese
+            if (p.status !== 'ATTIVA' && p.status !== 'SOSPESA') return; 
+            
+            const client = clients.find(c => c.id == p.clientId);
+            const cname = client ? client.name : 'Sconosciuto';
+
+            (p.titles || []).forEach(t => {
+                if (t.status === 'DA INCASSARE' && t.dueDate) {
+                    const d = new Date(t.dueDate);
+                    
+                    // Aggiungiamo i 15 giorni di extracopertura
+                    const endCoverage = new Date(d);
+                    endCoverage.setDate(endCoverage.getDate() + 15);
+                    endCoverage.setHours(0,0,0,0);
+
+                    // Calcoliamo i giorni rimanenti (o passati) rispetto ad oggi
+                    const diffDays = Math.ceil((endCoverage - todayZero) / (1000 * 60 * 60 * 24));
+
+                    // Includi se scade nei prossimi 5 giorni (diffDays <= 5) 
+                    // e se è scaduto da massimo 30 giorni (diffDays >= -30)
+                    if (diffDays <= 5 && diffDays >= -30) {
+                        outTitles.push({
+                            pid: p.id,
+                            tid: t.id,
+                            cname: cname,
+                            company: p.company,
+                            ramo: p.ramo,
+                            policyNumber: p.policyNumber,
+                            dueDate: d,
+                            endCoverage: endCoverage,
+                            diffDays: diffDays,
+                            amount: t.amount
+                        });
+                    }
+                }
+            });
+        });
+
+        // Ordiniamo mettendo in cima quelli già fuori copertura da più tempo (numeri più bassi/negativi)
+        outTitles.sort((a,b) => a.diffDays - b.diffDays);
+
+        if (outTitles.length === 0) {
+            outListContainer.innerHTML = '<p class="text-slate-500 text-xs text-center mt-10"><i class="fa-solid fa-check-circle text-2xl mb-2 text-slate-600 block"></i>Nessun titolo in allerta copertura.</p>';
+        } else {
+            outTitles.forEach(t => {
+                let statusText = '';
+                let colorClass = '';
+                let borderClass = '';
+                
+                if (t.diffDays < 0) {
+                    statusText = `Fuori copertura da ${Math.abs(t.diffDays)} gg`;
+                    colorClass = 'text-red-500 font-bold';
+                    borderClass = 'border-red-900/50 bg-red-900/10';
+                } else if (t.diffDays === 0) {
+                    statusText = 'Ultimo giorno di copertura!';
+                    colorClass = 'text-red-500 font-bold';
+                    borderClass = 'border-red-900/50 bg-red-900/10';
+                } else {
+                    statusText = `Copertura scade tra ${t.diffDays} gg`;
+                    colorClass = 'text-warning font-bold';
+                    borderClass = 'border-yellow-900/30 bg-yellow-900/10';
+                }
+
+                outListContainer.innerHTML += `
+                <div class="p-3 rounded-lg border ${borderClass} hover:bg-slate-800 transition-all mb-2 cursor-pointer" onclick="switchSection('deadlines');">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="text-sm font-bold text-white leading-none truncate pr-2">${t.cname}</div>
+                        <div class="text-xs ${colorClass} whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${statusText}</div>
+                    </div>
+                    <div class="flex justify-between items-end mt-2">
+                        <div>
+                            <div class="text-[10px] text-slate-400 uppercase">${t.company} <span class="text-slate-600 px-1">•</span> ${t.ramo}</div>
+                            <div class="text-[10px] text-slate-500">Rata del: <span class="text-white">${t.dueDate.toLocaleDateString('it-IT')}</span></div>
+                        </div>
+                        <div class="text-sm font-mono text-white font-bold">€ ${t.amount.toFixed(2)}</div>
+                    </div>
+                </div>`;
+            });
+        }
+    }
         }
 
         // ==========================================
@@ -3645,6 +3775,14 @@ function getFilteredDeadlines() {
             let totComm = 0;
             let htmlBuffer = ''; 
 
+            // AGGIUNTA: Se non ci sono titoli, mostra il messaggio invece di una pagina vuota
+            if(all.length === 0){
+                tb.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500">Nessuna scadenza trovata per il mese o i filtri selezionati. Cancella i filtri in alto per vedere tutto.</td></tr>';
+                document.getElementById('deadlines-total-amount').innerText = '€ 0.00';
+                document.getElementById('deadlines-total-comm').innerText = '€ 0.00';
+                return;
+            } 
+
             all.forEach(t => {
                 totAmount += t.amount || 0;
                 totComm += t.commPers || 0;
@@ -3852,6 +3990,81 @@ function getFilteredDeadlines() {
 
 
     </script>
+<div id="quoteModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeQuoteModal()"></div>
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
+        <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent">
+            <div class="flex justify-between items-start mb-6">
+                <div><h3 id="quoteModalTitle" class="text-xl font-bold text-white">Nuovo Preventivo</h3></div>
+                <button onclick="closeQuoteModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="quoteForm" onsubmit="saveQuote(event)">
+                <input type="hidden" id="quoteId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Cliente *</label>
+                        <select id="quoteClientSelect" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent"><option value="">Seleziona...</option></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Data Decorrenza *</label>
+                        <input type="date" id="quoteEffectDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Ramo *</label>
+                        <select id="quoteRamo" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
+                            <option value="RCA">RCA</option>
+                            <option value="RAMI VARI">RAMI VARI</option>
+                            <option value="VITA">VITA</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Tipo Polizza *</label>
+                        <input type="text" id="quotePolicyType" required placeholder="Es. Incendio e Scoppio, Kasko..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Compagnia *</label>
+                        <input type="text" id="quoteCompany" required placeholder="Es. Allianz..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Numero Preventivo</label>
+                        <input type="text" id="quoteNumber" placeholder="Es. 450123A..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Prezzo Proposto (€) *</label>
+                        <input type="number" step="0.01" id="quotePrice" required placeholder="0.00" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono text-right focus:border-accent">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs text-slate-500 font-bold mb-1">Ampia sezione note / Dettagli</label>
+                    <textarea id="quoteNotes" rows="4" placeholder="Inserisci qui franchigie, massimali, scoperti o dettagli sul frazionamento..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent"></textarea>
+                </div>
+                
+                <div class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="quoteReminderCheck" onchange="toggleQuoteReminderDate()" class="accent-accent bg-deep border-slate-700 h-4 w-4 rounded" />
+                        <label for="quoteReminderCheck" class="text-xs text-slate-300 font-bold cursor-pointer select-none">Pianifica promemoria di ricontatto in Agenda</label>
+                    </div>
+                    <div id="quoteReminderDateBox" class="mt-3 hidden">
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Giorno e ora del Promemoria</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="date" id="quoteReminderDate" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-accent">
+                            <input type="time" id="quoteReminderTime" value="09:30" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-accent">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeQuoteModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300">Annulla</button>
+                    <button type="submit" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400">Salva Preventivo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- CLAIMS MODAL -->
 <div id="claimModal" class="fixed inset-0 z-50 hidden">
@@ -3934,6 +4147,209 @@ function getFilteredDeadlines() {
 
 
 <script>
+// ==========================================
+// LOGICA PREVENTIVI (QUOTES) - V1
+// ==========================================
+let quotes = [];
+let fbUnsubQuotes = null;
+let fbKnownQuoteIds = new Set();
+
+function toggleQuoteReminderDate() {
+    const chk = document.getElementById('quoteReminderCheck');
+    const box = document.getElementById('quoteReminderDateBox');
+    if(chk && box) chk.checked ? box.classList.remove('hidden') : box.classList.add('hidden');
+}
+
+function openQuoteModal(id = null) {
+    document.getElementById('quoteModal').classList.remove('hidden');
+    document.getElementById('quoteForm').reset();
+    document.getElementById('quoteId').value = id ? String(id) : '';
+    document.getElementById('quoteReminderDateBox').classList.add('hidden');
+    
+    const sel = document.getElementById('quoteClientSelect');
+    sel.innerHTML = '<option value="">Seleziona...</option>';
+    clients.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => {
+        sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+
+    if(id) {
+        document.getElementById('quoteModalTitle').innerText = "Modifica Preventivo";
+        const q = quotes.find(x => String(x.id) === String(id));
+        if(q) {
+            document.getElementById('quoteClientSelect').value = q.clientId || '';
+            document.getElementById('quoteEffectDate').value = q.effectDate || '';
+            document.getElementById('quoteRamo').value = q.ramo || 'RCA';
+            document.getElementById('quotePolicyType').value = q.policyType || '';
+            document.getElementById('quoteCompany').value = q.company || '';
+            document.getElementById('quoteNumber').value = q.quoteNumber || '';
+            document.getElementById('quotePrice').value = q.price || '';
+            document.getElementById('quoteNotes').value = q.notes || '';
+        }
+    } else {
+        document.getElementById('quoteModalTitle').innerText = "Nuovo Preventivo";
+        document.getElementById('quoteEffectDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('quoteReminderDate').value = new Date().toISOString().split('T')[0];
+    }
+}
+
+function closeQuoteModal() { document.getElementById('quoteModal').classList.add('hidden'); }
+
+function saveQuote(e) {
+    if(e) e.preventDefault();
+    try {
+        const id = document.getElementById('quoteId').value || String(Date.now());
+        const clientId = document.getElementById('quoteClientSelect').value;
+        const effectDate = document.getElementById('quoteEffectDate').value;
+        const ramo = document.getElementById('quoteRamo').value;
+        const policyType = document.getElementById('quotePolicyType').value;
+        const company = document.getElementById('quoteCompany').value;
+        const quoteNumber = document.getElementById('quoteNumber').value || '-';
+        const price = safeParseFloat(document.getElementById('quotePrice').value) || 0;
+        const notes = document.getElementById('quoteNotes').value || '';
+        const clientName = clients.find(c => String(c.id) === String(clientId))?.name || 'Sconosciuto';
+
+        if(!clientId) return alert('Seleziona un cliente.');
+
+        const obj = { id: String(id), clientId: String(clientId), clientName, effectDate, ramo, policyType, company, quoteNumber, price: Number(price), notes };
+
+        const idx = quotes.findIndex(x => String(x.id) === String(id));
+        if(idx >= 0) quotes[idx] = obj; else quotes.push(obj);
+
+        // Generazione automatica dell'appuntamento in Agenda
+        const remCheck = document.getElementById('quoteReminderCheck').checked;
+        const remDate = document.getElementById('quoteReminderDate').value;
+        const remTime = document.getElementById('quoteReminderTime').value || '09:30';
+
+        if(remCheck && remDate) {
+            appointments.push({
+                id: Date.now() + Math.floor(Math.random()*1000),
+                date: remDate,
+                time: remTime,
+                title: `Ricontatto Prev. N° ${quoteNumber} - ${clientName} (${company} ${ramo})`
+            });
+        }
+
+        saveAllData();
+        closeQuoteModal();
+        renderQuotes();
+        if(typeof renderAgendaMain === 'function') renderAgendaMain();
+        if(typeof updateDashboard === 'function') updateDashboard();
+    } catch(err) { alert('Errore salvataggio preventivo: ' + err.message); }
+}
+
+function deleteQuote(id) {
+    if(!confirm('Eliminare questo preventivo?')) return;
+    quotes = quotes.filter(x => String(x.id) !== String(id));
+    saveAllData();
+    renderQuotes();
+}
+
+function renderQuotes() {
+    const tb = document.getElementById('quotesTableBody');
+    if(!tb) return;
+    const q = (document.getElementById('searchQuotesInput')?.value || '').trim().toUpperCase();
+    let list = quotes.slice();
+    if(q) {
+        list = list.filter(x => String(x.clientName).toUpperCase().includes(q) || String(x.quoteNumber).toUpperCase().includes(q) || String(x.company).toUpperCase().includes(q) || String(x.policyType).toUpperCase().includes(q));
+    }
+    list.sort((a,b) => String(b.effectDate).localeCompare(String(a.effectDate)));
+    
+    const countEl = document.getElementById('quotes-count');
+    if(countEl) countEl.innerText = list.length;
+    
+    tb.innerHTML = '';
+    if(list.length === 0) {
+        tb.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500 font-medium">Nessun preventivo registrato.</td></tr>`;
+        return;
+    }
+    list.forEach(x => {
+        tb.innerHTML += `
+            <tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0">
+                <td class="px-6 py-4 font-mono text-xs text-white">${escapeHtml(x.quoteNumber)}</td>
+                <td class="px-6 py-4 text-sm text-slate-200 font-semibold">${escapeHtml(x.clientName)}</td>
+                <td class="px-6 py-4">
+                    <div class="text-xs text-slate-300 font-medium">${escapeHtml(x.policyType)}</div>
+                    <span class="text-[9px] uppercase border border-slate-700 rounded px-1 font-bold text-accent bg-slate-900/40">${escapeHtml(x.ramo)}</span>
+                </td>
+                <td class="px-6 py-4 text-xs text-slate-300">${escapeHtml(x.company)}</td>
+                <td class="px-6 py-4 font-mono text-xs text-slate-400">${x.effectDate ? new Date(x.effectDate).toLocaleDateString('it-IT') : '-'}</td>
+                <td class="px-6 py-4 text-right font-mono text-white font-bold">€ ${Number(x.price).toFixed(2)}</td>
+                <td class="px-6 py-4 text-right space-x-2">
+                    <button onclick="alert('Dettagli Preventivo:\\n\\n' + \`${x.notes ? x.notes.replace(/`/g, '\\`').replace(/'/g, "\\'") : 'Nessuna nota'}\`)" class="text-xs border border-slate-700 text-yellow-500 hover:bg-slate-800 px-2 py-1 rounded" title="Vedi Note"><i class="fa-regular fa-note-sticky"></i></button>
+                    <button class="text-xs border border-slate-700 text-slate-300 hover:bg-slate-800 px-2 py-1 rounded" onclick="openQuoteModal('${escapeHtml(x.id)}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="text-xs border border-slate-700 text-slate-500 hover:text-red-300 hover:bg-slate-800 px-2 py-1 rounded" onclick="deleteQuote('${escapeHtml(x.id)}')"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>`;
+    });
+}
+
+// Estensione nativa delle pipeline di salvataggio/Firebase
+(function(){
+  const _fbStopListeners = (typeof fbStopListeners === 'function') ? fbStopListeners : null;
+  const _fbStartListeners = (typeof fbStartListeners === 'function') ? fbStartListeners : null;
+  const _fbFullSyncToFirestore = (typeof fbFullSyncToFirestore === 'function') ? fbFullSyncToFirestore : null;
+  const _saveLocalBackup = (typeof saveLocalBackup === 'function') ? saveLocalBackup : null;
+  const _initApp = (typeof initApp === 'function') ? initApp : null;
+  const _resetDatabase = (typeof resetDatabase === 'function') ? resetDatabase : null;
+
+  if(_fbStopListeners){
+    window.fbStopListeners = function(){
+      try { _fbStopListeners(); } catch(e){}
+      try { if(fbUnsubQuotes) fbUnsubQuotes(); } catch(e){}
+      fbUnsubQuotes = null;
+    };
+  }
+  if(_fbStartListeners){
+    window.fbStartListeners = function(){
+      if(_fbStartListeners) _fbStartListeners();
+      if(!currentUser || !currentUser.uid || !window.FB || !FB.db) return;
+      fbUnsubQuotes = FB.onSnapshot(FB.collection(FB.db, `users/${currentUser.uid}/quotes`), (qs) => {
+          fbIsApplyingRemote = true;
+          try{
+            const arr = [];
+            qs.forEach(d => arr.push(d.data()));
+            quotes = arr;
+            renderQuotes();
+          } catch(e){ console.error(e); }
+          finally { fbIsApplyingRemote = false; if(fbPendingSave){ fbPendingSave = false; saveAllData(); } }
+      });
+    };
+  }
+  if(_fbFullSyncToFirestore){
+    window.fbFullSyncToFirestore = async function(){
+      if(_fbFullSyncToFirestore) await _fbFullSyncToFirestore();
+      try {
+        if(!currentUser || !currentUser.uid || !window.FB || !FB.db) return;
+        const batch = FB.writeBatch(FB.db);
+        (quotes || []).forEach(q => {
+          if(!q || !q.id) return;
+          batch.set(FB.doc(FB.db, `users/${currentUser.uid}/quotes/${String(q.id)}`), { ...q, updatedAt: FB.serverTimestamp() }, { merge: true });
+        });
+        await batch.commit();
+      } catch(e){ console.error(e); }
+    };
+  }
+  if(_saveLocalBackup){
+    window.saveLocalBackup = function(){
+      if(_saveLocalBackup) _saveLocalBackup();
+      try{ if(currentUser) localStorage.setItem('evanEssequotes' + currentUser.uid, JSON.stringify(quotes || [])); } catch(e){}
+    };
+  }
+  if(_initApp){
+    window.initApp = function(){
+      if(_initApp) _initApp();
+      try { if(currentUser) quotes = JSON.parse(localStorage.getItem('evanEssequotes' + currentUser.uid)) || []; } catch(e){}
+      renderQuotes();
+    };
+  }
+  if(_resetDatabase){
+    window.resetDatabase = function(){
+      try { if(currentUser) localStorage.removeItem('evanEssequotes' + currentUser.uid); } catch(e){}
+      quotes = [];
+      if(_resetDatabase) _resetDatabase();
+    };
+  }
+})();
 // =========================
 // SINISTRI (CLAIMS) - V1
 // =========================
@@ -4469,14 +4885,13 @@ function setHeaderTitle(t, s){
   if(ps) ps.innerText = s || '';
 }
 
-// Override per includere Sinistri e aggiornare sempre il titolo pagina
 function switchSection(sectionName){
   try {
     document.getElementById('section-report')?.classList.add('hidden');
     document.getElementById('nav-report')?.classList.remove('nav-active');
   } catch(e){}
 
-  ['home','clients','contracts','deadlines','agenda','report','claims'].forEach(id => {
+  ['home','clients','contracts','deadlines','agenda','report','claims','quotes'].forEach(id => {
     const el = document.getElementById(`section-${id}`);
     if(el) el.classList.add('hidden');
     const nav = document.getElementById(`nav-${id}`);
@@ -4486,6 +4901,7 @@ function switchSection(sectionName){
   const map = {
     home:      { t:'Dashboard', s:'Panoramica' },
     agenda:    { t:'Agenda', s:'Calendario e appuntamenti' },
+    quotes:    { t:'Preventivi', s:'Gestione e promemoria ricontatti' },
     clients:   { t:'Clienti', s:'Anagrafica clienti' },
     contracts: { t:'Polizze', s:'Gestione portafoglio' },
     deadlines: { t:'Scadenze', s:'Scadenziario titoli' },
@@ -4499,6 +4915,10 @@ function switchSection(sectionName){
     document.getElementById('section-home')?.classList.remove('hidden');
     document.getElementById('nav-home')?.classList.add('nav-active');
     updateDashboard();
+  } else if(sectionName === 'quotes'){
+    document.getElementById('section-quotes')?.classList.remove('hidden');
+    document.getElementById('nav-quotes')?.classList.add('nav-active');
+    renderQuotes();
   } else if(sectionName === 'clients'){
     document.getElementById('section-clients')?.classList.remove('hidden');
     document.getElementById('nav-clients')?.classList.add('nav-active');
@@ -4511,10 +4931,7 @@ function switchSection(sectionName){
     document.getElementById('section-deadlines')?.classList.remove('hidden');
     document.getElementById('nav-deadlines')?.classList.add('nav-active');
     const fMoD = document.getElementById('filterMonthDeadlines');
-    if(fMoD && !fMoD.value){
-      const now = new Date();
-      fMoD.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    }
+    if(fMoD && !fMoD.value){ fMoD.value = ""; }
     renderDeadlines();
   } else if(sectionName === 'report'){
     document.getElementById('section-report')?.classList.remove('hidden');
