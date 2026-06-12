@@ -12,8 +12,8 @@
 
     <title>NEXA - Insurance Manager</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
         function updatePrevPersonalCommission(idx, val, perc, lock){
             try{
                 const v = safeParseFloat(val) || 0;
@@ -23,8 +23,7 @@
                 if(el) el.innerText = '€ ' + cp.toFixed(2);
             } catch(e){ console.log('updatePrevPersonalCommission', e); }
         }
-
-</script>
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script></script>
@@ -525,24 +524,25 @@ body { min-height: 100dvh; height: 100dvh; }
   }
   
   /* Titoli più piccoli su schermo stretto */
-  h3 { font-size: 1.1rem !important; }
-}
+          h3 { font-size: 1.1rem !important; }
+        }
 
-  main > header {
-    height: auto !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-    padding-top: 0.75rem !important;
-    padding-bottom: 0.75rem !important;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
+        @media (max-width: 640px) {
+          main > header {
+            height: auto !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+          }
 
-  /* la “p-8” del contenuto principale su mobile è eccessiva */
-  main > div.flex-1 {
-    padding: 1rem !important;
-  }
-}
+          /* la “p-8” del contenuto principale su mobile è eccessiva */
+          main > div.flex-1 {
+            padding: 1rem !important;
+          }
+        }
 
 /* Modali: top più vicino e altezza reale su smartphone (senza toccare HTML/JS) */
 @media (max-width: 640px) {
@@ -916,14 +916,6 @@ tbody tr:last-child { border-bottom: none !important; }
                         <i class="fa-solid fa-upload text-info"></i> Importa Archivio
                     </button>
                     <input type="file" id="importFile" class="hidden" accept=".json" onchange="processImport(this)">
-                    <button onclick="document.getElementById('legacyImportFile').click()" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs text-slate-300 hover:bg-slate-800 border border-slate-700 hover:border-warning transition-all">
-                        <i class="fa-solid fa-file-csv text-warning"></i> Imp. Vecchio Gest.
-                    </button>
-                    <input type="file" id="legacyImportFile" class="hidden" accept=".json" onchange="processLegacyImport(this)">
-                    
-                    <button onclick="resetDatabase()" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs text-red-400 hover:bg-red-900/30 border border-red-900/50 hover:border-red-500 transition-all mt-4">
-                        <i class="fa-solid fa-trash-can"></i> RESETTA DATABASE
-                    </button>
                 </div>
             </div>
         </aside>
@@ -1033,9 +1025,24 @@ tbody tr:last-child { border-bottom: none !important; }
                     <input type="text" id="searchPolicyNumber" onkeyup="searchPoliciesByNumber()" placeholder="Es. 123456..."
                            class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-44">
                 </div>
-</div>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto rounded-lg border border-slate-800"><table class="w-full text-left text-sm text-slate-400"><thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider"><tr><th class="px-6 py-4">Stato</th><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Compagnia (Polizza)</th><th class="px-6 py-4">Scadenza</th><th class="px-6 py-4 text-right">Premio Annuo</th><th class="px-6 py-4 text-center">Azioni</th></tr></thead><tbody id="policiesTableBody" class="divide-y divide-slate-800/50"></tbody></table></div>
+
+                        <div class="overflow-x-auto rounded-lg border border-slate-800 mt-6">
+                            <table class="w-full text-left text-sm text-slate-400">
+                                <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Stato</th>
+                                        <th class="px-6 py-4">Cliente</th>
+                                        <th class="px-6 py-4">Compagnia (Polizza)</th>
+                                        <th class="px-6 py-4">Scadenza</th>
+                                        <th class="px-6 py-4 text-right">Premio Annuo</th>
+                                        <th class="px-6 py-4 text-center">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="policiesTableBody" class="divide-y divide-slate-800/50"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -1074,18 +1081,33 @@ tbody tr:last-child { border-bottom: none !important; }
 <div>
     <label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Rate Mensili:</label>
     <select id="filterMonthlyDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white">
-        <option value="ALL">Mostra tutte</option>
-        <option value="ANNUAL_ONLY">Solo prima rata (Scadenza Annua)</option>
-    </select>
-</div>
-                            </div>
+                                <option value="ALL">Mostra tutte</option>
+                                <option value="ANNUAL_ONLY">Solo prima rata (Scadenza Annua)</option>
+                            </select>
                         </div>
-
-                        <div class="overflow-x-auto rounded-lg border border-slate-800"><table class="w-full text-left text-sm text-slate-400"><thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider"><tr><th class="px-6 py-4">Scadenza</th><th class="px-6 py-4">Cliente / Polizza</th><th class="px-6 py-4">Rata N°</th><th class="px-6 py-4">Importo</th><th class="px-6 py-4 text-accent">Provvigioni</th><th class="px-6 py-4">Stato</th><th class="px-6 py-4 text-right">Azioni</th></tr></thead><tbody id="deadlinesTableBody" class="divide-y divide-slate-800/50"></tbody></table></div>
                     </div>
                 </div>
 
-    
+                <div class="overflow-x-auto rounded-lg border border-slate-800 mt-6">
+                    <table class="w-full text-left text-sm text-slate-400">
+                        <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4">Scadenza</th>
+                                <th class="px-6 py-4">Cliente / Polizza</th>
+                                <th class="px-6 py-4">Ramo</th>
+                                <th class="px-6 py-4">Note</th>
+                                <th class="px-6 py-4">Rata N°</th>
+                                <th class="px-6 py-4">Importo</th>
+                                <th class="px-6 py-4 text-accent">Provvigioni</th>
+                                <th class="px-6 py-4">Stato</th>
+                                <th class="px-6 py-4 text-right">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deadlinesTableBody" class="divide-y divide-slate-800/50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
             
 <div id="section-claims" class="hidden fade-in">
@@ -1257,10 +1279,15 @@ tbody tr:last-child { border-bottom: none !important; }
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent">
-                <div class="flex justify-between items-start mb-6"><div><h3 id="modalTitle" class="text-xl font-bold text-white">Nuova Anagrafica</h3></div><button onclick="closeModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 id="modalTitle" class="text-xl font-bold text-white">Dettaglio Cliente</h3>
+                    </div>
+                    <button onclick="closeModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
                 <form id="clientForm" onsubmit="saveClient(event)">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-4"><input type="text" id="inputName" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Cognome Nome"><input type="text" id="inputCF" required oninput="parseCF()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white uppercase" placeholder="Codice Fiscale"><input type="email" id="inputEmail" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Email"><input type="tel" id="inputPhone" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Telefono"></div>
+                        <div class="space-y-4"><input type="text" id="inputName" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Cognome Nome"><input type="text" id="inputCF" oninput="parseCF()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white uppercase" placeholder="Codice Fiscale"><input type="email" id="inputEmail" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Email"><input type="tel" id="inputPhone" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Telefono"></div>
                         <div class="space-y-4"><div class="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50"><label class="block text-xs text-slate-400 mb-1 ml-1">Data di Nascita</label><input type="date" id="inputBirthDate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div><input type="text" id="inputAddress" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Residenza"><div class="bg-slate-800/30 p-3 rounded-lg border border-slate-700/50"><label class="block text-xs text-slate-400 mb-1">Parente</label><div class="flex gap-2"><select id="relationSelect" class="w-2/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs"><option value="">Nessuno</option></select><select id="relationType" class="w-1/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option></select></div></div><textarea id="inputNotes" rows="3" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="Note..."></textarea></div>
                     </div>
                     <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300">Annulla</button><button type="submit" id="submitBtn" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400">Salva</button></div>
@@ -1273,13 +1300,18 @@ tbody tr:last-child { border-bottom: none !important; }
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePolicyModal()"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent">
-                <div class="flex justify-between items-start mb-6"><div><h3 class="text-xl font-bold text-white" id="polModalTitle">Gestione Polizza</h3>
-<div class=\"mt-3\">
-  <button type=\"button\" onclick=\"openClaimModal(editingPolicyId || currentViewingPolicyId || null, null)\"
-          class=\"text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-white border border-slate-600\">
-    <i class=\"fa-solid fa-triangle-exclamation mr-2 text-warning\"></i>Apri sinistro
-  </button>
-</div></div><button onclick="closePolicyModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-white" id="polModalTitle">Gestione Polizza</h3>
+                        <div class="mt-3">
+                          <button type="button" onclick="openClaimModal(editingPolicyId || currentViewingPolicyId || null, null)"
+                                  class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-white border border-slate-600">
+                            <i class="fa-solid fa-triangle-exclamation mr-2 text-warning"></i>Apri sinistro
+                          </button>
+                        </div>
+                    </div>
+                    <button onclick="closePolicyModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
                 <form id="policyForm" onsubmit="savePolicy(event)">
                     <div class="mb-6"><label class="block text-xs text-slate-500 font-bold mb-1">Contraente *</label><select id="polClientSelect" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-accent"><option value="">Seleziona...</option></select></div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -1287,7 +1319,7 @@ tbody tr:last-child { border-bottom: none !important; }
                             <h4 class="text-accent text-xs font-bold uppercase border-b border-slate-800 pb-2">Dati Contratto</h4>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Ramo *</label><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="ramo" value="AUTO" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-blue-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center">AUTO</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="RAMI VARI" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-orange-500 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center">VARI</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="VITA" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-green-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center">VITA</span></label></div></div>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Compagnia *</label><select id="polCompany" onchange="checkCustomCompany()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="HELVETIA">HELVETIA</option><option value="GENIALPIU">GENIALPIU</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option>
-<option value=\"ALTRO\">ALTRO...</option></select><input type="text" id="polCustomCompany" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm mt-2 hidden" placeholder="Inserisci nome compagnia..."></div>
+<option value="ALTRO">ALTRO...</option></select><input type="text" id="polCustomCompany" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm mt-2 hidden" placeholder="Inserisci nome compagnia..."></div>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Numero Polizza *</label><input type="text" id="polNumber" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm uppercase" placeholder="Es. 123456789"></div>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Provvigioni Pers. (%)</label><input type="number" step="0.01" id="polCommPerc" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-accent font-bold" placeholder="35" oninput="generateInstallmentPreview()"></div>
                         </div>
@@ -1998,25 +2030,7 @@ function initApp() {
             } catch(e){ console.log('autoCollectSDDTitles error', e); }
         }
 
-        function resetDatabase() {
-            if(!currentUser){ alert('Nessun profilo attivo.'); return; }
-            if(confirm("ATTENZIONE: questa operazione cancellerà SOLO i dati (clienti/polizze/agenda) del profilo attualmente loggato.")) {
-                if(confirm("Sicuro al 100%?")) {
-                    try{
-                        localStorage.removeItem('evanEssedata'+currentUser.uid);
-                        localStorage.removeItem('evanEssepolicies'+currentUser.uid);
-                        localStorage.removeItem('evanEsseagenda'+currentUser.uid);
-                        localStorage.removeItem('evanEsserecentClients'+currentUser.uid);
-                        localStorage.removeItem('evanEsserecentPolicies'+currentUser.uid);
-                    } catch(e){ console.log(e); }
-                    clients = []; policies = []; appointments = [];
-                    saveAllData();
-                    alert('Dati del profilo cancellati.');
-                    location.reload();
-                }
-            }
-        }
-
+       
         function switchSection(sectionName) {
             // safety: hide report when changing section
             try{ document.getElementById('section-report')?.classList.add('hidden'); document.getElementById('nav-report')?.classList.remove('nav-active'); } catch(e){}
@@ -2502,8 +2516,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
             }; 
             reader.readAsText(file); 
         }
-        function processLegacyImport(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const legacyData = JSON.parse(e.target.result); if (!Array.isArray(legacyData)) return alert("Formato non valido"); let newC=0, newP=0; const splitMap = { 'Annuale': 1, 'Semestrale': 2, 'Trimestrale': 4, 'Quadrimestrale': 3, 'Mensile': 12, 'Mensile con SDD': 12 }; legacyData.forEach(item => { let client = clients.find(c => (item.codiceFiscale && c.cf === item.codiceFiscale) || c.name === item.nomeCliente); if (!client) { client = { id: Date.now() + Math.floor(Math.random() * 1000), name: item.nomeCliente, cf: item.codiceFiscale || '', email: item.email || '', phone: item.cellulare || '', address: '', notes: item.linkedProfiles || '', relation: null, createdAt: new Date().toLocaleDateString('it-IT') }; clients.push(client); newC++; } const split = splitMap[item.frazionamento] || (item.isAnnual ? 1 : 2); const annual = parseFloat(item.premio) || 0; const comm = parseFloat(item.provvigioni) || 0; let ramo = 'RAMI VARI'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('AUTO')) ramo = 'AUTO'; if(item.ramoPolizza && item.ramoPolizza.toUpperCase().includes('VITA')) ramo = 'VITA'; let titles = []; let count = (split === 1 ? 1 : split); let amt = annual / count; let expiryDate = new Date(item.dataScadenza); let effectDate = new Date(expiryDate); effectDate.setFullYear(effectDate.getFullYear() - 1); for(let i=0; i<count; i++){ let titleDate = new Date(item.dataScadenza); titleDate.setFullYear(titleDate.getFullYear() - 1); if(i > 0) titleDate.setMonth(titleDate.getMonth() + (12/count * i)); let status = 'DA INCASSARE'; let pDate = null; if(item.pagato && i===0) { status = 'INCASSATO'; pDate = item.dataIncasso; } titles.push({ id: Date.now() + Math.floor(Math.random()*1000000), n: i+1, dueDate: toISODateLocal(titleDate), amount: amt, status: status, commTotal: comm, commPers: comm * 0.35, paymentDate: pDate }); } const newPol = { id: Date.now() + Math.floor(Math.random() * 10000), clientId: client.id, ramo: ramo, company: item.compagnia, notes: item.tipoPolizza || '', policyNumber: item.numeroPolizza || '', effect: effectDate.toISOString().split('T')[0], expiry: item.dataScadenza, split: split, annualPremium: annual, commPerc: 35, status: item.status === 'attiva' ? 'ATTIVA' : 'ANNULLATA', titles: titles }; policies.push(newPol); newP++; }); saveAllData(); alert(`Importati ${newC} clienti e ${newP} polizze.`); location.reload(); } catch (err) { console.error(err); alert("Errore nel file JSON."); } }; reader.readAsText(file); }
-
+        
         function renderClients(list = null) {
             const tb = document.getElementById('clientsTableBody');
             const searchVal = document.getElementById('searchInput').value;
@@ -2517,10 +2530,15 @@ function sendBirthdayWishes(name, phone, email, channel) {
                 }
             } document.getElementById('client-count').innerText = data.length; tb.innerHTML = '';
             if (data.length === 0) { tb.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">Nessun cliente trovato.</td></tr>`; return; }
-            data.slice(0, 50).forEach(c => { let badge = c.relation ? `<div class="mt-1 flex items-center gap-1 text-[10px] text-darktext bg-accent px-2 py-0.5 rounded font-bold w-fit"><i class="fa-solid fa-link"></i> ${c.relation.type} di ${c.relation.name}</div>` : ''; const row = `<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 cursor-pointer" onclick="openClientDetail(${c.id})"><td class="px-6 py-4 font-medium text-white"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-accent text-darktext flex items-center justify-center text-sm font-bold">${c.name.charAt(0).toUpperCase()}</div><div><div class="text-sm font-semibold">${c.name}</div>${badge}</div></div></td><td class="px-6 py-4"><div class="font-mono text-xs text-slate-300">${c.cf}</div></td><td class="px-6 py-4 text-sm text-slate-300">${c.phone||'-'}</td><td class="px-6 py-4 text-right space-x-2"><button onclick="alert('Note: ' + ('${c.notes}' || 'Nessuna'))" class="w-8 h-8 rounded-full border border-slate-700 text-yellow-500 hover:bg-slate-700 hover:text-white transition-all"><i class="fa-regular fa-note-sticky"></i></button><button onclick="event.stopPropagation(); filterPoliciesByClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-info hover:bg-info hover:text-white transition-all"><i class="fa-solid fa-file-contract"></i></button><button onclick="event.stopPropagation(); openModal(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-accent hover:bg-accent hover:text-darktext transition-all"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="event.stopPropagation(); deleteClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-all" title="Elimina cliente"><i class="fa-solid fa-trash"></i></button></td></tr>`; tb.innerHTML += row; });
+            data.slice(0, 50).forEach(c => { let badge = c.relation ? `<div class="mt-1 flex items-center gap-1 text-[10px] text-darktext bg-accent px-2 py-0.5 rounded font-bold w-fit"><i class="fa-solid fa-link"></i> ${c.relation.type} di ${c.relation.name}</div>` : ''; const row = `<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 cursor-pointer" onclick="openClientDetail(${c.id})"><td class="px-6 py-4 font-medium text-white"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-accent text-darktext flex items-center justify-center text-sm font-bold">${c.name.charAt(0).toUpperCase()}</div><div><div class="text-sm font-semibold">${c.name}</div>${badge}</div></div></td><td class="px-6 py-4"><div class="font-mono text-xs text-slate-300">${c.cf}</div></td><td class="px-6 py-4">
+    <div class="text-sm text-slate-300 font-medium">${c.phone||'-'}</div>
+    <div class="text-xs text-slate-500 mt-0.5">${c.email||'-'}</div>
+</td><td class="px-6 py-4 text-right space-x-2"><button onclick="alert('Note: ' + ('${c.notes}' || 'Nessuna'))" class="w-8 h-8 rounded-full border border-slate-700 text-yellow-500 hover:bg-slate-700 hover:text-white transition-all"><i class="fa-regular fa-note-sticky"></i></button><button onclick="event.stopPropagation(); filterPoliciesByClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-info hover:bg-info hover:text-white transition-all"><i class="fa-solid fa-file-contract"></i></button><button onclick="event.stopPropagation(); openModal(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-accent hover:bg-accent hover:text-darktext transition-all"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="event.stopPropagation(); deleteClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-all" title="Elimina cliente"><i class="fa-solid fa-trash"></i></button></td></tr>`; tb.innerHTML += row; });
         }
         function openModal(id=null, viewOnly=false) { 
             document.getElementById('clientModal').classList.remove('hidden'); 
+            const sb = document.getElementById('submitBtn');
+            
             if(id){
                 editingClientId=id; 
                 const c=clients.find(x=>x.id===id); 
@@ -2529,43 +2547,29 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     document.getElementById('inputCF').value=c.cf; 
                     document.getElementById('inputEmail').value=c.email||''; 
                     document.getElementById('inputPhone').value=c.phone||''; 
-                    document.getElementById('inputBirthDate').value=c.birthDate||''; // DATA DI NASCITA
+                    document.getElementById('inputBirthDate').value=c.birthDate||''; 
                     document.getElementById('inputAddress').value=c.address||''; 
                     document.getElementById('inputNotes').value=c.notes||''; 
-                    document.getElementById('modalTitle').innerText="Modifica"; 
-                    document.getElementById('submitBtn').innerText="Aggiorna"; 
                 }
             } else {
                 editingClientId=null; 
                 document.getElementById('clientForm').reset(); 
-                document.getElementById('modalTitle').innerText="Nuovo Cliente"; 
-                document.getElementById('submitBtn').innerText="Salva";
             } 
             
-            // VIEW MODE
+            // Gestione consultazione (Click sulla riga) vs Modifica (Click sulla matitina)
             if(id && viewOnly){
                 setClientModalReadOnly(true);
-                const sb = document.getElementById('submitBtn');
-                if(sb){
-                    sb.dataset.prevType = sb.type;
-                    sb.type = 'button';
-                    sb.innerText = 'Modifica';
-                    sb.onclick = () => {
-                        setClientModalReadOnly(false);
-                        sb.type = sb.dataset.prevType || 'submit';
-                        sb.onclick = null;
-                        document.getElementById('modalTitle').innerText = 'Modifica';
-                        sb.innerText = 'Aggiorna';
-                    };
-                }
+                if(sb) sb.classList.add('hidden'); // Nasconde completamente il pulsante di salvataggio/modifica
                 document.getElementById('modalTitle').innerText = 'Dettaglio Cliente';
             } else {
                 setClientModalReadOnly(false);
-                const sb = document.getElementById('submitBtn');
-                if(sb && sb.type === 'button' && sb.innerText === 'Modifica'){
-                    sb.type = sb.dataset.prevType || 'submit';
-                    sb.onclick = null;
+                if(sb) {
+                    sb.classList.remove('hidden'); // Rende visibile il pulsante
+                    sb.type = 'submit';
+                    sb.innerText = editingClientId ? "Aggiorna" : "Salva";
+                    sb.onclick = null; // Rimuove vecchi eventi di sblocco
                 }
+                document.getElementById('modalTitle').innerText = editingClientId ? "Modifica Anagrafica" : "Nuovo Cliente";
             }
 
             const s=document.getElementById('relationSelect'); s.innerHTML='<option value="">Nessuno</option>'; clients.forEach(c=>{if(c.id!==id){const o=document.createElement('option');o.value=c.id;o.text=c.name;s.appendChild(o);}}); 
@@ -3755,7 +3759,9 @@ function getFilteredDeadlines() {
                 pid: p.id, 
                 cname: clients.find(c => c.id == p.clientId)?.name || 'Unknown', 
                 comp: p.company,
-                polNum: p.policyNumber
+                polNum: p.policyNumber,
+                ramo: p.ramo,
+                notes: p.notes
             });
         });
     });
@@ -3815,7 +3821,7 @@ function getFilteredDeadlines() {
                     payBtn = `<button onclick="openPaymentModal(${t.pid},${t.id})" class="bg-success text-white px-3 py-1 rounded-md text-xs font-bold hover:bg-green-600 shadow-lg"><i class="fa-solid fa-coins"></i> INCASSA</button>`;
                 }
 
-                let amountDisplay = `€ ${t.amount.toFixed(2)}`;
+                let amountDisplay = `€ ${(t.amount || 0).toFixed(2)}`;
                 if(t.amount === 0) {
                     amountDisplay = `<button onclick="editTitle(${t.pid}, ${t.id})" class="text-yellow-400 hover:text-white animate-pulse-slow font-bold text-lg" title="Inserisci Importo"><i class="fa-solid fa-pen-to-square"></i></button>`;
                 }
@@ -3830,6 +3836,8 @@ function getFilteredDeadlines() {
                         <div class="text-[10px] text-slate-500">${t.comp}</div>
                         <div class="text-[10px] text-accent mt-0.5"><i class="fa-solid fa-hashtag"></i> ${t.polNum}</div>
                     </td>
+                    <td class="px-6 py-4 text-xs font-bold text-slate-300 uppercase">${t.ramo || '-'}</td>
+                    <td class="px-6 py-4 text-xs text-slate-400 max-w-[150px] truncate" title="${t.notes ? String(t.notes).replace(/"/g, '&quot;') : ''}">${t.notes || '-'}</td>
                     <td class="px-6 py-4 text-xs text-slate-400">Rata ${t.n}</td>
                     <td class="px-6 py-4 font-mono text-white">${amountDisplay}</td>
                     <td class=\"px-6 py-4 font-mono text-accent font-bold\">€ ${(t.commPers||0).toFixed(2)}${(t.isRenewal && t.status!=='INCASSATO') ? ` <button onclick=\"editRenewalCommission(${t.pid}, ${t.id})\" class=\"text-yellow-400 hover:text-white ml-2\" title=\"Modifica provvigione (rinnovo)\"><i class=\"fa-solid fa-pen-to-square\"></i></button>` : ''}</td>
@@ -3852,21 +3860,18 @@ function getFilteredDeadlines() {
         // --- FUNZIONE ESPORTAZIONE PDF CON TOTALI ---
         function exportDeadlinesPDF() {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4'); // 'l' = landscape (orizzontale)
+            const doc = new jsPDF('l', 'mm', 'a4');
 
             const data = getFilteredDeadlines();
             
-            // Titolo e info header
             doc.setFontSize(16);
-            doc.text("NEXA Manager", 14, 15);
+            doc.text("NEXA Manager - Scadenzario Titoli", 14, 15);
             doc.setFontSize(10);
             doc.text("Data generazione: " + new Date().toLocaleDateString('it-IT'), 14, 22);
 
-            // Filtro usato (opzionale)
             const fMo = document.getElementById('filterMonthDeadlines').value;
             if(fMo) doc.text("Filtro Mese: " + fMo, 200, 22);
 
-            // Preparazione dati tabella e Calcolo Totali
             let totalAmount = 0;
             let totalComm = 0;
 
@@ -3877,33 +3882,26 @@ function getFilteredDeadlines() {
                     new Date(item.dueDate).toLocaleDateString('it-IT'),
                     item.cname,
                     item.comp + "\n(" + (item.polNum || '-') + ")",
+                    item.ramo || '-',
+                    item.notes || '-',
                     "Rata " + item.n,
                     "€ " + item.amount.toFixed(2),
                     "€ " + (item.commPers || 0).toFixed(2),
-                    item.status === 'INCASSATO' ? `PAGATO (${new Date(item.paymentDate).toLocaleDateString()})` : 'DA INCASSARE'
+                    item.status === 'INCASSATO' ? `PAGATO` : 'DA INCASSARE'
                 ];
             });
 
-            // Aggiungi riga totale nel footer
-            const footerRow = [
-                'TOTALE', 
-                '', 
-                '', 
-                '', 
-                '€ ' + totalAmount.toFixed(2), 
-                '€ ' + totalComm.toFixed(2), 
-                ''
-            ];
+            const footerRow = ['TOTALE', '', '', '', '', '', '€ ' + totalAmount.toFixed(2), '€ ' + totalComm.toFixed(2), ''];
 
             doc.autoTable({
-                head: [['Scadenza', 'Cliente', 'Compagnia (Polizza)', 'Dettaglio', 'Importo', 'Provvigioni', 'Stato']],
+                head: [['Scadenza', 'Cliente', 'Compagnia (Polizza)', 'Ramo', 'Note', 'Dettaglio', 'Importo', 'Provv.', 'Stato']],
                 body: tableRows,
                 foot: [footerRow],
                 startY: 30,
                 theme: 'striped',
-                headStyles: { fillColor: [5, 7, 20] }, 
-                footStyles: { fillColor: [226, 255, 0], textColor: [0, 0, 0], fontStyle: 'bold' }, // Footer giallo accent
-                styles: { fontSize: 9 },
+                headStyles: { fillColor: [5, 7, 20] },
+                footStyles: { fillColor: [226, 255, 0], textColor: [0, 0, 0], fontStyle: 'bold' },
+                styles: { fontSize: 9 }
             });
 
             doc.save(`scadenzario_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -4290,8 +4288,7 @@ function renderQuotes() {
   const _fbFullSyncToFirestore = (typeof fbFullSyncToFirestore === 'function') ? fbFullSyncToFirestore : null;
   const _saveLocalBackup = (typeof saveLocalBackup === 'function') ? saveLocalBackup : null;
   const _initApp = (typeof initApp === 'function') ? initApp : null;
-  const _resetDatabase = (typeof resetDatabase === 'function') ? resetDatabase : null;
-
+  
   if(_fbStopListeners){
     window.fbStopListeners = function(){
       try { _fbStopListeners(); } catch(e){}
@@ -4342,13 +4339,7 @@ function renderQuotes() {
       renderQuotes();
     };
   }
-  if(_resetDatabase){
-    window.resetDatabase = function(){
-      try { if(currentUser) localStorage.removeItem('evanEssequotes' + currentUser.uid); } catch(e){}
-      quotes = [];
-      if(_resetDatabase) _resetDatabase();
-    };
-  }
+  
 })();
 // =========================
 // SINISTRI (CLAIMS) - V1
@@ -4813,7 +4804,7 @@ async function processImport(input){
       const data = JSON.parse(e.target.result);
       if(!confirm('ATTENZIONE: questa operazione sovrascriverà i dati attuali su Firebase con quelli del backup. Procedere?')) return;
 
-      const importBtn = document.querySelector('button[onclick="document.getElementById(\"importFile\").click()"]');
+      const importBtn = document.querySelector('button[onclick*="importFile"]');
       if(importBtn) importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Caricamento...';
 
       clients = data.clients || [];
@@ -4838,30 +4829,6 @@ async function processImport(input){
     }
   };
   reader.readAsText(file);
-}
-
-function resetDatabase(){
-  if(!currentUser) { alert('Nessun profilo attivo.'); return; }
-  if(!confirm('ATTENZIONE: questa operazione cancellerà SOLO i dati (clienti/polizze/agenda/sinistri) del profilo attualmente loggato.')) return;
-  if(!confirm('Sicuro al 100%?')) return;
-
-  try{
-    localStorage.removeItem('evanEssedata' + currentUser.uid);
-    localStorage.removeItem('evanEssepolicies' + currentUser.uid);
-    localStorage.removeItem('evanEsseagenda' + currentUser.uid);
-    localStorage.removeItem('evanEsseclaims' + currentUser.uid);
-    localStorage.removeItem('evanEsserecentClients' + currentUser.uid);
-    localStorage.removeItem('evanEsserecentPolicies' + currentUser.uid);
-  } catch(e){ console.log(e); }
-
-  clients = [];
-  policies = [];
-  appointments = [];
-  claims = [];
-
-  saveAllData();
-  alert('Dati del profilo cancellati.');
-  location.reload();
 }
 
 // --- Init hook ---
