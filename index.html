@@ -26,9 +26,7 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script></script>
     <script>
-
         // ==============================
         // REPORT - NEW VERSION
         // ==============================
@@ -242,52 +240,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
-    
-
-    <!-- SETTINGS MODAL -->
-    <div id="settingsModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeSettingsModal()"></div>
-        <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-4">
-            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-accent">
-                <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-gear mr-2 text-accent"></i>Impostazioni</h3>
-                    <button onclick="closeSettingsModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button>
-                </div>
-                <div class="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
-                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Tema</div>
-                    <div class="flex gap-3">
-                        <label class="cursor-pointer flex-1">
-                            <input type="radio" name="theme" value="dark" class="peer hidden" onchange="setTheme('dark')">
-                            <div class="peer-checked:bg-accent peer-checked:text-darktext px-4 py-3 rounded-xl bg-deep text-slate-300 border border-slate-700 text-sm font-bold text-center">Scuro</div>
-                        </label>
-                        <label class="cursor-pointer flex-1">
-                            <input type="radio" name="theme" value="light" class="peer hidden" onchange="setTheme('light')">
-                            <div class="peer-checked:bg-accent peer-checked:text-darktext px-4 py-3 rounded-xl bg-deep text-slate-300 border border-slate-700 text-sm font-bold text-center">Chiaro</div>
-                        </label>
-                    </div>
-                    <div class="text-10px text-slate-500 mt-3">Il tema viene salvato in locale e resta attivo ai prossimi accessi.</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    
-
-<!-- AVATAR PICKER MODAL -->
-<div id="avatarModal" class="fixed inset-0 z-50 hidden">
-  <div class="absolute inset-0 bg-black80 backdrop-blur-sm" onclick="closeAvatarPicker()"></div>
-  <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-4">
-    <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-accent">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-user-astronaut mr-2 text-accent"></i>Seleziona avatar</h3>
-        <button onclick="closeAvatarPicker()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button>
-      </div>
-      <div id="avatarGrid" class="grid grid-cols-5 sm:grid-cols-6 gap-3"></div>
-      <p class="text-10px text-slate-500 mt-4">L'avatar viene salvato nel profilo utente.</p>
-    </div>
-  </div>
-</div>
-<script>
+    <script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -314,10 +267,21 @@
     </script>
     
     <style>
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #050714; }
-        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+        /* SCROLLBAR PERFEZIONATA */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+        
+        /* ANIMAZIONI MODALI PERFEZIONATE */
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate {
+            animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
         .glass-effect { background: rgba(11, 17, 33, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
         .nav-active { background-color: rgba(226, 255, 0, 0.1); color: white; border: 1px solid rgba(226, 255, 0, 0.4); box-shadow: 0 0 15px -3px rgba(226, 255, 0, 0.2); }
         .nav-active i { color: #E2FF00; } 
@@ -329,9 +293,9 @@
         .status-suspended { opacity: 0.8; border-left: 4px solid #7c3aed; }
         
         /* Classi colori scadenze */
-        .row-expired { background-color: rgba(239, 68, 68, 0.15); border-left: 3px solid #ef4444; } /* Rosso */
-        .row-warning { background-color: rgba(245, 158, 11, 0.15); border-left: 3px solid #f59e0b; } /* Arancione */
-        .row-paid { background-color: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; } /* Verde */
+        .row-expired { background-color: rgba(239, 68, 68, 0.15); border-left: 3px solid #ef4444; } 
+        .row-warning { background-color: rgba(245, 158, 11, 0.15); border-left: 3px solid #f59e0b; } 
+        .row-paid { background-color: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; } 
 
         /* Calendario Styles */
         .calendar-day-header { font-size: 0.7rem; text-transform: uppercase; color: #64748b; padding-bottom: 0.5rem; text-align: center; }
@@ -343,501 +307,146 @@
         .event-chip-auto { background-color: rgba(59, 130, 246, 0.2); color: #93c5fd; border-left: 2px solid #3b82f6; }
         .event-chip-gen { background-color: rgba(226, 255, 0, 0.1); color: #E2FF00; border-left: 2px solid #E2FF00; }
     
-
         /* THEME LIGHT OVERRIDES (READABLE) */
-/* Obiettivo: niente giallo fluo con testo chiaro, e contrasto alto in light mode */
-.theme-light body {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
-}
+        .theme-light body { background-color: #f8fafc !important; color: #0f172a !important; }
+        .theme-light .bg-deep { background-color: #f8fafc !important; }
+        .theme-light .bg-deep50 { background-color: rgba(248,250,252,0.75) !important; }
+        .theme-light .bg-deep30 { background-color: rgba(248,250,252,0.55) !important; }
+        .theme-light .bg-deep20 { background-color: rgba(248,250,252,0.40) !important; }
+        .theme-light .bg-surface { background-color: #ffffff !important; }
+        .theme-light .glass-effect { background: rgba(255,255,255,0.92) !important; border: 1px solid rgba(15,23,42,0.14) !important; }
+        .theme-light .text-white { color: #0b1220 !important; }
+        .theme-light .text-slate-300 { color: #1f2937 !important; }
+        .theme-light .text-slate-400 { color: #334155 !important; }
+        .theme-light .text-slate-500 { color: #475569 !important; }
 
-/* Superfici e testi */
-.theme-light .bg-deep { background-color: #f8fafc !important; }
-.theme-light .bg-deep50 { background-color: rgba(248,250,252,0.75) !important; }
-.theme-light .bg-deep30 { background-color: rgba(248,250,252,0.55) !important; }
-.theme-light .bg-deep20 { background-color: rgba(248,250,252,0.40) !important; }
-.theme-light .bg-surface { background-color: #ffffff !important; }
+        .theme-light input, .theme-light textarea, .theme-light select { background-color: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
+        .theme-light input::placeholder, .theme-light textarea::placeholder { color: #64748b !important; }
+        .theme-light select option { background-color: #ffffff !important; color: #0f172a !important; }
 
-.theme-light .glass-effect {
-  background: rgba(255,255,255,0.92) !important;
-  border: 1px solid rgba(15,23,42,0.14) !important;
-}
+        .theme-light .bg-slate-90050, .theme-light .bg-slate-80050 { background-color: rgba(226,232,240,0.65) !important; }
+        .theme-light .bg-slate-800 { background-color: #e2e8f0 !important; }
+        .theme-light .border-slate-700, .theme-light .border-slate-800, .theme-light .border-slate-80050 { border-color: #cbd5e1 !important; }
+        .theme-light .text-accent { color: #2563eb !important; }
+        .theme-light .bg-accent { background-color: #2563eb !important; color: #ffffff !important; }
+        .theme-light .border-accent { border-color: #2563eb !important; }
+        .theme-light .peer-checked\:bg-accent { background-color: #2563eb !important; }
+        .theme-light .peer-checked\:text-darktext { color: #ffffff !important; }
+        .theme-light .from-accent5 { --tw-gradient-from: rgba(37,99,235,0.10) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgba(37,99,235,0) var(--tw-gradient-to-position) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+        .theme-light .nav-active { background-color: rgba(37,99,235,0.10) !important; color: #0b1220 !important; border: 1px solid rgba(37,99,235,0.35) !important; box-shadow: 0 0 15px -3px rgba(37,99,235,0.15) !important; }
+        .theme-light .nav-active i { color: #2563eb !important; }
+        .theme-light .event-chip-gen { background-color: rgba(37,99,235,0.12) !important; color: #1d4ed8 !important; border-left-color: #2563eb !important; }
+        .theme-light .hover\:bg-yellow-400:hover { background-color: #1d4ed8 !important; }
+        .theme-light .hover\:bg-accent90:hover { background-color: #1d4ed8 !important; }
+        .theme-light .text-darktext { color: #0f172a !important; }
 
-.theme-light .text-white { color: #0b1220 !important; }
-.theme-light .text-slate-300 { color: #1f2937 !important; }
-.theme-light .text-slate-400 { color: #334155 !important; }
-.theme-light .text-slate-500 { color: #475569 !important; }
+        /* EXTRA FIX: LIGHT THEME */
+        .theme-light .hover\:text-white:hover { color: #0b1220 !important; }
+        .theme-light .hover\:text-slate-300:hover { color: #0b1220 !important; }
+        .theme-light .hover\:text-slate-400:hover { color: #0b1220 !important; }
+        .theme-light .hover\:text-slate-500:hover { color: #0b1220 !important; }
+        .theme-light .hover\:bg-slate-800:hover { background-color: #cbd5e1 !important; }
+        .theme-light .hover\:bg-slate-700:hover { background-color: #cbd5e1 !important; }
+        .theme-light .hover\:bg-slate-600:hover { background-color: #cbd5e1 !important; }
+        .theme-light .hover\:bg-slate-800\/50:hover { background-color: rgba(226,232,240,0.85) !important; }
+        .theme-light .hover\:bg-slate-800\/30:hover { background-color: rgba(226,232,240,0.70) !important; }
+        .theme-light .hover\:bg-slate-900\/50:hover { background-color: rgba(226,232,240,0.85) !important; }
+        .theme-light .bg-slate-800\/30 { background-color: rgba(226,232,240,0.55) !important; }
+        .theme-light .bg-slate-800\/20 { background-color: rgba(226,232,240,0.40) !important; }
+        .theme-light .bg-accent.text-darktext { color: #ffffff !important; }
+        .theme-light .hover\:bg-yellow-400:hover.text-darktext { color: #ffffff !important; }
+        .theme-light .hover\:bg-accent90:hover.text-darktext { color: #ffffff !important; }
+        .theme-light .hover\:text-darktext:hover { color: #ffffff !important; }
+        .theme-light .hover\:bg-accent:hover { background-color: #1d4ed8 !important; }
+        .theme-light .bg-slate-700 { background-color: #e2e8f0 !important; }
+        .theme-light .bg-slate-600 { background-color: #e2e8f0 !important; }
+        .theme-light .border-slate-600, .theme-light .border-slate-500 { border-color: #cbd5e1 !important; }
+        .theme-light .accent-accent { accent-color: #2563eb !important; }
 
-/* Inputs */
-.theme-light input,
-.theme-light textarea,
-.theme-light select {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
-.theme-light input::placeholder,
-.theme-light textarea::placeholder {
-  color: #64748b !important;
-}
-.theme-light select option {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-}
+        /* MOBILE OPTIMIZATION */
+        html, body { height: 100%; }
+        body { min-height: 100dvh; height: 100dvh; }
+        @supports not (height: 100dvh) { body { min-height: 100vh; height: 100vh; } }
 
-/* Bordi/box secondari */
-.theme-light .bg-slate-90050,
-.theme-light .bg-slate-80050 {
-  background-color: rgba(226,232,240,0.65) !important;
-}
-.theme-light .bg-slate-800 { background-color: #e2e8f0 !important; }
-
-.theme-light .border-slate-700,
-.theme-light .border-slate-800,
-.theme-light .border-slate-80050 {
-  border-color: #cbd5e1 !important;
-}
-
-/* --- FIX PRINCIPALE: ACCENT in light mode (blu) --- */
-.theme-light .text-accent { color: #2563eb !important; }
-.theme-light .bg-accent { background-color: #2563eb !important; color: #ffffff !important; }
-.theme-light .border-accent { border-color: #2563eb !important; }
-
-/* classi tailwind peer-checked */
-.theme-light .peer-checked\:bg-accent { background-color: #2563eb !important; }
-.theme-light .peer-checked\:text-darktext { color: #ffffff !important; }
-
-/* gradient from-accent5 */
-.theme-light .from-accent5 {
-  --tw-gradient-from: rgba(37,99,235,0.10) var(--tw-gradient-from-position) !important;
-  --tw-gradient-to: rgba(37,99,235,0) var(--tw-gradient-to-position) !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-}
-
-/* Nav attiva */
-.theme-light .nav-active {
-  background-color: rgba(37,99,235,0.10) !important;
-  color: #0b1220 !important;
-  border: 1px solid rgba(37,99,235,0.35) !important;
-  box-shadow: 0 0 15px -3px rgba(37,99,235,0.15) !important;
-}
-.theme-light .nav-active i { color: #2563eb !important; }
-
-/* Chip agenda gen */
-.theme-light .event-chip-gen {
-  background-color: rgba(37,99,235,0.12) !important;
-  color: #1d4ed8 !important;
-  border-left-color: #2563eb !important;
-}
-
-/* Hover gialli hardcoded -> blu */
-.theme-light .hover\:bg-yellow-400:hover { background-color: #1d4ed8 !important; }
-.theme-light .hover\:bg-accent90:hover { background-color: #1d4ed8 !important; }
-
-.theme-light .text-darktext { color: #0f172a !important; }
-
-
-
-/* =========================================================
-   EXTRA FIX: LIGHT THEME (contrast + hover + buttons)
-   Obiettivo: in light mode niente testi “chiari” su fondo chiaro
-   e niente testi “scuri” su fondo scuro, anche in hover.
-========================================================= */
-
-/* 1) Fix hover text (molti elementi usano hover:text-white) */
-.theme-light .hover\:text-white:hover { color: #0b1220 !important; }
-.theme-light .hover\:text-slate-300:hover { color: #0b1220 !important; }
-.theme-light .hover\:text-slate-400:hover { color: #0b1220 !important; }
-.theme-light .hover\:text-slate-500:hover { color: #0b1220 !important; }
-
-/* 2) Fix hover background per classi molto usate */
-.theme-light .hover\:bg-slate-800:hover { background-color: #cbd5e1 !important; }
-.theme-light .hover\:bg-slate-700:hover { background-color: #cbd5e1 !important; }
-.theme-light .hover\:bg-slate-600:hover { background-color: #cbd5e1 !important; }
-
-.theme-light .hover\:bg-slate-800\/50:hover { background-color: rgba(226,232,240,0.85) !important; }
-.theme-light .hover\:bg-slate-800\/30:hover { background-color: rgba(226,232,240,0.70) !important; }
-.theme-light .hover\:bg-slate-900\/50:hover { background-color: rgba(226,232,240,0.85) !important; }
-
-/* 3) Fix background “/30” e “/20” (box, card, righe tabella, ecc.) */
-.theme-light .bg-slate-800\/30 { background-color: rgba(226,232,240,0.55) !important; }
-.theme-light .bg-slate-800\/20 { background-color: rgba(226,232,240,0.40) !important; }
-
-/* 4) Fix bottoni accent: in light mode l’accent diventa blu,
-      quindi testo deve essere bianco anche se esiste text-darktext */
-.theme-light .bg-accent.text-darktext { color: #ffffff !important; }
-.theme-light .hover\:bg-yellow-400:hover.text-darktext { color: #ffffff !important; }
-.theme-light .hover\:bg-accent90:hover.text-darktext { color: #ffffff !important; }
-
-/* 5) Fix combinazione hover:bg-accent + hover:text-darktext (es. bottone “Oggi”) */
-.theme-light .hover\:text-darktext:hover { color: #ffffff !important; }
-.theme-light .hover\:bg-accent:hover { background-color: #1d4ed8 !important; }
-
-/* 6) Uniforma alcuni bg/border grigi nel tema chiaro */
-.theme-light .bg-slate-700 { background-color: #e2e8f0 !important; }
-.theme-light .bg-slate-600 { background-color: #e2e8f0 !important; }
-
-.theme-light .border-slate-600,
-.theme-light .border-slate-500 { border-color: #cbd5e1 !important; }
-
-/* 7) Checkbox/radio: accent coerente con accent blu in light mode */
-.theme-light .accent-accent { accent-color: #2563eb !important; }
-
-/* =========================================================
-   MOBILE OPTIMIZATION (smartphone)
-   - Evita i problemi di 100vh su mobile (barra indirizzi)
-   - Layout più usabile senza cambiare JS (solo CSS)
-========================================================= */
-html, body { height: 100%; }
-body { min-height: 100dvh; height: 100dvh; }
-@supports not (height: 100dvh) {
-  body { min-height: 100vh; height: 100vh; }
-}
-
-/* Su schermi piccoli: sidebar sopra e contenuto sotto (niente compressione orizzontale) */
-/* MODIFICA FOLD: Limite abbassato a 600px. 
-   Sotto i 600px (Fold chiuso) è mobile. 
-   Sopra i 600px (Fold aperto) diventa Desktop puro. */
-@media (max-width: 600px) {
-  #app-container { flex-direction: column !important; }
-
-  #app-container > aside {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    max-height: 35vh; /* Menu più compatto da chiuso */
-    overflow-y: auto;
-    border-right: 0 !important;
-    border-bottom: 1px solid rgba(148,163,184,0.35) !important;
-  }
-
-  main > header {
-    height: auto !important;
-    padding: 0.5rem 0.75rem !important; /* Meno spazio inutile nell'header */
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  /* Riduciamo drasticamente i margini quando è chiuso per guadagnare spazio */
-  main > div.flex-1 {
-    padding: 0.5rem !important; 
-  }
-  
-  /* Titoli più piccoli su schermo stretto */
+        @media (max-width: 600px) {
+          #app-container { flex-direction: column !important; }
+          #app-container > aside { width: 100% !important; max-width: 100% !important; height: auto !important; max-height: 35vh; overflow-y: auto; border-right: 0 !important; border-bottom: 1px solid rgba(148,163,184,0.35) !important; }
+          main > header { height: auto !important; padding: 0.5rem 0.75rem !important; flex-wrap: wrap; gap: 0.5rem; }
+          main > div.flex-1 { padding: 0.5rem !important; }
           h3 { font-size: 1.1rem !important; }
         }
 
         @media (max-width: 640px) {
-          main > header {
-            height: auto !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-          }
-
-          /* la “p-8” del contenuto principale su mobile è eccessiva */
-          main > div.flex-1 {
-            padding: 1rem !important;
-          }
+          main > header { height: auto !important; padding-left: 1rem !important; padding-right: 1rem !important; padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; flex-wrap: wrap; gap: 0.75rem; }
+          main > div.flex-1 { padding: 1rem !important; }
+          .fixed.inset-0 > div.absolute.top-12 { top: 1rem !important; padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+          .fixed.inset-0 > div.absolute.top-12 > div { max-height: calc(100dvh - 2rem) !important; }
         }
 
-/* Modali: top più vicino e altezza reale su smartphone (senza toccare HTML/JS) */
-@media (max-width: 640px) {
-  .fixed.inset-0 > div.absolute.top-12 {
-    top: 1rem !important;
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-  }
+        /* THEME LIGHT COLOR REFRESH */
+        .theme-light{ --lt-surface: #ffffff; --lt-panel: #eff6ff; --lt-panel2: #dbeafe; --lt-panel3: #bfdbfe; --lt-border: #93c5fd; --lt-border-strong: #60a5fa; --lt-muted: #1e3a8a; --lt-muted2: #1d4ed8; }
+        .theme-light .bg-deep\/50 { background-color: rgba(239,246,255,0.88) !important; }
+        .theme-light .bg-deep\/30 { background-color: rgba(239,246,255,0.70) !important; }
+        .theme-light .bg-deep\/20 { background-color: rgba(239,246,255,0.55) !important; }
+        .theme-light .bg-deep50 { background-color: rgba(239,246,255,0.88) !important; }
+        .theme-light .bg-deep30 { background-color: rgba(239,246,255,0.70) !important; }
+        .theme-light .bg-deep20 { background-color: rgba(239,246,255,0.55) !important; }
+        .theme-light .bg-slate-900\/50, .theme-light .bg-slate-800\/50, .theme-light .bg-slate-90050, .theme-light .bg-slate-80050 { background-color: rgba(219,234,254,0.72) !important; }
+        .theme-light .bg-slate-800\/30 { background-color: rgba(219,234,254,0.56) !important; }
+        .theme-light .bg-slate-800\/20 { background-color: rgba(219,234,254,0.42) !important; }
+        .theme-light .bg-slate-800 { background-color: var(--lt-panel2) !important; }
+        .theme-light .bg-slate-700 { background-color: var(--lt-panel3) !important; }
+        .theme-light .bg-slate-600 { background-color: #c7d2fe !important; }
+        .theme-light .hover\:bg-slate-800:hover, .theme-light .hover\:bg-slate-700:hover, .theme-light .hover\:bg-slate-600:hover { background-color: rgba(191,219,254,0.88) !important; }
+        .theme-light .hover\:bg-slate-800\/50:hover, .theme-light .hover\:bg-slate-800\/30:hover, .theme-light .hover\:bg-slate-900\/50:hover { background-color: rgba(191,219,254,0.82) !important; }
+        .theme-light .border-slate-800, .theme-light .border-slate-700, .theme-light .border-slate-600, .theme-light .border-slate-500, .theme-light .border-slate-80050, .theme-light .border-slate-700\/50, .theme-light .border-slate-800\/50 { border-color: var(--lt-border) !important; }
+        .theme-light .text-slate-500 { color: var(--lt-muted) !important; }
+        .theme-light .text-slate-400 { color: var(--lt-muted2) !important; }
+        .theme-light .text-slate-300 { color: #0f172a !important; }
+        .theme-light .text-slate-200, .theme-light .text-slate-100, .theme-light .text-slate-50 { color: #0f172a !important; }
+        .theme-light input::placeholder, .theme-light textarea::placeholder { color: #1e40af !important; opacity: 0.85; }
+        .theme-light table thead, .theme-light table thead th { background-color: rgba(191,219,254,0.92) !important; color: #0f172a !important; }
+        .theme-light table thead * { color: #0f172a !important; }
+        .theme-light thead.bg-slate-900\/50, .theme-light thead.bg-slate-90050 { background-color: rgba(191,219,254,0.92) !important; }
+        
+        .theme-light #section-claims table, .theme-light #section-claims thead, .theme-light #section-claims tbody, .theme-light #section-claims th, .theme-light #section-claims td { color: #0f172a !important; }
+        .theme-light #section-claims thead { background-color: rgba(191,219,254,0.92) !important; }
+        .theme-light #section-claims thead th { color: #0f172a !important; }
+        .theme-light #section-claims tbody tr:hover { background-color: rgba(37,99,235,0.06) !important; }
 
-  .fixed.inset-0 > div.absolute.top-12 > div {
-    max-height: calc(100dvh - 2rem) !important;
-  }
-}
+        body.theme-light #settingsModal input[name="theme"] + div, .theme-light #settingsModal input[name="theme"] + div { transition: all .15s ease-in-out; }
+        body.theme-light #settingsModal input[name="theme"]:not(:checked) + div, .theme-light #settingsModal input[name="theme"]:not(:checked) + div { background-color: rgba(219,234,254,0.85) !important; color: #0f172a !important; border-color: rgba(147,197,253,0.95) !important; opacity: 0.9; }
+        body.theme-light #settingsModal input[name="theme"]:checked + div, .theme-light #settingsModal input[name="theme"]:checked + div { background-color: #2563eb !important; color: #ffffff !important; border-color: #1d4ed8 !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.25) !important; opacity: 1; position: relative; }
+        body.theme-light #settingsModal input[name="theme"]:checked + div::after, .theme-light #settingsModal input[name="theme"]:checked + div::after { content: "✓"; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: 900; color: #ffffff; }
 
+        .theme-light .calendar-day-header{ color: #1e3a8a !important; }
+        .theme-light .calendar-cell{ background-color: rgba(239,246,255,0.85) !important; border: 1px solid rgba(147,197,253,0.65) !important; }
+        .theme-light .calendar-cell:hover{ background-color: rgba(191,219,254,0.65) !important; }
+        .theme-light .calendar-cell.today{ background-color: rgba(37,99,235,0.10) !important; border-color: rgba(37,99,235,0.45) !important; }
+        .theme-light .calendar-cell.inactive{ opacity: 0.65 !important; background-color: rgba(219,234,254,0.45) !important; }
+        .theme-light .from-accent\/5{ --tw-gradient-from: rgba(37,99,235,0.10) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgba(37,99,235,0) var(--tw-gradient-to-position) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
 
-
-/* =========================
-   THEME LIGHT: COLOR REFRESH (no grigi)
-   - Sostituisce grigi/slate con tinte azzurre/indigo coerenti col blu accent.
-   - Aggiunge fix per classi Tailwind con slash (es: bg-deep/50).
-   ========================= */
-.theme-light{
-  --lt-surface: #ffffff;
-  --lt-panel: #eff6ff;        /* blue-50 */
-  --lt-panel2: #dbeafe;       /* blue-100 */
-  --lt-panel3: #bfdbfe;       /* blue-200 */
-  --lt-border: #93c5fd;       /* blue-300 */
-  --lt-border-strong: #60a5fa;/* blue-400 */
-  --lt-muted: #1e3a8a;        /* blue-900 */
-  --lt-muted2: #1d4ed8;       /* blue-700 */
-}
-
-/* --- Deep backgrounds con slash (usati in header e overlay) --- */
-.theme-light .bg-deep\/50 { background-color: rgba(239,246,255,0.88) !important; }
-.theme-light .bg-deep\/30 { background-color: rgba(239,246,255,0.70) !important; }
-.theme-light .bg-deep\/20 { background-color: rgba(239,246,255,0.55) !important; }
-
-/* Se esistono anche versioni senza slash già usate in CSS */
-.theme-light .bg-deep50 { background-color: rgba(239,246,255,0.88) !important; }
-.theme-light .bg-deep30 { background-color: rgba(239,246,255,0.70) !important; }
-.theme-light .bg-deep20 { background-color: rgba(239,246,255,0.55) !important; }
-
-/* Superfici “grigie” -> pannelli azzurri */
-.theme-light .bg-slate-900\/50,
-.theme-light .bg-slate-800\/50,
-.theme-light .bg-slate-90050,
-.theme-light .bg-slate-80050 {
-  background-color: rgba(219,234,254,0.72) !important;
-}
-.theme-light .bg-slate-800\/30 { background-color: rgba(219,234,254,0.56) !important; }
-.theme-light .bg-slate-800\/20 { background-color: rgba(219,234,254,0.42) !important; }
-
-.theme-light .bg-slate-800 { background-color: var(--lt-panel2) !important; }
-.theme-light .bg-slate-700 { background-color: var(--lt-panel3) !important; }
-.theme-light .bg-slate-600 { background-color: #c7d2fe !important; } /* indigo-200 */
-
-/* Hover “grigi” -> hover azzurro */
-.theme-light .hover\:bg-slate-800:hover,
-.theme-light .hover\:bg-slate-700:hover,
-.theme-light .hover\:bg-slate-600:hover {
-  background-color: rgba(191,219,254,0.88) !important;
-}
-.theme-light .hover\:bg-slate-800\/50:hover,
-.theme-light .hover\:bg-slate-800\/30:hover,
-.theme-light .hover\:bg-slate-900\/50:hover {
-  background-color: rgba(191,219,254,0.82) !important;
-}
-
-/* Bordi (anche con slash) -> azzurri */
-.theme-light .border-slate-800,
-.theme-light .border-slate-700,
-.theme-light .border-slate-600,
-.theme-light .border-slate-500,
-.theme-light .border-slate-80050,
-.theme-light .border-slate-700\/50,
-.theme-light .border-slate-800\/50 {
-  border-color: var(--lt-border) !important;
-}
-
-/* Testi “grigi” -> blu/indigo (contrastati) */
-.theme-light .text-slate-500 { color: var(--lt-muted) !important; }
-.theme-light .text-slate-400 { color: var(--lt-muted2) !important; }
-.theme-light .text-slate-300 { color: #0f172a !important; }
-
-/* IMPORTANT: alcuni header/tabelle usano text-slate-200 (troppo chiaro su azzurro) */
-.theme-light .text-slate-200,
-.theme-light .text-slate-100,
-.theme-light .text-slate-50 {
-  color: #0f172a !important;
-}
-
-/* Placeholder */
-.theme-light input::placeholder,
-.theme-light textarea::placeholder {
-  color: #1e40af !important; /* blue-800 */
-  opacity: 0.85;
-}
-
-/* Tabelle: intestazioni leggibili (testo scuro su azzurro chiaro) */
-.theme-light table thead,
-.theme-light table thead th {
-  background-color: rgba(191,219,254,0.92) !important;
-  color: #0f172a !important;
-}
-.theme-light table thead * { color: #0f172a !important; }
-
-/* Fix specifico: classi THEAD tailwind in markup */
-.theme-light thead.bg-slate-900\/50,
-.theme-light thead.bg-slate-90050 {
-  background-color: rgba(191,219,254,0.92) !important;
-}
-
-
-/* =========================
-   LIGHT THEME: SINISTRI (claims) readability
-   ========================= */
-.theme-light #section-claims table,
-.theme-light #section-claims thead,
-.theme-light #section-claims tbody,
-.theme-light #section-claims th,
-.theme-light #section-claims td {
-  color: #0f172a !important;
-}
-.theme-light #section-claims thead {
-  background-color: rgba(191,219,254,0.92) !important;
-}
-.theme-light #section-claims thead th {
-  color: #0f172a !important;
-}
-.theme-light #section-claims tbody tr:hover {
-  background-color: rgba(37,99,235,0.06) !important;
-}
-
-
-/* =========================
-   FIX: Theme selector visibility (Settings modal) in LIGHT mode
-   ========================= */
-body.theme-light #settingsModal input[name="theme"] + div,
-.theme-light #settingsModal input[name="theme"] + div{
-  transition: all .15s ease-in-out;
-}
-
-body.theme-light #settingsModal input[name="theme"]:not(:checked) + div,
-.theme-light #settingsModal input[name="theme"]:not(:checked) + div{
-  background-color: rgba(219,234,254,0.85) !important;
-  color: #0f172a !important;
-  border-color: rgba(147,197,253,0.95) !important;
-  opacity: 0.9;
-}
-
-body.theme-light #settingsModal input[name="theme"]:checked + div,
-.theme-light #settingsModal input[name="theme"]:checked + div{
-  background-color: #2563eb !important;
-  color: #ffffff !important;
-  border-color: #1d4ed8 !important;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.25) !important;
-  opacity: 1;
-  position: relative;
-}
-
-body.theme-light #settingsModal input[name="theme"]:checked + div::after,
-.theme-light #settingsModal input[name="theme"]:checked + div::after{
-  content: "✓";
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  font-weight: 900;
-  color: #ffffff;
-}
-
-
-/* =========================
-   THEME LIGHT: CALENDAR BLUE (no grigio)
-   ========================= */
-.theme-light .calendar-day-header{
-  color: #1e3a8a !important; /* blue-900 */
-}
-
-.theme-light .calendar-cell{
-  background-color: rgba(239,246,255,0.85) !important; /* blue-50 */
-  border: 1px solid rgba(147,197,253,0.65) !important; /* blue-300 */
-}
-
-.theme-light .calendar-cell:hover{
-  background-color: rgba(191,219,254,0.65) !important; /* blue-200 */
-}
-
-.theme-light .calendar-cell.today{
-  background-color: rgba(37,99,235,0.10) !important; /* accent blue */
-  border-color: rgba(37,99,235,0.45) !important;
-}
-
-.theme-light .calendar-cell.inactive{
-  opacity: 0.65 !important;
-  background-color: rgba(219,234,254,0.45) !important;
-}
-
-
-/* THEME LIGHT: from-accent/5 */
-.theme-light .from-accent\/5{
-  --tw-gradient-from: rgba(37,99,235,0.10) var(--tw-gradient-from-position) !important;
-  --tw-gradient-to: rgba(37,99,235,0) var(--tw-gradient-to-position) !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-}
-/* ============================================================
-   FIX DEFINITIVO V5: GALAXY FOLD + TABLET
-   ============================================================ */
-
-/* 1. Pulizia generale */
-tfoot { display: none !important; }
-tbody tr:last-child { border-bottom: none !important; }
-.overflow-x-auto { padding-bottom: 0 !important; margin-bottom: 0 !important; border: none !important; }
-
-/* 2. Visualizzazione Fold Aperto / Tablet (600px - 1300px) */
-@media (min-width: 600px) and (max-width: 1300px) {
-  
-  /* Forza la tabella a NON uscire dallo schermo */
-  table {
-    table-layout: fixed !important; /* Questo è il comando magico */
-    width: 100% !important;
-    min-width: 100% !important;
-  }
-
-  /* Adatta le celle per far stare tutto in una schermata */
-  table th, 
-  table td {
-    padding: 6px 2px !important; /* Margini laterali minimi */
-    font-size: 9px !important;   /* Testo ridotto per far entrare tutte le colonne */
-    white-space: normal !important; /* Testo a capo consentito */
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    vertical-align: middle !important;
-  }
-
-  /* Colonna Data: evitiamo che vada a capo male */
-  table td.font-mono {
-    font-size: 8.5px !important;
-    letter-spacing: -0.5px;
-    white-space: nowrap !important;
-  }
-
-  /* Colonna Azioni (bottoni a destra) - MODIFICATO PER TASTI VISIBILI */
-  table th:last-child {
-      width: 95px !important;
-      text-align: right !important;
-  }
-
-  table td:last-child {
-    width: 95px !important; 
-    text-align: right !important;
-    white-space: normal !important; /* Permette di andare a capo */
-    overflow: visible !important;   /* Rende visibile ciò che esce */
-    display: flex !important;       /* Usa flexbox per i bottoni */
-    flex-wrap: wrap !important;     /* Manda a capo i bottoni */
-    justify-content: flex-end !important; /* Allinea a destra */
-    gap: 2px !important;            /* Spazio tra i bottoni */
-    align-items: center !important;
-  }
-
-/* --- GESTIONE BOTTONI AZIONI (CORRETTA PER TESTO E ICONE) --- */
-  
-  /* 1. Regola base per le ICONE (Whatsapp, Email, Cestino, etc) */
-  table td:last-child button {
-      width: 24px !important;       /* Quadrati un po' più comodi */
-      height: 24px !important;
-      font-size: 11px !important;
-      padding: 0 !important;
-      display: inline-flex !important;
-      justify-content: center !important;
-      align-items: center !important;
-      margin: 1px !important;
-      border-radius: 6px !important; /* Arrotondati */
-  }
-
-  /* 2. Regola specifica per i tasti con TESTO (Incassa/Annulla) */
-  /* Se il bottone ha lo sfondo verde (success) o grigio scuro (slate-700), si adatta al testo */
-  table td:last-child button.bg-success,
-  table td:last-child button.bg-slate-700 {
-      width: auto !important;       /* Larghezza automatica */
-      height: 24px !important;      /* Stessa altezza delle icone per allineamento */
-      padding-left: 8px !important;
-      padding-right: 8px !important;
-      font-size: 9px !important;    /* Testo leggibile */
-      font-weight: bold !important;
-  }
-
-
-</style>
+        /* GALAXY FOLD + TABLET FIX */
+        tfoot { display: none !important; }
+        tbody tr:last-child { border-bottom: none !important; }
+        .overflow-x-auto { padding-bottom: 0 !important; margin-bottom: 0 !important; border: none !important; }
+        
+        @media (min-width: 600px) and (max-width: 1300px) {
+          table { table-layout: fixed !important; width: 100% !important; min-width: 100% !important; }
+          table th, table td { padding: 6px 2px !important; font-size: 9px !important; white-space: normal !important; overflow: hidden !important; text-overflow: ellipsis !important; vertical-align: middle !important; }
+          table td.font-mono { font-size: 8.5px !important; letter-spacing: -0.5px; white-space: nowrap !important; }
+          table th:last-child { width: 95px !important; text-align: right !important; }
+          table td:last-child { width: 95px !important; text-align: right !important; white-space: normal !important; overflow: visible !important; display: flex !important; flex-wrap: wrap !important; justify-content: flex-end !important; gap: 2px !important; align-items: center !important; }
+          table td:last-child button { width: 24px !important; height: 24px !important; font-size: 11px !important; padding: 0 !important; display: inline-flex !important; justify-content: center !important; align-items: center !important; margin: 1px !important; border-radius: 6px !important; }
+          table td:last-child button.bg-success, table td:last-child button.bg-slate-700 { width: auto !important; height: 24px !important; padding-left: 8px !important; padding-right: 8px !important; font-size: 9px !important; font-weight: bold !important; }
+        }
+    </style>
 </head>
 <body class="bg-deep text-slate-300 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
 
     <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none z-0"></div>
 
+    <!-- LOGIN / REGISTER -->
     <div id="auth-container" class="flex-1 flex items-center justify-center p-4 z-50 fade-in">
         <div class="w-full max-w-md bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative overflow-hidden">
             <div class="absolute -top-20 -right-20 w-40 h-40 bg-accent/20 blur-3xl rounded-full pointer-events-none"></div>
@@ -853,24 +462,50 @@ tbody tr:last-child { border-bottom: none !important; }
                 <p class="text-[10px] text-slate-600 uppercase tracking-widest mt-4">Accesso Riservato</p>
             </div>
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 relative z-10">
-                <div><label class="block text-xs text-slate-500 font-bold mb-1">Email</label><input type="email" id="loginEmail" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="tua@email.com"></div>
-                <div><label class="block text-xs text-slate-500 font-bold mb-1">Password</label><input type="password" id="loginPass" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="••••••••"></div>
-                <div class="flex items-center gap-2"><input type="checkbox" id="rememberMe" checked class="accent-accent bg-deep border-slate-700 h-4 w-4 rounded"><label for="rememberMe" class="text-xs text-slate-400 cursor-pointer">Resta connesso</label></div>
-                <button type="submit" class="w-full py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400 shadow-lg shadow-accent/20 transition-all mt-4 uppercase tracking-wide">Accedi a NEXA</button>
+                <div>
+                    <label class="block text-xs text-slate-500 font-bold mb-1">Email</label>
+                    <input type="email" id="loginEmail" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow duration-300" placeholder="tua@email.com">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 font-bold mb-1">Password</label>
+                    <input type="password" id="loginPass" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow duration-300" placeholder="••••••••">
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="rememberMe" checked class="accent-accent bg-deep border-slate-700 h-4 w-4 rounded">
+                    <label for="rememberMe" class="text-xs text-slate-400 cursor-pointer">Resta connesso</label>
+                </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400 active:scale-95 shadow-lg shadow-accent/20 transition-all duration-200 mt-4 uppercase tracking-wide">Accedi a NEXA</button>
                 <div class="text-center mt-4"><p class="text-xs text-slate-400">Non hai un account? <a href="#" onclick="toggleAuthMode()" class="text-accent hover:underline font-bold">Registrati</a></p></div>
             </form>
             <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden relative z-10">
-                <div class="grid grid-cols-2 gap-3"><div><label class="block text-xs text-slate-500 font-bold mb-1">Nome</label><input type="text" id="regName" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"></div><div><label class="block text-xs text-slate-500 font-bold mb-1">Cognome</label><input type="text" id="regSurname" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"></div></div>
-                <div><label class="block text-xs text-slate-500 font-bold mb-1">Email</label><input type="email" id="regEmail" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"></div>
-                <div><label class="block text-xs text-slate-500 font-bold mb-1">Password</label><input type="password" id="regPass" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent"></div>
-                <button type="submit" class="w-full py-3 rounded-xl bg-white text-deep font-bold hover:bg-gray-200 transition-all mt-4">Crea Account</button>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Nome</label>
+                        <input type="text" id="regName" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow duration-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Cognome</label>
+                        <input type="text" id="regSurname" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow duration-300">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 font-bold mb-1">Email</label>
+                    <input type="email" id="regEmail" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow duration-300">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-500 font-bold mb-1">Password</label>
+                    <input type="password" id="regPass" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow duration-300">
+                </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-white text-deep font-bold hover:bg-gray-200 active:scale-95 transition-all duration-200 mt-4">Crea Account</button>
                 <div class="text-center mt-4"><p class="text-xs text-slate-400">Hai già un account? <a href="#" onclick="toggleAuthMode()" class="text-accent hover:underline font-bold">Accedi</a></p></div>
             </form>
         </div>
     </div>
 
+    <!-- MAIN APP -->
     <div id="app-container" class="hidden flex-1 flex overflow-hidden h-full w-full fade-in z-10">
         
+        <!-- SIDEBAR -->
         <aside class="w-72 bg-deep flex-shrink-0 flex flex-col border-r border-slate-800/50 p-4">
             <div class="bg-surface border border-slate-800 rounded-xl p-4 mb-8 shadow-lg shadow-accent/5 text-white relative overflow-hidden group cursor-default">
                 <div class="absolute -top-10 -left-10 w-20 h-20 bg-accent/20 blur-3xl rounded-full group-hover:bg-accent/30 transition-all"></div>
@@ -891,28 +526,21 @@ tbody tr:last-child { border-bottom: none !important; }
             <nav class="flex-1 space-y-3">
                 <a href="#" onclick="switchSection('home')" id="nav-home" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group nav-active"><i class="fa-solid fa-house w-5 text-center"></i> <span class="font-medium">Home Dashboard</span></a>
                 <a href="#" onclick="switchSection('agenda')" id="nav-agenda" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-regular fa-calendar-check w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Agenda & Calendario</span></a>
-<a href="#" onclick="switchSection('quotes')" id="nav-quotes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-calculator w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Preventivi</span></a>
+                <a href="#" onclick="switchSection('quotes')" id="nav-quotes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-calculator w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Preventivi</span></a>
                 <a href="#" onclick="switchSection('clients')" id="nav-clients" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-users w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Anagrafica clienti</span></a>
                 <a href="#" onclick="switchSection('contracts'); resetContractFilter(); renderContractsDefault();" id="nav-contracts" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-file-contract w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Contratti / Polizze</span></a>
-                
-<a href="#" onclick="switchSection('claims'); renderClaims();" id="nav-claims" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-80050 hover:text-white group">
-  <i class="fa-solid fa-triangle-exclamation w-5 text-center group-hover:text-accent transition-colors"></i>
-  <span class="font-medium">Sinistri</span>
-</a>
-<a href="#" onclick="switchSection('deadlines')" id="nav-deadlines" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-calendar-days w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Scadenze titoli</span></a>
-                    <a href="#" onclick="switchSection('report')" id="nav-report" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
-                        <i class="fa-solid fa-chart-pie w-5 text-center group-hover:text-accent transition-colors"></i>
-                        <span class="font-medium">Report</span>
-                    </a>
+                <a href="#" onclick="switchSection('claims'); renderClaims();" id="nav-claims" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-triangle-exclamation w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Sinistri</span></a>
+                <a href="#" onclick="switchSection('deadlines')" id="nav-deadlines" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-calendar-days w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Scadenze titoli</span></a>
+                <a href="#" onclick="switchSection('report')" id="nav-report" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-chart-pie w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Report</span></a>
             </nav>
 
             <div class="mt-auto pt-4 border-t border-slate-800">
                 <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 px-2">Area Dati</p>
                 <div class="space-y-2">
-                    <button onclick="downloadBackup()" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs text-slate-300 hover:bg-slate-800 border border-slate-700 hover:border-accent transition-all">
+                    <button onclick="downloadBackup()" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs text-slate-300 hover:bg-slate-800 border border-slate-700 hover:border-accent active:scale-95 transition-all duration-200">
                         <i class="fa-solid fa-download text-accent"></i> Esporta Archivio
                     </button>
-                    <button onclick="document.getElementById('importFile').click()" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs text-slate-300 hover:bg-slate-800 border border-slate-700 hover:border-info transition-all">
+                    <button onclick="document.getElementById('importFile').click()" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs text-slate-300 hover:bg-slate-800 border border-slate-700 hover:border-info active:scale-95 transition-all duration-200">
                         <i class="fa-solid fa-upload text-info"></i> Importa Archivio
                     </button>
                     <input type="file" id="importFile" class="hidden" accept=".json" onchange="processImport(this)">
@@ -920,65 +548,92 @@ tbody tr:last-child { border-bottom: none !important; }
             </div>
         </aside>
 
+        <!-- MAIN CONTENT AREA -->
         <main class="flex-1 flex flex-col overflow-hidden relative">
+            <!-- HEADER -->
             <header class="h-20 flex items-center justify-between px-8 border-b border-slate-800/50 bg-deep/50 backdrop-blur-sm z-10 flex-shrink-0">
                 <div><h2 class="text-xl font-bold text-white" id="page-title">Dashboard</h2><p class="text-xs text-slate-500" id="page-subtitle">Panoramica</p></div>
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden md:block"><p class="text-sm font-bold text-white" id="user-display-name">User</p></div>
-                    <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center border border-accent/30 shadow-lg shadow-accent/10 text-accent font-bold text-lg" id="user-avatar" onclick="openAvatarPicker()" title="Cambia avatar" role="button" style="cursor:pointer;">U</div>
-                    <button onclick="openSettingsModal()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-slate-700 transition-all text-slate-400" title="Impostazioni"><i class="fa-solid fa-gear"></i></button>
-                    
-        <button id="btn-manual-save" onclick="manualSaveAll(this)" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-slate-700 transition-all text-slate-400" title="Salva">
-            <i class="fa-solid fa-floppy-disk"></i>
-        </button>
-<button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-red-900/50 hover:text-red-500 transition-all text-slate-400" title="Esci"><i class="fa-solid fa-power-off"></i></button>
+                    <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center border border-accent/30 shadow-lg shadow-accent/10 text-accent font-bold text-lg hover:scale-105 active:scale-95 transition-transform" id="user-avatar" onclick="openAvatarPicker()" title="Cambia avatar" role="button" style="cursor:pointer;">U</div>
+                    <button onclick="openSettingsModal()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-slate-700 active:scale-95 transition-all duration-200 text-slate-400" title="Impostazioni"><i class="fa-solid fa-gear"></i></button>
+                    <button id="btn-manual-save" onclick="manualSaveAll(this)" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-slate-700 active:scale-95 transition-all duration-200 text-slate-400" title="Salva">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                    <button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-red-900/50 hover:text-red-500 active:scale-95 transition-all duration-200 text-slate-400" title="Esci"><i class="fa-solid fa-power-off"></i></button>
                 </div>
             </header>
 
             <div class="flex-1 overflow-y-auto p-8 z-10 relative scroll-smooth">
                 
+                <!-- DASHBOARD -->
                 <div id="section-home" class="fade-in space-y-6">
                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="glass-effect p-5 rounded-2xl border-l-4 border-accent relative overflow-hidden"><i class="fa-solid fa-users absolute right-4 top-4 text-6xl text-accent opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">I Tuoi Clienti</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-total-clients">0</h3></div>
-    <div class="glass-effect p-5 rounded-2xl border-l-4 border-warning relative overflow-hidden"><i class="fa-solid fa-file-contract absolute right-4 top-4 text-6xl text-warning opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Polizze Attive</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-total-policies">0</h3></div>
-    <div class="glass-effect p-5 rounded-2xl border-l-4 border-danger relative overflow-hidden"><i class="fa-solid fa-circle-exclamation absolute right-4 top-4 text-6xl text-danger opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Da Incassare del mese</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-pending-money">€ 0</h3></div>
-    <div class="glass-effect p-5 rounded-2xl border-l-4 border-success relative overflow-hidden"><i class="fa-solid fa-chart-line absolute right-4 top-4 text-6xl text-success opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Incassato (Mese)</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-month-inc">€ 0</h3></div>
+                        <div class="glass-effect p-5 rounded-2xl border-l-4 border-accent relative overflow-hidden"><i class="fa-solid fa-users absolute right-4 top-4 text-6xl text-accent opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">I Tuoi Clienti</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-total-clients">0</h3></div>
+                        <div class="glass-effect p-5 rounded-2xl border-l-4 border-warning relative overflow-hidden"><i class="fa-solid fa-file-contract absolute right-4 top-4 text-6xl text-warning opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Polizze Attive</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-total-policies">0</h3></div>
+                        <div class="glass-effect p-5 rounded-2xl border-l-4 border-danger relative overflow-hidden"><i class="fa-solid fa-circle-exclamation absolute right-4 top-4 text-6xl text-danger opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Da Incassare del mese</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-pending-money">€ 0</h3></div>
+                        <div class="glass-effect p-5 rounded-2xl border-l-4 border-success relative overflow-hidden"><i class="fa-solid fa-chart-line absolute right-4 top-4 text-6xl text-success opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Incassato (Mese)</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-month-inc">€ 0</h3></div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-calendar-check text-accent mr-2"></i>Prossimi Appuntamenti</h3>
-            <button onclick="switchSection('agenda')" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded text-white border border-slate-600">Vedi Tutto</button>
-        </div>
-        <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-agenda-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun appuntamento imminente.</p></div>
-    </div>
-    
-    <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col">
-        <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-cake-candles text-pink-500 mr-2"></i>Compleanni in Arrivo</h3>
-        <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-birthdays-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun compleanno nei prossimi 30 giorni.</p></div>
-    </div>
+                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-calendar-check text-accent mr-2"></i>Prossimi Appuntamenti</h3>
+                                <button onclick="switchSection('agenda')" class="text-xs bg-slate-800 hover:bg-slate-700 active:scale-95 transition-all px-3 py-1 rounded text-white border border-slate-600">Vedi Tutto</button>
+                            </div>
+                            <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-agenda-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun appuntamento imminente.</p></div>
+                        </div>
+                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col">
+                            <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-cake-candles text-pink-500 mr-2"></i>Compleanni in Arrivo</h3>
+                            <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-birthdays-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun compleanno nei prossimi 30 giorni.</p></div>
+                        </div>
+                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col border-t-4 border-red-500/80">
+                            <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-shield-halved text-red-500 mr-2"></i>Allerta Copertura</h3>
+                            <p class="text-[10px] text-slate-500 mb-3 leading-tight">Titoli che perdono i 15gg di mora nei prossimi 5gg o già fuori copertura (da max 30gg).</p>
+                            <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-out-of-coverage-list">
+                                <p class="text-slate-500 text-xs text-center mt-10">Nessun titolo in allerta.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col border-t-4 border-red-500/80">
-        <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-shield-halved text-red-500 mr-2"></i>Allerta Copertura</h3>
-        <p class="text-[10px] text-slate-500 mb-3 leading-tight">Titoli che perdono i 15gg di mora nei prossimi 5gg o già fuori copertura (da max 30gg).</p>
-        <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-out-of-coverage-list">
-                <p class="text-slate-500 text-xs text-center mt-10">Nessun titolo in allerta.</p>
-            </div>
-        </div>
-    </div>
-</div> <div id="section-agenda" class="hidden fade-in h-full flex flex-col">
+                <!-- AGENDA -->
+                <div id="section-agenda" class="hidden fade-in h-full flex flex-col">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative flex-1 flex flex-col">
                         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                            <div class="flex items-center gap-4"><h3 class="text-lg font-bold text-white uppercase tracking-wide">Agenda</h3><div class="flex bg-slate-800 rounded-lg p-1 border border-slate-700"><button onclick="changeAgendaView('month')" id="btn-view-month" class="px-3 py-1 rounded text-xs font-bold text-white bg-slate-700">Mese</button><button onclick="changeAgendaView('week')" id="btn-view-week" class="px-3 py-1 rounded text-xs font-bold text-slate-400 hover:text-white">Settimana</button><button onclick="changeAgendaView('day')" id="btn-view-day" class="px-3 py-1 rounded text-xs font-bold text-slate-400 hover:text-white">Giorno</button></div></div>
-                            <div class="flex items-center gap-3"><button onclick="agendaPrev()" class="w-8 h-8 rounded-full border border-slate-700 text-slate-400 hover:bg-slate-700"><i class="fa-solid fa-chevron-left"></i></button><span id="agenda-current-date-label" class="text-white font-bold min-w-[150px] text-center">Gennaio 2026</span><button onclick="agendaNext()" class="w-8 h-8 rounded-full border border-slate-700 text-slate-400 hover:bg-slate-700"><i class="fa-solid fa-chevron-right"></i></button><button onclick="agendaToday()" class="ml-2 text-xs border border-accent text-accent px-3 py-1 rounded hover:bg-accent hover:text-darktext">Oggi</button></div>
-                            <button onclick="toggleNewEventForm()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2"><i class="fa-solid fa-plus"></i> Nuovo</button>
+                            <div class="flex items-center gap-4">
+                                <h3 class="text-lg font-bold text-white uppercase tracking-wide">Agenda</h3>
+                                <div class="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
+                                    <button onclick="changeAgendaView('month')" id="btn-view-month" class="px-3 py-1 rounded text-xs font-bold text-white bg-slate-700">Mese</button>
+                                    <button onclick="changeAgendaView('week')" id="btn-view-week" class="px-3 py-1 rounded text-xs font-bold text-slate-400 hover:text-white transition-colors">Settimana</button>
+                                    <button onclick="changeAgendaView('day')" id="btn-view-day" class="px-3 py-1 rounded text-xs font-bold text-slate-400 hover:text-white transition-colors">Giorno</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button onclick="agendaPrev()" class="w-8 h-8 rounded-full border border-slate-700 text-slate-400 hover:bg-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-left"></i></button>
+                                <span id="agenda-current-date-label" class="text-white font-bold min-w-[150px] text-center">Gennaio 2026</span>
+                                <button onclick="agendaNext()" class="w-8 h-8 rounded-full border border-slate-700 text-slate-400 hover:bg-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-right"></i></button>
+                                <button onclick="agendaToday()" class="ml-2 text-xs border border-accent text-accent px-3 py-1 rounded hover:bg-accent hover:text-darktext active:scale-95 transition-all">Oggi</button>
+                            </div>
+                            <button onclick="toggleNewEventForm()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2 active:scale-95 transition-all duration-200"><i class="fa-solid fa-plus"></i> Nuovo</button>
                         </div>
-                        <div id="newEventForm" class="hidden mb-4 bg-slate-800/50 p-4 rounded-xl border border-slate-700 transition-all"><h4 class="text-white font-bold text-sm mb-3">Nuovo Appuntamento</h4><div class="grid grid-cols-1 md:grid-cols-4 gap-3"><input type="date" id="evtDate" class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white"><input type="time" id="evtTime" class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white"><input type="text" id="evtTitle" placeholder="Titolo / Cliente..." class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white md:col-span-2"></div><div class="flex justify-end gap-2 mt-3"><button onclick="toggleNewEventForm()" class="px-3 py-1 rounded text-slate-400 hover:text-white text-xs">Annulla</button><button onclick="addNewEvent()" class="px-4 py-2 bg-accent text-darktext font-bold rounded text-xs hover:bg-yellow-400">Salva</button></div></div>
+                        <div id="newEventForm" class="hidden mb-4 bg-slate-800/50 p-4 rounded-xl border border-slate-700 transition-all">
+                            <h4 class="text-white font-bold text-sm mb-3">Nuovo Appuntamento</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <input type="date" id="evtDate" class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                                <input type="time" id="evtTime" class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                                <input type="text" id="evtTitle" placeholder="Titolo / Cliente..." class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white md:col-span-2 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                            </div>
+                            <div class="flex justify-end gap-2 mt-3">
+                                <button onclick="toggleNewEventForm()" class="px-3 py-1 rounded text-slate-400 hover:text-white text-xs transition-colors">Annulla</button>
+                                <button onclick="addNewEvent()" class="px-4 py-2 bg-accent text-darktext font-bold rounded text-xs hover:bg-yellow-400 active:scale-95 transition-all">Salva</button>
+                            </div>
+                        </div>
                         <div id="calendar-container" class="flex-1 overflow-y-auto border border-slate-800 rounded-lg bg-deep/30"></div>
                     </div>
                 </div>
 
-<div id="section-quotes" class="hidden fade-in">
+                <!-- QUOTES -->
+                <div id="section-quotes" class="hidden fade-in">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
                         <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
                             <div>
@@ -986,8 +641,8 @@ tbody tr:last-child { border-bottom: none !important; }
                                 <p class="text-sm text-slate-400 mt-1">Archivio e pianificazione dei ricontatti.</p>
                             </div>
                             <div class="flex items-center gap-3">
-                                <input type="text" id="searchQuotesInput" onkeyup="renderQuotes()" placeholder="Cerca preventivo..." class="bg-deep/50 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:border-accent outline-none">
-                                <button onclick="openQuoteModal()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2"><i class="fa-solid fa-plus"></i> Nuovo Preventivo</button>
+                                <input type="text" id="searchQuotesInput" onkeyup="renderQuotes()" placeholder="Cerca preventivo..." class="bg-deep/50 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                                <button onclick="openQuoteModal()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2 active:scale-95 transition-all duration-200"><i class="fa-solid fa-plus"></i> Nuovo Preventivo</button>
                             </div>
                         </div>
                         <div class="overflow-x-auto rounded-lg border border-slate-800">
@@ -1008,23 +663,41 @@ tbody tr:last-child { border-bottom: none !important; }
                         </div>
                     </div>
                 </div>
+
+                <!-- CLIENTS -->
                 <div id="section-clients" class="hidden fade-in">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
-                        <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6 relative z-10"><div><h3 class="text-lg font-bold text-white uppercase tracking-wide">I Tuoi Clienti <span id="client-count" class="text-slate-500 text-sm normal-case ml-2">0</span></h3></div><div class="flex items-center gap-3"><input type="text" id="searchInput" onkeyup="searchClients()" placeholder="Cerca..." class="bg-deep/50 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:border-accent"><button onclick="openModal()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2"><i class="fa-solid fa-plus"></i> Nuovo</button></div></div>
-                        <div class="overflow-x-auto rounded-lg border border-slate-800"><table class="w-full text-left text-sm text-slate-400"><thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider"><tr><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">CF</th><th class="px-6 py-4">Contatti</th><th class="px-6 py-4 text-right">Azioni</th></tr></thead><tbody id="clientsTableBody" class="divide-y divide-slate-800/50"></tbody></table></div>
+                        <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6 relative z-10">
+                            <div><h3 class="text-lg font-bold text-white uppercase tracking-wide">I Tuoi Clienti <span id="client-count" class="text-slate-500 text-sm normal-case ml-2">0</span></h3></div>
+                            <div class="flex items-center gap-3">
+                                <input type="text" id="searchInput" onkeyup="searchClients()" placeholder="Cerca..." class="bg-deep/50 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                                <button onclick="openModal()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2 active:scale-95 transition-all duration-200"><i class="fa-solid fa-plus"></i> Nuovo</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-slate-800">
+                            <table class="w-full text-left text-sm text-slate-400">
+                                <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
+                                    <tr><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">CF</th><th class="px-6 py-4">Contatti</th><th class="px-6 py-4 text-right">Azioni</th></tr>
+                                </thead>
+                                <tbody id="clientsTableBody" class="divide-y divide-slate-800/50"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
+                <!-- CONTRACTS -->
                 <div id="section-contracts" class="hidden fade-in">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
                         <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
                             <div><h3 class="text-lg font-bold text-white uppercase tracking-wide">Polizze & Contratti <span id="policy-count" class="text-slate-500 text-sm normal-case ml-2">0</span></h3><p class="text-sm text-slate-400 mt-1" id="contract-subtitle">Gestione portafoglio.</p></div>
-                            <div class="flex items-center gap-3"><button onclick="resetContractFilter(true)" id="btn-show-all-contracts" class="hidden border border-accent text-accent hover:bg-accent hover:text-darktext px-4 py-2 rounded-lg text-sm transition-all"><i class="fa-solid fa-list mr-2"></i>Mostra Tutto</button><button onclick="switchSection('clients')" class="border border-slate-700 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-sm transition-all"><i class="fa-solid fa-arrow-left mr-2"></i>Indietro</button><button onclick="openPolicyModalWithFilter()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2"><i class="fa-solid fa-file-circle-plus"></i> Nuova Polizza</button>
-                <div>
-                    <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">N° Polizza</label>
-                    <input type="text" id="searchPolicyNumber" onkeyup="searchPoliciesByNumber()" placeholder="Es. 123456..."
-                           class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-44">
-                </div>
+                            <div class="flex items-center gap-3">
+                                <button onclick="resetContractFilter(true)" id="btn-show-all-contracts" class="hidden border border-accent text-accent hover:bg-accent hover:text-darktext px-4 py-2 rounded-lg text-sm active:scale-95 transition-all"><i class="fa-solid fa-list mr-2"></i>Mostra Tutto</button>
+                                <button onclick="switchSection('clients')" class="border border-slate-700 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-sm active:scale-95 transition-all"><i class="fa-solid fa-arrow-left mr-2"></i>Indietro</button>
+                                <button onclick="openPolicyModalWithFilter()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2 active:scale-95 transition-all duration-200"><i class="fa-solid fa-file-circle-plus"></i> Nuova Polizza</button>
+                                <div>
+                                    <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">N° Polizza</label>
+                                    <input type="text" id="searchPolicyNumber" onkeyup="searchPoliciesByNumber()" placeholder="Es. 123456..." class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-44 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                                </div>
                             </div>
                         </div>
 
@@ -1046,6 +719,7 @@ tbody tr:last-child { border-bottom: none !important; }
                     </div>
                 </div>
 
+                <!-- DEADLINES -->
                 <div id="section-deadlines" class="hidden fade-in">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
                         <div class="flex flex-col md:flex-row justify-between items-center mb-6">
@@ -1055,9 +729,9 @@ tbody tr:last-child { border-bottom: none !important; }
                         <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex items-end gap-4 shadow-lg">
                             <div>
                                 <label class="block text-xs text-slate-400 mb-1 font-bold uppercase"><i class="fa-solid fa-calendar-plus mr-1 text-accent"></i>Genera Rinnovi per:</label>
-                                <input type="month" id="bulkRenewalInput" class="bg-deep border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:border-accent outline-none">
+                                <input type="month" id="bulkRenewalInput" class="bg-deep border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow outline-none">
                             </div>
-                            <button onclick="generateBulkRenewals()" class="bg-accent text-darktext px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 transition-all flex items-center gap-2 shadow-lg shadow-accent/10">
+                            <button onclick="generateBulkRenewals()" class="bg-accent text-darktext px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 active:scale-95 transition-all duration-200 flex items-center gap-2 shadow-lg shadow-accent/10">
                                 <i class="fa-solid fa-arrows-rotate"></i> Genera
                             </button>
                             <div class="text-[10px] text-slate-500 max-w-xs leading-tight ml-2 border-l border-slate-700 pl-3 py-1">
@@ -1072,301 +746,445 @@ tbody tr:last-child { border-bottom: none !important; }
                             </div>
                             
                             <div class="flex gap-2 flex-wrap justify-end items-end">
-                                <div><button onclick="exportDeadlinesPDF()" class="bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 rounded px-3 py-1.5 text-xs font-bold mr-2 mb-1 flex items-center gap-2"><i class="fa-solid fa-file-pdf text-red-400"></i> Esporta PDF (A4)</button></div>
-                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Scadenza:</label><input type="month" id="filterMonthDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white w-32"></div>
-                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Incassati il:</label><input type="month" id="filterPayDateDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-accent border-accent/50 w-32"></div>
-                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Stato:</label><select id="filterStatusDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="">Tutti gli stati</option><option value="DA INCASSARE">Da Incassare del mese</option><option value="INCASSATO">Incassati</option></select></div>
-                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Compagnia:</label><select id="filterCompDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="">Tutte</option><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="HELVETIA">HELVETIA</option><option value="GENIALPIU">GENIALPIU</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option>
-</select></div>
-<div>
-    <label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Rate Mensili:</label>
-    <select id="filterMonthlyDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white">
-                                <option value="ALL">Mostra tutte</option>
-                                <option value="ANNUAL_ONLY">Solo prima rata (Scadenza Annua)</option>
-                            </select>
+                                <div><button onclick="exportDeadlinesPDF()" class="bg-slate-700 hover:bg-slate-600 active:scale-95 transition-all text-white border border-slate-600 rounded px-3 py-1.5 text-xs font-bold mr-2 mb-1 flex items-center gap-2"><i class="fa-solid fa-file-pdf text-red-400"></i> Esporta PDF (A4)</button></div>
+                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Scadenza:</label><input type="month" id="filterMonthDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white w-32 focus:outline-none focus:border-accent"></div>
+                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Incassati il:</label><input type="month" id="filterPayDateDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-accent border-accent/50 w-32 focus:outline-none focus:border-accent"></div>
+                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Stato:</label><select id="filterStatusDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-accent"><option value="">Tutti gli stati</option><option value="DA INCASSARE">Da Incassare del mese</option><option value="INCASSATO">Incassati</option></select></div>
+                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Compagnia:</label><select id="filterCompDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-accent"><option value="">Tutte</option><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="HELVETIA">HELVETIA</option><option value="GENIALPIU">GENIALPIU</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option></select></div>
+                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Rate Mensili:</label><select id="filterMonthlyDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-accent"><option value="ALL">Mostra tutte</option><option value="ANNUAL_ONLY">Solo prima rata (Scadenza Annua)</option></select></div>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-lg border border-slate-800 mt-6">
+                            <table class="w-full text-left text-sm text-slate-400">
+                                <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
+                                    <tr>
+                                        <th class="px-6 py-4">Scadenza</th>
+                                        <th class="px-6 py-4">Cliente / Polizza</th>
+                                        <th class="px-6 py-4">Ramo</th>
+                                        <th class="px-6 py-4">Note</th>
+                                        <th class="px-6 py-4">Rata N°</th>
+                                        <th class="px-6 py-4">Importo</th>
+                                        <th class="px-6 py-4 text-accent">Provvigioni</th>
+                                        <th class="px-6 py-4">Stato</th>
+                                        <th class="px-6 py-4 text-right">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="deadlinesTableBody" class="divide-y divide-slate-800/50"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto rounded-lg border border-slate-800 mt-6">
-                    <table class="w-full text-left text-sm text-slate-400">
-                        <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
-                            <tr>
-                                <th class="px-6 py-4">Scadenza</th>
-                                <th class="px-6 py-4">Cliente / Polizza</th>
-                                <th class="px-6 py-4">Ramo</th>
-                                <th class="px-6 py-4">Note</th>
-                                <th class="px-6 py-4">Rata N°</th>
-                                <th class="px-6 py-4">Importo</th>
-                                <th class="px-6 py-4 text-accent">Provvigioni</th>
-                                <th class="px-6 py-4">Stato</th>
-                                <th class="px-6 py-4 text-right">Azioni</th>
-                            </tr>
-                        </thead>
-                        <tbody id="deadlinesTableBody" class="divide-y divide-slate-800/50"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-            
-<div id="section-claims" class="hidden fade-in">
-  <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
-    <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
-      <div>
-        <h3 class="text-lg font-bold text-white uppercase tracking-wide">Sinistri</h3>
-        <p class="text-sm text-slate-400 mt-1">Archivio sinistri con filtri e storico aggiornamenti.</p>
-      </div>
-
-      <div class="flex flex-wrap items-end gap-2">
-        <div>
-          <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Stato</label>
-          <select id="filterClaimStatus" onchange="renderClaims()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white">
-            <option value="APERTI">Sinistri aperti</option>
-            <option value="CHIUSI">Sinistri chiusi</option>
-            <option value="TUTTI">Tutti</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Mese</label>
-          <select id="filterClaimMonth" onchange="renderClaims()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white w-28"></select>
-        </div>
-
-        <div>
-          <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Anno</label>
-          <select id="filterClaimYear" onchange="renderClaims()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white w-24"></select>
-        </div>
-
-        <div>
-          <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Cerca</label>
-          <input id="searchClaims" onkeyup="renderClaims()" placeholder="Polizza, sinistro, cliente..." class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-56" />
-        </div>
-
-        <button onclick="openClaimModal(null, null)" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent20 flex gap-2">
-          <i class="fa-solid fa-plus"></i> Nuovo
-        </button>
-      </div>
-    </div>
-
-    <div class="overflow-x-auto rounded-lg border border-slate-800">
-      <table class="w-full text-left text-sm text-slate-400">
-        <thead class="bg-slate-90050 text-slate-200 uppercase text-xs font-bold tracking-wider">
-          <tr>
-            <th class="px-6 py-4">Stato</th>
-            <th class="px-6 py-4">Polizza</th>
-            <th class="px-6 py-4">Compagnia</th>
-            <th class="px-6 py-4">Cliente</th>
-            <th class="px-6 py-4">N. sinistro</th>
-            <th class="px-6 py-4">Data apertura</th>
-            <th class="px-6 py-4">Ultimo aggiornamento</th>
-            <th class="px-6 py-4">Note</th>
-            <th class="px-6 py-4 text-center">Chiuso</th>
-            <th class="px-6 py-4 text-right">Azioni</th>
-          </tr>
-        </thead>
-        <tbody id="claimsTableBody" class="divide-y divide-slate-80050"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-<div id="section-report" class="hidden fade-in">
-                <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+                <!-- CLAIMS -->
+                <div id="section-claims" class="hidden fade-in">
+                    <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
+                        <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
                         <div>
-                            <h3 class="text-lg font-bold text-white uppercase tracking-wide">Report <span class="text-accent text-xs font-bold">(V18)</span></h3>
-                            <p class="text-sm text-slate-400 mt-1">Analisi produzione, portafoglio e polizze perse.</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="extractReport()" class="bg-accent hover:bg-accent/90 text-darktext border border-accent rounded px-4 py-2 text-sm font-bold flex items-center gap-2">
-                                <i class="fa-solid fa-arrow-down-to-line"></i>Estrai
-                            </button>
-                            <button onclick="exportReportPDF()" class="bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 rounded px-4 py-2 text-sm font-bold flex items-center gap-2">
-                                <i class="fa-solid fa-file-pdf text-danger"></i>Esporta PDF
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex flex-col gap-4">
-                        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-                            <div>
-                                <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Tipo</label>
-                                <select id="reportType" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full">
-                                    <option value="PROD">Nuova Produzione</option>
-                                    <option value="LOST">Polizze Perse</option>
-                                    <option value="PORT">Portafoglio</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Anno</label>
-                                <select id="reportYear" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full"><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option><option value="2036">2036</option><option value="2037">2037</option><option value="2038">2038</option><option value="2039">2039</option><option value="2040">2040</option><option value="2041">2041</option><option value="2042">2042</option><option value="2043">2043</option><option value="2044">2044</option><option value="2045">2045</option><option value="2046">2046</option><option value="2047">2047</option><option value="2048">2048</option><option value="2049">2049</option><option value="2050">2050</option></select>
-                            </div>
-                            <div>
-                                <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Mese</label>
-                                <select id="reportMonth" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full">
-                                    <option value="01">Gennaio</option>
-                                    <option value="02">Febbraio</option>
-                                    <option value="03">Marzo</option>
-                                    <option value="04">Aprile</option>
-                                    <option value="05">Maggio</option>
-                                    <option value="06">Giugno</option>
-                                    <option value="07">Luglio</option>
-                                    <option value="08">Agosto</option>
-                                    <option value="09">Settembre</option>
-                                    <option value="10">Ottobre</option>
-                                    <option value="11">Novembre</option>
-                                    <option value="12">Dicembre</option>
-                                </select>
-                            </div>
-                            <div class="flex items-end">
-                                <label class="flex items-center gap-2 text-xs text-slate-300 select-none">
-                                    <input type="checkbox" id="reportCompare" checked onchange="renderReport()" class="accent-accent" />
-                                    <span>Confronta anno prec.</span>
-                                </label>
-                            </div>
+                            <h3 class="text-lg font-bold text-white uppercase tracking-wide">Sinistri</h3>
+                            <p class="text-sm text-slate-400 mt-1">Archivio sinistri con filtri e storico aggiornamenti.</p>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Macro Ramo</label>
-                                <select id="reportRamo" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full">
-                                    <option value="TUTTI">Tutti</option>
-                                    <option value="AUTO">AUTO</option>
-                                    <option value="RAMI VARI">RAMI VARI</option>
-                                    <option value="VITA">VITA</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Compagnia</label>
-                                <select id="reportCompany" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full"><option value="TUTTE">Tutte</option><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="GENIALPIU">GENIALPIU</option><option value="HELVETIA">HELVETIA</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option><option value="ALTRE">ALTRE</option></select>
-                            </div>
+                        <div class="flex flex-wrap items-end gap-2">
+                            <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Stato</label><select id="filterClaimStatus" onchange="renderClaims()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-accent"><option value="APERTI">Sinistri aperti</option><option value="CHIUSI">Sinistri chiusi</option><option value="TUTTI">Tutti</option></select></div>
+                            <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Mese</label><select id="filterClaimMonth" onchange="renderClaims()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white w-28 focus:outline-none focus:border-accent"></select></div>
+                            <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Anno</label><select id="filterClaimYear" onchange="renderClaims()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white w-24 focus:outline-none focus:border-accent"></select></div>
+                            <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Cerca</label><input id="searchClaims" onkeyup="renderClaims()" placeholder="Polizza, sinistro, cliente..." class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-56 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" /></div>
+                            <button onclick="openClaimModal(null, null)" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2 active:scale-95 transition-all duration-200"><i class="fa-solid fa-plus"></i> Nuovo</button>
                         </div>
-                    </div>
+                        </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-accent"><div class="text-xs text-slate-500 font-bold uppercase">N° Polizze</div><div class="text-3xl font-bold text-white mt-1" id="repCount">0</div></div>
-                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-success"><div class="text-xs text-slate-500 font-bold uppercase">Premi Totali</div><div class="text-3xl font-bold text-white mt-1" id="repPremium">€ 0.00</div></div>
-                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-warning"><div class="text-xs text-slate-500 font-bold uppercase">Δ vs anno prec.</div><div class="text-3xl font-bold text-white mt-1" id="repDelta">—</div></div>
-                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-info"><div class="text-xs text-slate-500 font-bold uppercase">Δ %</div><div class="text-3xl font-bold text-white mt-1" id="repDeltaPerc">—</div></div>
-                    </div>
-
-                    <div class="overflow-x-auto rounded-lg border border-slate-800">
+                        <div class="overflow-x-auto rounded-lg border border-slate-800">
                         <table class="w-full text-left text-sm text-slate-400">
                             <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
-                                <tr>
-                                    <th class="px-6 py-4">Cliente</th>
-                                    <th class="px-6 py-4">Ramo</th>
-                                    <th class="px-6 py-4">Compagnia</th>
-                                    <th class="px-6 py-4">Polizza</th>
-                                    <th class="px-6 py-4">Effetto</th>
-                                    <th class="px-6 py-4">Scadenza</th>
-                                    <th class="px-6 py-4 text-right">Premio</th>
-                                    <th class="px-6 py-4">Stato</th>
-                                </tr>
+                            <tr>
+                                <th class="px-6 py-4">Stato</th><th class="px-6 py-4">Polizza</th><th class="px-6 py-4">Compagnia</th><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">N. sinistro</th><th class="px-6 py-4">Data apertura</th><th class="px-6 py-4">Ultimo aggiornamento</th><th class="px-6 py-4">Note</th><th class="px-6 py-4 text-center">Chiuso</th><th class="px-6 py-4 text-right">Azioni</th>
+                            </tr>
                             </thead>
-                            <tbody id="reportTableBody" class="divide-y divide-slate-800/50"></tbody>
+                            <tbody id="claimsTableBody" class="divide-y divide-slate-800/50"></tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="section-placeholder" class="hidden fade-in"><div class="flex flex-col items-center justify-center h-96 text-center"><div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6"><i class="fa-solid fa-person-digging text-3xl text-slate-500"></i></div><h3 class="text-2xl font-bold text-white mb-2">Sezione in Sviluppo</h3><p class="text-slate-400 max-w-md">Funzionalità: <span id="placeholder-name" class="text-accent"></span></p></div></div>
+                <!-- REPORT -->
+                <div id="section-report" class="hidden fade-in">
+                    <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-white uppercase tracking-wide">Report <span class="text-accent text-xs font-bold">(V18)</span></h3>
+                                <p class="text-sm text-slate-400 mt-1">Analisi produzione, portafoglio e polizze perse.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="extractReport()" class="bg-accent hover:bg-accent/90 text-darktext border border-accent rounded px-4 py-2 text-sm font-bold flex items-center gap-2 active:scale-95 transition-all"><i class="fa-solid fa-arrow-down-to-line"></i>Estrai</button>
+                                <button onclick="exportReportPDF()" class="bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 rounded px-4 py-2 text-sm font-bold flex items-center gap-2 active:scale-95 transition-all"><i class="fa-solid fa-file-pdf text-danger"></i>Esporta PDF</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex flex-col gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Tipo</label><select id="reportType" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="PROD">Nuova Produzione</option><option value="LOST">Polizze Perse</option><option value="PORT">Portafoglio</option></select></div>
+                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Anno</label><select id="reportYear" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="2025">2025</option><option value="2026">2026</option></select></div>
+                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Mese</label><select id="reportMonth" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="01">Gennaio</option><option value="02">Febbraio</option><option value="03">Marzo</option><option value="04">Aprile</option><option value="05">Maggio</option><option value="06">Giugno</option><option value="07">Luglio</option><option value="08">Agosto</option><option value="09">Settembre</option><option value="10">Ottobre</option><option value="11">Novembre</option><option value="12">Dicembre</option></select></div>
+                                <div class="flex items-end"><label class="flex items-center gap-2 text-xs text-slate-300 select-none"><input type="checkbox" id="reportCompare" checked onchange="renderReport()" class="accent-accent" /><span>Confronta anno prec.</span></label></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Macro Ramo</label><select id="reportRamo" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="TUTTI">Tutti</option><option value="AUTO">AUTO</option><option value="RAMI VARI">RAMI VARI</option><option value="VITA">VITA</option></select></div>
+                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Compagnia</label><select id="reportCompany" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="TUTTE">Tutte</option><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="GENIALPIU">GENIALPIU</option><option value="HELVETIA">HELVETIA</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option><option value="ALTRE">ALTRE</option></select></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="glass-effect p-4 rounded-2xl border-l-4 border-accent"><div class="text-xs text-slate-500 font-bold uppercase">N° Polizze</div><div class="text-3xl font-bold text-white mt-1" id="repCount">0</div></div>
+                            <div class="glass-effect p-4 rounded-2xl border-l-4 border-success"><div class="text-xs text-slate-500 font-bold uppercase">Premi Totali</div><div class="text-3xl font-bold text-white mt-1" id="repPremium">€ 0.00</div></div>
+                            <div class="glass-effect p-4 rounded-2xl border-l-4 border-warning"><div class="text-xs text-slate-500 font-bold uppercase">Δ vs anno prec.</div><div class="text-3xl font-bold text-white mt-1" id="repDelta">—</div></div>
+                            <div class="glass-effect p-4 rounded-2xl border-l-4 border-info"><div class="text-xs text-slate-500 font-bold uppercase">Δ %</div><div class="text-3xl font-bold text-white mt-1" id="repDeltaPerc">—</div></div>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-lg border border-slate-800">
+                            <table class="w-full text-left text-sm text-slate-400">
+                                <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
+                                    <tr><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Ramo</th><th class="px-6 py-4">Compagnia</th><th class="px-6 py-4">Polizza</th><th class="px-6 py-4">Effetto</th><th class="px-6 py-4">Scadenza</th><th class="px-6 py-4 text-right">Premio</th><th class="px-6 py-4">Stato</th></tr>
+                                </thead>
+                                <tbody id="reportTableBody" class="divide-y divide-slate-800/50"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="section-placeholder" class="hidden fade-in"><div class="flex flex-col items-center justify-center h-96 text-center"><div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6"><i class="fa-solid fa-person-digging text-3xl text-slate-500"></i></div><h3 class="text-2xl font-bold text-white mb-2">Sezione in Sviluppo</h3><p class="text-slate-400 max-w-md">Funzionalità: <span id="placeholder-name" class="text-accent"></span></p></div></div>
             </div>
         </main>
     </div>
 
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeSettingsModal()"></div>
+        <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-4">
+            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-accent modal-animate">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-gear mr-2 text-accent"></i>Impostazioni</h3>
+                    <button onclick="closeSettingsModal()" class="text-slate-500 hover:text-accent transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div class="bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Tema</div>
+                    <div class="flex gap-3">
+                        <label class="cursor-pointer flex-1">
+                            <input type="radio" name="theme" value="dark" class="peer hidden" onchange="setTheme('dark')">
+                            <div class="peer-checked:bg-accent peer-checked:text-darktext px-4 py-3 rounded-xl bg-deep text-slate-300 border border-slate-700 text-sm font-bold text-center transition-colors">Scuro</div>
+                        </label>
+                        <label class="cursor-pointer flex-1">
+                            <input type="radio" name="theme" value="light" class="peer hidden" onchange="setTheme('light')">
+                            <div class="peer-checked:bg-accent peer-checked:text-darktext px-4 py-3 rounded-xl bg-deep text-slate-300 border border-slate-700 text-sm font-bold text-center transition-colors">Chiaro</div>
+                        </label>
+                    </div>
+                    <div class="text-10px text-slate-500 mt-3">Il tema viene salvato in locale e resta attivo ai prossimi accessi.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AVATAR PICKER MODAL -->
+    <div id="avatarModal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeAvatarPicker()"></div>
+      <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-4">
+        <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-accent modal-animate">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-user-astronaut mr-2 text-accent"></i>Seleziona avatar</h3>
+            <button onclick="closeAvatarPicker()" class="text-slate-500 hover:text-accent transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+          </div>
+          <div id="avatarGrid" class="grid grid-cols-5 sm:grid-cols-6 gap-3"></div>
+          <p class="text-10px text-slate-500 mt-4">L'avatar viene salvato nel profilo utente.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENT MODAL -->
     <div id="clientModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl">
-            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent">
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
+            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
                 <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h3 id="modalTitle" class="text-xl font-bold text-white">Dettaglio Cliente</h3>
-                    </div>
-                    <button onclick="closeModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    <div><h3 id="modalTitle" class="text-xl font-bold text-white">Dettaglio Cliente</h3></div>
+                    <button onclick="closeModal()" class="text-slate-500 hover:text-accent transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
                 <form id="clientForm" onsubmit="saveClient(event)">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-4"><input type="text" id="inputName" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Cognome Nome"><input type="text" id="inputCF" oninput="parseCF()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white uppercase" placeholder="Codice Fiscale"><input type="email" id="inputEmail" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Email"><input type="tel" id="inputPhone" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Telefono"></div>
-                        <div class="space-y-4"><div class="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50"><label class="block text-xs text-slate-400 mb-1 ml-1">Data di Nascita</label><input type="date" id="inputBirthDate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div><input type="text" id="inputAddress" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Residenza"><div class="bg-slate-800/30 p-3 rounded-lg border border-slate-700/50"><label class="block text-xs text-slate-400 mb-1">Parente</label><div class="flex gap-2"><select id="relationSelect" class="w-2/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs"><option value="">Nessuno</option></select><select id="relationType" class="w-1/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option></select></div></div><textarea id="inputNotes" rows="3" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="Note..."></textarea></div>
+                        <div class="space-y-4">
+                            <input type="text" id="inputName" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Cognome Nome">
+                            <input type="text" id="inputCF" oninput="parseCF()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white uppercase placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Codice Fiscale">
+                            <input type="email" id="inputEmail" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Email">
+                            <input type="tel" id="inputPhone" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Telefono">
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-slate-800/30 p-2 rounded-lg border border-slate-700/50">
+                                <label class="block text-xs text-slate-400 mb-1 ml-1">Data di Nascita</label>
+                                <input type="date" id="inputBirthDate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                            </div>
+                            <input type="text" id="inputAddress" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Residenza">
+                            <div class="bg-slate-800/30 p-3 rounded-lg border border-slate-700/50">
+                                <label class="block text-xs text-slate-400 mb-1">Parente</label>
+                                <div class="flex gap-2">
+                                    <select id="relationSelect" class="w-2/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="">Nessuno</option></select>
+                                    <select id="relationType" class="w-1/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option></select>
+                                </div>
+                            </div>
+                            <textarea id="inputNotes" rows="3" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Note..."></textarea>
+                        </div>
                     </div>
-                    <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300">Annulla</button><button type="submit" id="submitBtn" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400">Salva</button></div>
+                    <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800">
+                        <button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 transition-colors">Annulla</button>
+                        <button type="submit" id="submitBtn" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400 active:scale-95 transition-all duration-200">Salva</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
+    <!-- POLICY MODAL -->
     <div id="policyModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePolicyModal()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl">
-            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent">
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl px-4">
+            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
                 <div class="flex justify-between items-start mb-6">
                     <div>
                         <h3 class="text-xl font-bold text-white" id="polModalTitle">Gestione Polizza</h3>
                         <div class="mt-3">
-                          <button type="button" onclick="openClaimModal(editingPolicyId || currentViewingPolicyId || null, null)"
-                                  class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-white border border-slate-600">
+                          <button type="button" onclick="openClaimModal(editingPolicyId || currentViewingPolicyId || null, null)" class="text-xs bg-slate-800 hover:bg-slate-700 active:scale-95 transition-all px-3 py-2 rounded-lg text-white border border-slate-600">
                             <i class="fa-solid fa-triangle-exclamation mr-2 text-warning"></i>Apri sinistro
                           </button>
                         </div>
                     </div>
-                    <button onclick="closePolicyModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    <button onclick="closePolicyModal()" class="text-slate-500 hover:text-accent transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
                 <form id="policyForm" onsubmit="savePolicy(event)">
-                    <div class="mb-6"><label class="block text-xs text-slate-500 font-bold mb-1">Contraente *</label><select id="polClientSelect" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-accent"><option value="">Seleziona...</option></select></div>
+                    <div class="mb-6"><label class="block text-xs text-slate-500 font-bold mb-1">Contraente *</label><select id="polClientSelect" required class="w-full bg-deep border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="">Seleziona...</option></select></div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div class="space-y-4">
                             <h4 class="text-accent text-xs font-bold uppercase border-b border-slate-800 pb-2">Dati Contratto</h4>
-                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Ramo *</label><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="ramo" value="AUTO" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-blue-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center">AUTO</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="RAMI VARI" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-orange-500 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center">VARI</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="VITA" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-green-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center">VITA</span></label></div></div>
-                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Compagnia *</label><select id="polCompany" onchange="checkCustomCompany()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="HELVETIA">HELVETIA</option><option value="GENIALPIU">GENIALPIU</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option>
-<option value="ALTRO">ALTRO...</option></select><input type="text" id="polCustomCompany" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm mt-2 hidden" placeholder="Inserisci nome compagnia..."></div>
-                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Numero Polizza *</label><input type="text" id="polNumber" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm uppercase" placeholder="Es. 123456789"></div>
-                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Provvigioni Pers. (%)</label><input type="number" step="0.01" id="polCommPerc" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-accent font-bold" placeholder="35" oninput="generateInstallmentPreview()"></div>
+                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Ramo *</label><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="ramo" value="AUTO" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-blue-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors">AUTO</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="RAMI VARI" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-orange-500 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors">VARI</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="VITA" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-green-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors">VITA</span></label></div></div>
+                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Compagnia *</label><select id="polCompany" onchange="checkCustomCompany()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="HELVETIA">HELVETIA</option><option value="GENIALPIU">GENIALPIU</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option><option value="ALTRO">ALTRO...</option></select><input type="text" id="polCustomCompany" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm mt-2 hidden focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Inserisci nome compagnia..."></div>
+                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Numero Polizza *</label><input type="text" id="polNumber" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm uppercase placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Es. 123456789"></div>
+                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Provvigioni Pers. (%)</label><input type="number" step="0.01" id="polCommPerc" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-accent font-bold placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="35" oninput="generateInstallmentPreview()"></div>
                         </div>
                         <div class="space-y-4">
                             <h4 class="text-accent text-xs font-bold uppercase border-b border-slate-800 pb-2">Durata & Pagamento</h4>
-                            <div class="grid grid-cols-2 gap-2"><div><label class="block text-xs text-slate-500 font-bold mb-1">Effetto</label><input type="date" id="polEffectDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-sm"></div><div><label class="block text-xs text-slate-500 font-bold mb-1">Scadenza</label><input type="date" id="polExpiryDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-sm"></div></div>
-                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Frazionamento *</label><select id="polSplit" onchange="generateInstallmentPreview()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"><option value="1">Annuale</option><option value="2">Semestrale</option><option value="3">Quadrimestrale</option><option value="4">Trimestrale</option><option value="12">Mensile</option><option value="0">Premio Unico</option></select></div>
-                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Premio Annuale (€)</label><input type="number" step="0.01" id="polAnnualPremium" oninput="generateInstallmentPreview()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono text-right" placeholder="0.00"></div>
-                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Note / Descrizione</label><textarea id="polNotes" rows="2" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></textarea></div>
+                            <div class="grid grid-cols-2 gap-2"><div><label class="block text-xs text-slate-500 font-bold mb-1">Effetto</label><input type="date" id="polEffectDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"></div><div><label class="block text-xs text-slate-500 font-bold mb-1">Scadenza</label><input type="date" id="polExpiryDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"></div></div>
+                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Frazionamento *</label><select id="polSplit" onchange="generateInstallmentPreview()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="1">Annuale</option><option value="2">Semestrale</option><option value="3">Quadrimestrale</option><option value="4">Trimestrale</option><option value="12">Mensile</option><option value="0">Premio Unico</option></select></div>
+                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Premio Annuale (€)</label><input type="number" step="0.01" id="polAnnualPremium" oninput="generateInstallmentPreview()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono text-right placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="0.00"></div>
+                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Note / Descrizione</label><textarea id="polNotes" rows="2" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"></textarea></div>
                         </div>
                         <div class="bg-slate-800/20 rounded-lg p-3 border border-slate-700">
                             <h4 class="text-accent text-xs font-bold uppercase pb-2">Preview Rate & Provv.</h4>
                             <div id="titlesPreview" class="space-y-2 max-h-48 overflow-y-auto text-xs"><p class="text-slate-500 italic">Inserisci dati...</p></div>
                         </div>
                     </div>
-                    <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onclick="closePolicyModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300">Annulla</button><button type="submit" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400">Salva e Genera</button></div>
+                    <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onclick="closePolicyModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 transition-colors">Annulla</button><button type="submit" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400 active:scale-95 transition-all duration-200">Salva e Genera</button></div>
                 </form>
             </div>
         </div>
     </div>
 
-<div id="policyTitlesModal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePolicyTitles()"></div>
-    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl">
-        <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative">
-            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
-                <div class="flex items-center gap-4">
-                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-list-ol mr-2 text-accent"></i>Dettaglio Rate & Provvigioni</h3>
-                    <button onclick="addManualTitle(currentViewingPolicyId)" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded border border-slate-600 flex items-center gap-2">
-                        <i class="fa-solid fa-plus text-accent"></i> Aggiungi Rata
-                    </button>
+    <!-- POLICY TITLES MODAL -->
+    <div id="policyTitlesModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePolicyTitles()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-4">
+            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative modal-animate">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-list-ol mr-2 text-accent"></i>Dettaglio Rate & Provvigioni</h3>
+                        <button onclick="addManualTitle(currentViewingPolicyId)" class="bg-slate-700 hover:bg-slate-600 active:scale-95 transition-all text-white text-xs font-bold px-3 py-1.5 rounded border border-slate-600 flex items-center gap-2">
+                            <i class="fa-solid fa-plus text-accent"></i> Aggiungi Rata
+                        </button>
+                    </div>
+                    <button onclick="closePolicyTitles()" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
-                <button onclick="closePolicyTitles()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div class="overflow-x-auto max-h-[60vh]">
-                <table class="w-full text-left text-sm text-slate-400">
-                    <thead class="bg-slate-900/50 text-slate-200 text-xs uppercase font-bold sticky top-0"><tr><th>Scadenza</th><th>Rata</th><th>Importo</th><th>Provv. Totali</th><th>Provv. Pers.</th><th>Stato</th><th class="text-right">Azioni</th></tr></thead>
-                    <tbody id="policyTitlesBody" class="divide-y divide-slate-800/50"></tbody>
-                </table>
+                <div class="overflow-x-auto max-h-[60vh]">
+                    <table class="w-full text-left text-sm text-slate-400">
+                        <thead class="bg-slate-900/50 text-slate-200 text-xs uppercase font-bold sticky top-0"><tr><th>Scadenza</th><th>Rata</th><th>Importo</th><th>Provv. Totali</th><th>Provv. Pers.</th><th>Stato</th><th class="text-right">Azioni</th></tr></thead>
+                        <tbody id="policyTitlesBody" class="divide-y divide-slate-800/50"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
                 
+    <!-- PAYMENT MODAL -->
+    <div id="paymentModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePaymentModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm px-4">
+            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-success modal-animate">
+                <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-coins text-success mr-2"></i>Registra Incasso</h3>
+                <input type="hidden" id="payPolicyId"><input type="hidden" id="payTitleId">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Data</label>
+                        <input type="date" id="payDate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Metodo</label>
+                        <select id="payMethod" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="CONTANTI">CONTANTI</option><option value="POS">POS</option><option value="BONIFICO">BONIFICO</option><option value="ASSEGNO">ASSEGNO</option><option value="ONLINE">PAGAMENTO ONLINE</option><option value="SDD">SDD</option></select>
+                    </div>
+                    <button onclick="confirmPayment()" class="w-full py-2 bg-success text-white rounded-lg font-bold hover:bg-green-600 active:scale-95 transition-all duration-200 mt-4">Conferma</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div id="paymentModal" class="fixed inset-0 z-50 hidden"><div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePaymentModal()"></div><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm"><div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-success"><h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-coins text-success mr-2"></i>Registra Incasso</h3><input type="hidden" id="payPolicyId"><input type="hidden" id="payTitleId"><div class="space-y-4"><div><label class="block text-xs text-slate-500 font-bold mb-1">Data</label><input type="date" id="payDate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white"></div><div><label class="block text-xs text-slate-500 font-bold mb-1">Metodo</label><select id="payMethod" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white"><option value="CONTANTI">CONTANTI</option><option value="POS">POS</option><option value="BONIFICO">BONIFICO</option><option value="ASSEGNO">ASSEGNO</option><option value="ONLINE">PAGAMENTO ONLINE</option><option value="SDD">SDD</option>
-</select></div><button onclick="confirmPayment()" class="w-full py-2 bg-success text-white rounded-lg font-bold hover:bg-green-600 mt-4">Conferma</button></div></div></div></div>
+    <!-- QUOTE MODAL -->
+    <div id="quoteModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeQuoteModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
+            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
+                <div class="flex justify-between items-start mb-6">
+                    <div><h3 id="quoteModalTitle" class="text-xl font-bold text-white">Nuovo Preventivo</h3></div>
+                    <button onclick="closeQuoteModal()" class="text-slate-500 hover:text-accent transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <form id="quoteForm" onsubmit="saveQuote(event)">
+                    <input type="hidden" id="quoteId">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-slate-500 font-bold mb-1">Cliente *</label>
+                            <select id="quoteClientSelect" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="">Seleziona...</option></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500 font-bold mb-1">Data Decorrenza *</label>
+                            <input type="date" id="quoteEffectDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-slate-500 font-bold mb-1">Ramo *</label>
+                            <select id="quoteRamo" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                                <option value="RCA">RCA</option>
+                                <option value="RAMI VARI">RAMI VARI</option>
+                                <option value="VITA">VITA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500 font-bold mb-1">Tipo Polizza *</label>
+                            <input type="text" id="quotePolicyType" required placeholder="Es. Incendio e Scoppio, Kasko..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-slate-500 font-bold mb-1">Compagnia *</label>
+                            <input type="text" id="quoteCompany" required placeholder="Es. Allianz..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500 font-bold mb-1">Numero Preventivo</label>
+                            <input type="text" id="quoteNumber" placeholder="Es. 450123A..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500 font-bold mb-1">Prezzo Proposto (€) *</label>
+                            <input type="number" step="0.01" id="quotePrice" required placeholder="0.00" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono text-right focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Ampia sezione note / Dettagli</label>
+                        <textarea id="quoteNotes" rows="4" placeholder="Inserisci qui franchigie, massimali, scoperti o dettagli sul frazionamento..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"></textarea>
+                    </div>
+                    
+                    <div class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 mb-6">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="quoteReminderCheck" onchange="toggleQuoteReminderDate()" class="accent-accent bg-deep border-slate-700 h-4 w-4 rounded" />
+                            <label for="quoteReminderCheck" class="text-xs text-slate-300 font-bold cursor-pointer select-none">Pianifica promemoria di ricontatto in Agenda</label>
+                        </div>
+                        <div id="quoteReminderDateBox" class="mt-3 hidden">
+                            <label class="block text-xs text-slate-500 font-bold mb-1">Giorno e ora del Promemoria</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="date" id="quoteReminderDate" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                                <input type="time" id="quoteReminderTime" value="09:30" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-4 border-t border-slate-800">
+                        <button type="button" onclick="closeQuoteModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 transition-colors">Annulla</button>
+                        <button type="submit" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400 active:scale-95 transition-all duration-200">Salva Preventivo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLAIMS MODAL -->
+    <div id="claimModal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeClaimModal()"></div>
+
+      <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-4xl px-4">
+        <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-xl font-bold text-white" id="claimModalTitle">Gestione Sinistro</h3>
+              <p class="text-xs text-slate-500 mt-1">Compila i dati e aggiungi aggiornamenti (storico).</p>
+            </div>
+            <button onclick="closeClaimModal()" class="text-slate-500 hover:text-accent transition-colors">
+              <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+          </div>
+
+          <input type="hidden" id="claimId" />
+          <input type="hidden" id="claimPolicyId" />
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs text-slate-500 font-bold mb-1">Numero Polizza</label>
+              <input type="text" id="claimPolicyNumber" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" />
+            </div>
+
+            <div>
+              <label class="block text-xs text-slate-500 font-bold mb-1">Compagnia</label>
+              <input type="text" id="claimCompany" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" />
+            </div>
+
+            <div>
+              <label class="block text-xs text-slate-500 font-bold mb-1">Numero Sinistro</label>
+              <input type="text" id="claimNumber" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" />
+            </div>
+
+            <div>
+              <label class="block text-xs text-slate-500 font-bold mb-1">Data Apertura</label>
+              <input type="date" id="claimOpenDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" />
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div class="md:col-span-2">
+              <label class="block text-xs text-slate-500 font-bold mb-1">Note</label>
+              <textarea id="claimNotes" rows="2" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Note interne..."></textarea>
+            </div>
+
+            <div class="flex items-center gap-3 bg-slate-800/30 border border-slate-700/50 rounded-xl px-4 py-3">
+              <input type="checkbox" id="claimClosed" class="accent-accent bg-deep border-slate-700 h-4 w-4 rounded" onchange="onClaimClosedToggle()" />
+              <label for="claimClosed" class="text-sm text-slate-300 font-bold select-none">Sinistro chiuso</label>
+              <span class="text-xs text-slate-500 ml-auto" id="claimClosedAtLabel"></span>
+            </div>
+          </div>
+
+          <div class="mt-6 border-t border-slate-800 pt-4">
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <h4 class="text-sm font-bold text-white uppercase tracking-wide">Storico aggiornamenti</h4>
+              <button onclick="addClaimUpdate()" class="text-xs bg-slate-800 hover:bg-slate-700 active:scale-95 transition-all px-3 py-2 rounded-lg text-white border border-slate-600">
+                <i class="fa-solid fa-plus mr-2"></i>Aggiungi
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+              <input type="datetime-local" id="claimUpdTs" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" />
+              <input type="text" id="claimUpdText" placeholder="Testo aggiornamento..." class="md:col-span-3 bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" />
+            </div>
+
+            <div id="claimUpdatesList" class="space-y-2 max-h-72 overflow-y-auto pr-2"></div>
+          </div>
+
+          <div class="flex gap-3 mt-6 pt-4 border-t border-slate-800">
+            <button type="button" onclick="closeClaimModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 transition-colors">Annulla</button>
+            <button type="button" onclick="saveClaim()" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400 active:scale-95 transition-all duration-200">Salva</button>
+          </div>
+        </div>
+      </div>
+    </div>
 <script type="module" id="firebase-init">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
   import {
@@ -3988,162 +3806,6 @@ function getFilteredDeadlines() {
 
 
     </script>
-<div id="quoteModal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeQuoteModal()"></div>
-    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
-        <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent">
-            <div class="flex justify-between items-start mb-6">
-                <div><h3 id="quoteModalTitle" class="text-xl font-bold text-white">Nuovo Preventivo</h3></div>
-                <button onclick="closeQuoteModal()" class="text-slate-500 hover:text-accent"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <form id="quoteForm" onsubmit="saveQuote(event)">
-                <input type="hidden" id="quoteId">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-1">Cliente *</label>
-                        <select id="quoteClientSelect" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent"><option value="">Seleziona...</option></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-1">Data Decorrenza *</label>
-                        <input type="date" id="quoteEffectDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-1">Ramo *</label>
-                        <select id="quoteRamo" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
-                            <option value="RCA">RCA</option>
-                            <option value="RAMI VARI">RAMI VARI</option>
-                            <option value="VITA">VITA</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-1">Tipo Polizza *</label>
-                        <input type="text" id="quotePolicyType" required placeholder="Es. Incendio e Scoppio, Kasko..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-1">Compagnia *</label>
-                        <input type="text" id="quoteCompany" required placeholder="Es. Allianz..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-1">Numero Preventivo</label>
-                        <input type="text" id="quoteNumber" placeholder="Es. 450123A..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-1">Prezzo Proposto (€) *</label>
-                        <input type="number" step="0.01" id="quotePrice" required placeholder="0.00" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono text-right focus:border-accent">
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-xs text-slate-500 font-bold mb-1">Ampia sezione note / Dettagli</label>
-                    <textarea id="quoteNotes" rows="4" placeholder="Inserisci qui franchigie, massimali, scoperti o dettagli sul frazionamento..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-accent"></textarea>
-                </div>
-                
-                <div class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 mb-6">
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" id="quoteReminderCheck" onchange="toggleQuoteReminderDate()" class="accent-accent bg-deep border-slate-700 h-4 w-4 rounded" />
-                        <label for="quoteReminderCheck" class="text-xs text-slate-300 font-bold cursor-pointer select-none">Pianifica promemoria di ricontatto in Agenda</label>
-                    </div>
-                    <div id="quoteReminderDateBox" class="mt-3 hidden">
-                        <label class="block text-xs text-slate-500 font-bold mb-1">Giorno e ora del Promemoria</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="date" id="quoteReminderDate" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-accent">
-                            <input type="time" id="quoteReminderTime" value="09:30" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-accent">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex gap-3 pt-4 border-t border-slate-800">
-                    <button type="button" onclick="closeQuoteModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300">Annulla</button>
-                    <button type="submit" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400">Salva Preventivo</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- CLAIMS MODAL -->
-<div id="claimModal" class="fixed inset-0 z-50 hidden">
-  <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeClaimModal()"></div>
-
-  <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-4xl px-4">
-    <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent">
-      <div class="flex justify-between items-start mb-4">
-        <div>
-          <h3 class="text-xl font-bold text-white" id="claimModalTitle">Gestione Sinistro</h3>
-          <p class="text-xs text-slate-500 mt-1">Compila i dati e aggiungi aggiornamenti (storico).</p>
-        </div>
-        <button onclick="closeClaimModal()" class="text-slate-500 hover:text-accent">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-      </div>
-
-      <input type="hidden" id="claimId" />
-      <input type="hidden" id="claimPolicyId" />
-
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label class="block text-xs text-slate-500 font-bold mb-1">Numero Polizza</label>
-          <input type="text" id="claimPolicyNumber" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono" />
-        </div>
-
-        <div>
-          <label class="block text-xs text-slate-500 font-bold mb-1">Compagnia</label>
-          <input type="text" id="claimCompany" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
-        </div>
-
-        <div>
-          <label class="block text-xs text-slate-500 font-bold mb-1">Numero Sinistro</label>
-          <input type="text" id="claimNumber" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono" />
-        </div>
-
-        <div>
-          <label class="block text-xs text-slate-500 font-bold mb-1">Data Apertura</label>
-          <input type="date" id="claimOpenDate" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
-        </div>
-      </div>
-
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <div class="md:col-span-2">
-          <label class="block text-xs text-slate-500 font-bold mb-1">Note</label>
-          <textarea id="claimNotes" rows="2" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="Note interne..."></textarea>
-        </div>
-
-        <div class="flex items-center gap-3 bg-slate-800/30 border border-slate-700/50 rounded-xl px-4 py-3">
-          <input type="checkbox" id="claimClosed" class="accent-accent bg-deep border-slate-700 h-4 w-4 rounded" onchange="onClaimClosedToggle()" />
-          <label for="claimClosed" class="text-sm text-slate-300 font-bold select-none">Sinistro chiuso</label>
-          <span class="text-xs text-slate-500 ml-auto" id="claimClosedAtLabel"></span>
-        </div>
-      </div>
-
-      <div class="mt-6 border-t border-slate-800 pt-4">
-        <div class="flex items-center justify-between gap-3 mb-3">
-          <h4 class="text-sm font-bold text-white uppercase tracking-wide">Storico aggiornamenti</h4>
-          <button onclick="addClaimUpdate()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-white border border-slate-600">
-            <i class="fa-solid fa-plus mr-2"></i>Aggiungi
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-          <input type="datetime-local" id="claimUpdTs" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white" />
-          <input type="text" id="claimUpdText" placeholder="Testo aggiornamento..." class="md:col-span-3 bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white" />
-        </div>
-
-        <div id="claimUpdatesList" class="space-y-2 max-h-72 overflow-y-auto pr-2"></div>
-      </div>
-
-      <div class="flex gap-3 mt-6 pt-4 border-t border-slate-800">
-        <button type="button" onclick="closeClaimModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300">Annulla</button>
-        <button type="button" onclick="saveClaim()" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400">Salva</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
 <script>
 // ==========================================
 // LOGICA PREVENTIVI (QUOTES) - V1
