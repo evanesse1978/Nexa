@@ -507,19 +507,23 @@
         
         <!-- SIDEBAR -->
         <aside class="w-72 bg-deep flex-shrink-0 flex flex-col border-r border-slate-800/50 p-4">
-            <div class="bg-surface border border-slate-800 rounded-xl p-4 mb-8 shadow-lg shadow-accent/5 text-white relative overflow-hidden group cursor-default">
-                <div class="absolute -top-10 -left-10 w-20 h-20 bg-accent/20 blur-3xl rounded-full group-hover:bg-accent/30 transition-all"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <svg class="w-12 h-12 filter drop-shadow-[0_0_5px_rgba(226,255,0,0.5)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M50 5L90 25V75L50 95L10 75V25L50 5Z" stroke="#E2FF00" stroke-width="4" fill="rgba(226, 255, 0, 0.1)"/>
+            <div class="bg-gradient-to-br from-slate-800/80 to-surface border border-slate-700/80 rounded-2xl p-5 mb-8 shadow-xl shadow-accent/10 text-white relative overflow-hidden group cursor-default">
+                <!-- Effetti di luce di sfondo -->
+                <div class="absolute -top-10 -left-10 w-32 h-32 bg-accent/20 blur-3xl rounded-full group-hover:bg-accent/30 transition-all duration-500"></div>
+                <div class="absolute -bottom-10 -right-10 w-24 h-24 bg-accent/10 blur-2xl rounded-full group-hover:bg-accent/20 transition-all duration-500"></div>
+                
+                <div class="flex items-center gap-4 relative z-10">
+                    <!-- Logo ingrandito e più luminoso -->
+                    <svg class="w-14 h-14 filter drop-shadow-[0_0_8px_rgba(226,255,0,0.6)] transform group-hover:scale-105 transition-transform duration-300" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50 5L90 25V75L50 95L10 75V25L50 5Z" stroke="#E2FF00" stroke-width="4" fill="rgba(226, 255, 0, 0.15)"/>
                         <path d="M50 25L70 37V63L50 75L30 63V37L50 25Z" fill="#E2FF00"/>
                     </svg>
                     <div>
-                        <h1 class="font-bold text-2xl tracking-widest leading-none">NEXA</h1>
-                        <p class="text-slate-500 font-signature text-lg leading-none mt-1 -ml-1">by EvanEsse</p>
+                        <!-- Testo più visibile -->
+                        <h1 class="font-black text-3xl tracking-widest leading-none drop-shadow-md">NEXA</h1>
+                        <p class="text-slate-400 font-signature text-xl leading-none mt-1">by EvanEsse</p>
                     </div>
                 </div>
-                <p class="text-[9px] text-slate-500 mt-3 text-center border-t border-slate-800/50 pt-2 uppercase tracking-wider relative z-10">Portafoglio • Polizze • Titoli</p>
             </div>
 
             <div class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 px-2">Navigazione</div>
@@ -3744,13 +3748,19 @@ function getFilteredDeadlines() {
                 const t = (pol.titles || []).find(x => String(x.id) === titleId);
                 if (!t) return alert('Titolo non trovato.');
 
-                const isoPayDate = (payDate && String(payDate).trim()) ? String(payDate).trim() : null;
-
+                // --- INIZIO MODIFICA: Incasso automatico 12 rate SDD con rispettiva data scadenza ---
                 if (method === 'SDD' && Number(pol.split) === 12) {
+                    // Estrae l'anno (AAAA) dalla rata che stai attualmente incassando
+                    const targetYear = t.dueDate ? String(t.dueDate).substring(0, 4) : null;
+
                     (pol.titles || []).forEach(tt => {
-                        tt.status = 'INCASSATO';
-                        tt.paymentMethod = 'SDD';
-                        tt.paymentDate = tt.dueDate ? String(tt.dueDate) : isoPayDate;
+                        // Verifica che la rata abbia una scadenza e faccia parte dello stesso anno di competenza
+                        if (targetYear && tt.dueDate && String(tt.dueDate).substring(0, 4) === targetYear) {
+                            tt.status = 'INCASSATO';
+                            tt.paymentMethod = 'SDD';
+                            // Imposta in automatico come data incasso la data di scadenza della singola rata
+                            tt.paymentDate = String(tt.dueDate);
+                        }
                     });
 
                     fbSaveSingleDoc('policies', pol);
@@ -3762,6 +3772,7 @@ function getFilteredDeadlines() {
                     if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
                     return;
                 }
+                // --- FINE MODIFICA ---
 
                 t.status = 'INCASSATO';
                 t.paymentMethod = method;
