@@ -3679,20 +3679,34 @@ function getFilteredDeadlines() {
             document.getElementById('deadlines-total-comm').innerText = '€ ' + totComm.toFixed(2);
         }
 
-        // --- FUNZIONE ESPORTAZIONE PDF CON TOTALI ---
-        function exportDeadlinesPDF() {
+            // --- FUNZIONE ESPORTAZIONE PDF CON TOTALI E TITOLO DINAMICO ---
+            function exportDeadlinesPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
 
             const data = getFilteredDeadlines();
             
+            const fPayDate = document.getElementById('filterPayDateDeadlines').value;
+            const fMo = document.getElementById('filterMonthDeadlines').value;
+            
+            let titleText = "NEXA Manager - Scadenzario Titoli";
+            const monthNames = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+            
+            // Priorità 1: Filtro "Incassati il"
+            if (fPayDate) {
+                const [y, m] = fPayDate.split('-');
+                titleText += ` - Incassi ${monthNames[parseInt(m)-1]} ${y}`;
+            } 
+            // Priorità 2: Filtro "Scadenza"
+            else if (fMo) {
+                const [y, m] = fMo.split('-');
+                titleText += ` - Scadenze ${monthNames[parseInt(m)-1]} ${y}`;
+            }
+            
             doc.setFontSize(16);
-            doc.text("NEXA Manager - Scadenzario Titoli", 14, 15);
+            doc.text(titleText, 14, 15);
             doc.setFontSize(10);
             doc.text("Data generazione: " + new Date().toLocaleDateString('it-IT'), 14, 22);
-
-            const fMo = document.getElementById('filterMonthDeadlines').value;
-            if(fMo) doc.text("Filtro Mese: " + fMo, 200, 22);
 
             let totalAmount = 0;
             let totalComm = 0;
@@ -3776,7 +3790,7 @@ function getFilteredDeadlines() {
 
                 t.status = 'INCASSATO';
                 t.paymentMethod = method;
-                t.paymentDate = isoPayDate;
+                t.paymentDate = payDate;
 
                 fbSaveSingleDoc('policies', pol);
                 saveLocalBackup();
