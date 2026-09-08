@@ -82,44 +82,44 @@
         }
 
         function computeReport(dates){
-        const type = document.getElementById('reportType').value || 'PROD';
-        const ramoFilter = document.getElementById('reportRamo').value;
-        
-        let rows = policies.filter(p => {
-             // Filtro Ramo
-             if(ramoFilter !== 'TUTTI' && (p.ramo||'').toUpperCase() !== ramoFilter) return false;
-             return true;
-        });
+            const type = document.getElementById('reportType').value || 'PROD';
+            const ramoFilter = document.getElementById('reportRamo').value;
+            
+            let rows = policies.filter(p => {
+                 // Filtro Ramo
+                 if(ramoFilter !== 'TUTTI' && (p.ramo||'').toUpperCase() !== ramoFilter) return false;
+                 return true;
+            });
 
-        if(type === 'PROD'){
-            // Nuova Produzione: Effetto nel mese
-            rows = rows.filter(p => {
-                const d = parseISODate(p.effect);
-                return d && d >= dates.start && d < dates.end;
-            });
-        } else if(type === 'LOST'){
-            // Polizze Perse: Non attive, scadenza nel mese
-            rows = rows.filter(p => {
-                if(String(p.status) === 'ATTIVA' || String(p.status) === 'SOSPESA') return false;
-                const d = parseISODate(p.expiry);
-                return d && d >= dates.start && d < dates.end;
-            });
-        } else if(type === 'PORT'){
-            // Portafoglio: Attive fino a data start
-            rows = rows.filter(p => {
-                if(String(p.status) === 'ATTIVA' || String(p.status) === 'SOSPESA'){
-                    const eff = parseISODate(p.effect);
-                    return eff && eff <= dates.start;
-                }
-                return false;
-            });
+            if(type === 'PROD'){
+                // Nuova Produzione: Effetto nel mese, escludendo sostituite e annullate
+                rows = rows.filter(p => {
+                    if (p.status === 'SOSTITUITA' || p.status === 'ANNULLATA') return false;
+                    const d = parseISODate(p.effect);
+                    return d && d >= dates.start && d < dates.end;
+                });
+            } else if(type === 'LOST'){
+                // Polizze Perse: Non attive, scadenza nel mese (escludi sostituite)
+                rows = rows.filter(p => {
+                    if(String(p.status) === 'ATTIVA' || String(p.status) === 'SOSPESA' || String(p.status) === 'SOSTITUITA') return false;
+                    const d = parseISODate(p.expiry);
+                    return d && d >= dates.start && d < dates.end;
+                });
+            } else if(type === 'PORT'){
+                // Portafoglio: Attive fino a data start
+                rows = rows.filter(p => {
+                    if(String(p.status) === 'ATTIVA' || String(p.status) === 'SOSPESA'){
+                        const eff = parseISODate(p.effect);
+                        return eff && eff <= dates.start;
+                    }
+                    return false;
+                });
+            }
+
+            const count = rows.length;
+            const premium = rows.reduce((s,p)=> s + safeParseFloat(p.annualPremium), 0);
+            return {rows, count, premium};
         }
-
-        const count = rows.length;
-        const premium = rows.reduce((s,p)=> s + safeParseFloat(p.annualPremium), 0);
-        return {rows, count, premium};
-    }
-
         function renderReport(){
         const dates = getReportDates();
         const cur = computeReport(dates);
@@ -157,6 +157,17 @@
             const cname = c ? c.name : 'Sconosciuto';
             const prem = safeParseFloat(p.annualPremium).toFixed(2);
             
+            // --- INIZIO NUOVO CODICE PER I BADGE ---
+            let badgeStatus = `<span class="bg-slate-800 text-xs px-2 py-1 rounded text-white border border-slate-600">${p.status}</span>`; 
+            if (p.status === 'ANNULLATA') {
+                badgeStatus = `<span class="bg-red-900/30 text-xs px-2 py-1 rounded text-red-500 border border-red-900">ANNULLATA</span>`; 
+            } else if (p.status === 'SOSTITUITA') {
+                badgeStatus = `<span class="bg-yellow-900/30 text-xs px-2 py-1 rounded text-yellow-500 border border-yellow-900">SOSTITUITA</span>`; 
+            } else if (p.status === 'SOSPESA') {
+                badgeStatus = `<span class="bg-purple-900/30 text-xs px-2 py-1 rounded text-purple-500 border border-purple-900">SOSPESA</span>`; 
+            }
+            // --- FINE NUOVO CODICE PER I BADGE ---
+            
             tb.innerHTML += `<tr class="hover:bg-slate-800/30">
                 <td class="px-6 py-3 text-white font-medium">${cname}</td>
                 <td class="px-6 py-3">${p.ramo||''}</td>
@@ -165,7 +176,7 @@
                 <td class="px-6 py-3 text-xs">${p.effect||''}</td>
                 <td class="px-6 py-3 text-xs">${p.expiry||''}</td>
                 <td class="px-6 py-3 text-right text-white">€ ${prem}</td>
-                <td class="px-6 py-3">${p.status}</td>
+                <td class="px-6 py-3">${badgeStatus}</td> <!-- Modificata questa riga per usare la variabile badgeStatus -->
             </tr>`;
 
             rowsOut.push({
@@ -175,7 +186,7 @@
             });
         });
         window.__lastReportRows = rowsOut;
-    }
+     }
 
         function extractReport(){
         renderReport();
@@ -194,7 +205,7 @@
         // FIX CRITICO: Usa \n invece di andare a capo nel codice
         const csv = lines.join('\n');
 
-        const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+        const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
