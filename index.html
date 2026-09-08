@@ -92,9 +92,13 @@
             });
 
             if(type === 'PROD'){
-                // Nuova Produzione: Effetto nel mese, escludendo sostituite e annullate
+                // Nuova Produzione: Effetto nel mese, escludendo sostituite, annullate
                 rows = rows.filter(p => {
                     if (p.status === 'SOSTITUITA' || p.status === 'ANNULLATA') return false;
+                    
+                    // NUOVO BLOCCO: Escludi la nuova polizza se è frutto di una sostituzione
+                    if (p.notes && String(p.notes).toUpperCase().includes('SOSTITUZIONE')) return false;
+
                     const d = parseISODate(p.effect);
                     return d && d >= dates.start && d < dates.end;
                 });
