@@ -441,6 +441,38 @@
         .theme-light .calendar-cell.inactive{ opacity: 0.65 !important; background-color: rgba(219,234,254,0.45) !important; }
         .theme-light .from-accent\/5{ --tw-gradient-from: rgba(37,99,235,0.10) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgba(37,99,235,0) var(--tw-gradient-to-position) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
 
+        /* FIX PER COLORI DI ALLERTA E COMPLEANNI IN MODALITÀ CHIARA */
+        .theme-light .bg-slate-800\/40 { background-color: rgba(219,234,254,0.65) !important; }
+        .theme-light .bg-red-900\/10 { background-color: rgba(254, 226, 226, 0.8) !important; }
+        .theme-light .bg-red-900\/30 { background-color: rgba(254, 202, 202, 0.8) !important; }
+        .theme-light .border-red-900\/50 { border-color: #f87171 !important; }
+        .theme-light .bg-yellow-900\/10 { background-color: rgba(254, 249, 195, 0.8) !important; }
+        .theme-light .bg-yellow-900\/30 { background-color: rgba(254, 240, 138, 0.8) !important; }
+        .theme-light .border-yellow-900\/30 { border-color: #facc15 !important; }
+        .theme-light .bg-pink-900\/50 { background-color: #fce7f3 !important; border-color: #f9a8d4 !important; }
+        .theme-light .text-pink-400 { color: #db2777 !important; }
+/* FIX BOX LOGO SIDEBAR E COLORI SVG IN MODALITA' CHIARA */
+        .theme-light .from-slate-800\/80 { 
+            --tw-gradient-from: #dbeafe !important; 
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; 
+        }
+        .theme-light .to-surface { 
+            --tw-gradient-to: #eff6ff !important; 
+        }
+        .theme-light .border-slate-700\/80 { 
+            border-color: #93c5fd !important; 
+        }
+        .theme-light .shadow-accent\/10 {
+            box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.1) !important;
+        }
+        
+        /* Adatta il Logo e gli effetti di luce da giallo fluo a blu */
+        .theme-light aside .bg-gradient-to-br svg path[stroke="#E2FF00"] { stroke: #2563eb !important; }
+        .theme-light aside .bg-gradient-to-br svg path[fill="#E2FF00"] { fill: #2563eb !important; }
+        .theme-light aside .bg-gradient-to-br svg path[fill="rgba(226, 255, 0, 0.15)"] { fill: rgba(37, 99, 235, 0.15) !important; }
+        .theme-light aside .bg-gradient-to-br .bg-accent\/20 { background-color: rgba(37, 99, 235, 0.15) !important; }
+        .theme-light aside .bg-gradient-to-br .bg-accent\/10 { background-color: rgba(37, 99, 235, 0.05) !important; }
+
         /* GALAXY FOLD + TABLET FIX */
         tfoot { display: none !important; }
         tbody tr:last-child { border-bottom: none !important; }
@@ -2032,7 +2064,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     const sEmail = b.email.replace(/'/g, "\\'");
 
                     bList.innerHTML += `
-                    <div class="p-3 rounded-lg bg-slate-800/40 border border-slate-700/50 hover:bg-slate-800 transition-all mb-2">
+                    <div class="p-3 rounded-lg bg-slate-800/30 border border-slate-700/50 hover:bg-slate-800 transition-all mb-2">
                         <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-pink-900/50 text-pink-400 flex items-center justify-center text-xs border border-pink-500/30">
