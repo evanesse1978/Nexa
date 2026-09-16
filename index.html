@@ -3971,7 +3971,15 @@ function saveQuote(e) {
 
 function deleteQuote(id) {
     if(!confirm('Eliminare questo preventivo?')) return;
+    
+    // Rimuove il preventivo dalla memoria locale
     quotes = quotes.filter(x => String(x.id) !== String(id));
+    
+    // Invia il comando di eliminazione a Firebase
+    if (typeof fbDeleteSingleDoc === 'function') {
+        fbDeleteSingleDoc('quotes', id);
+    }
+    
     saveAllData();
     renderQuotes();
 }
