@@ -2798,27 +2798,31 @@ function editTitle(pid, tid){
     t.amount = newAmt;
 
     // --- AUTOMATISMO SDD MENSILE (Split 12) ---
-    // Se la polizza è mensile, copia il nuovo importo sulle altre rate dello stesso anno
-    if(Number(p.split) === 12 && t.dueDate){
-        const y = String(t.dueDate).slice(0,4);
-        (p.titles || []).forEach(tt => {
-            if(tt === t) return;
-            
-            // Trova le altre rate dello stesso anno e aggiorna l'importo
-            if(String(tt.dueDate || '').slice(0,4) === y){
-                tt.amount = newAmt;
-                // Azzera le provvigioni sulle rate successive alla prima
-                if(Number(tt.n) !== 1){
-                    tt.commTotal = 0;
-                    tt.commPers = 0;
-                }
-            }
-        });
+// Se la polizza è mensile, copia il nuovo importo sulle altre rate dello stesso ANNO ASSICURATIVO
+if(Number(p.split) === 12 && t.dueDate){
+    const targetCycle = Math.floor((Number(t.n) - 1) / 12);
+    
+    (p.titles || []).forEach(tt => {
+        if(tt === t) return;
         
-        // Aggiorna anche il premio annuo totale (moltiplicato per 12)
-        p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
-    } else {
-        // Se non è mensile e il premio annuo era 0, lo imposta uguale alla rata
+        const ttCycle = Math.floor((Number(tt.n) - 1) / 12);
+        
+        // Trova le altre rate dello stesso ciclo/anno assicurativo e aggiorna l'importo
+        if(!isNaN(targetCycle) && ttCycle === targetCycle){
+            tt.amount = newAmt;
+            
+            // Azzera le provvigioni, MA conservale per la prima rata di ogni anno (rata 1, 13, 25...)
+            if((Number(tt.n) - 1) % 12 !== 0){
+                tt.commTotal = 0;
+                tt.commPers = 0;
+            }
+        }
+    });
+    
+    // Aggiorna anche il premio annuo totale (moltiplicato per 12)
+    p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
+} else {
+// ... resto della funzione (da "Se non è mensile..." in poi)
         if(Number(p.annualPremium || 0) === 0) p.annualPremium = newAmt;
     }
 
@@ -3809,31 +3813,33 @@ function getFilteredDeadlines() {
                 const t = (pol.titles || []).find(x => String(x.id) === titleId);
                 if (!t) return alert('Titolo non trovato.');
 
-                // --- INIZIO MODIFICA: Incasso automatico 12 rate SDD con rispettiva data scadenza ---
-                if (method === 'SDD' && Number(pol.split) === 12) {
-                    // Estrae l'anno (AAAA) dalla rata che stai attualmente incassando
-                    const targetYear = t.dueDate ? String(t.dueDate).substring(0, 4) : null;
+                // --- INIZIO MODIFICA: Incasso automatico 12 rate SDD in base all'ANNO ASSICURATIVO ---
+if (method === 'SDD' && Number(pol.split) === 12) {
+    // Calcola il ciclo dell'anno assicurativo (es. 0 per rate 1-12, 1 per rate 13-24, ecc.)
+    const targetCycle = Math.floor((Number(t.n) - 1) / 12);
 
-                    (pol.titles || []).forEach(tt => {
-                        // Verifica che la rata abbia una scadenza e faccia parte dello stesso anno di competenza
-                        if (targetYear && tt.dueDate && String(tt.dueDate).substring(0, 4) === targetYear) {
-                            tt.status = 'INCASSATO';
-                            tt.paymentMethod = 'SDD';
-                            // Imposta in automatico come data incasso la data di scadenza della singola rata
-                            tt.paymentDate = String(tt.dueDate);
-                        }
-                    });
+    (pol.titles || []).forEach(tt => {
+        const ttCycle = Math.floor((Number(tt.n) - 1) / 12);
+        
+        // Verifica che la rata faccia parte dello stesso anno assicurativo
+        if (!isNaN(targetCycle) && ttCycle === targetCycle) {
+            tt.status = 'INCASSATO';
+            tt.paymentMethod = 'SDD';
+            // Imposta in automatico come data incasso la data di scadenza della singola rata
+            tt.paymentDate = String(tt.dueDate);
+        }
+    });
 
-                    fbSaveSingleDoc('policies', pol);
-                    saveLocalBackup();
+    fbSaveSingleDoc('policies', pol);
+    saveLocalBackup();
 
-                    closePaymentModal();
-                    renderDeadlines();
-                    updateDashboard();
-                    if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
-                    return;
-                }
-                // --- FINE MODIFICA ---
+    closePaymentModal();
+    renderDeadlines();
+    updateDashboard();
+    if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
+    return;
+}
+// --- FINE MODIFICA ---
 
                 t.status = 'INCASSATO';
                 t.paymentMethod = method;
