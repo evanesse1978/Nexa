@@ -2852,26 +2852,40 @@ function editRenewalCommission(pid, tid) {
             if(currentViewingPolicyId === p.id) openPolicyTitles(p.id);
         }
 
-        // Elimina titolo (rata)
+        // Elimina titolo (rata) - CORRETTO PER RIALINEAMENTO SCADENZA
         function deleteTitle(polId, titId) {
-    const p = policies.find(x => x.id === polId);
-    if(!p) return;
-    const t = (p.titles || []).find(x => x.id === titId);
-    if(!t) return;
-    if(!confirm('Eliminare il titolo (rata) ' + (t.n || '') + ' del ' + (new Date(t.dueDate).toLocaleDateString('it-IT')) + '?')) return;
+            const p = policies.find(x => x.id === polId);
+            if(!p) return;
+            const t = (p.titles || []).find(x => x.id === titId);
+            if(!t) return;
+            if(!confirm('Eliminare il titolo (rata) ' + (t.n || '') + ' del ' + (new Date(t.dueDate).toLocaleDateString('it-IT')) + '?')) return;
 
-    p.titles = (p.titles || []).filter(x => x.id !== titId);
-    p.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
-    p.titles.forEach((x, i) => { x.n = i+1; });
+            p.titles = (p.titles || []).filter(x => x.id !== titId);
+            p.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+            p.titles.forEach((x, i) => { x.n = i+1; });
 
-    fbSaveSingleDoc('policies', p);
-    saveLocalBackup();
+            // FIX: Ricalcola e ripristina la data di scadenza (expiry) della polizza
+            // in base al titolo più lontano nel tempo rimasto in archivio
+            let nextEff = new Date(p.effect);
+            if (p.titles.length > 0) {
+                const maxD = Math.max(...p.titles.map(t => new Date(t.dueDate).getTime()));
+                const maxTitleDate = new Date(maxD);
+                while (nextEff <= maxTitleDate) {
+                    nextEff.setFullYear(nextEff.getFullYear() + 1);
+                }
+            } else {
+                nextEff.setFullYear(nextEff.getFullYear() + 1);
+            }
+            p.expiry = nextEff.toISOString().split('T')[0];
 
-    renderDeadlines();
-    updateDashboard();
-    if(currentViewingPolicyId === polId) openPolicyTitles(polId);
-    renderPolicies(currentActiveClientId, true);
-}
+            if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', p);
+            if (typeof saveLocalBackup === 'function') saveLocalBackup();
+
+            renderDeadlines();
+            updateDashboard();
+            if(currentViewingPolicyId === polId) openPolicyTitles(polId);
+            renderPolicies(currentActiveClientId, true);
+        }
 
         // Unisce eventuali polizze duplicate (stesso Cliente + Compagnia + Numero polizza)
         // Mantiene una polizza "principale" e accorpa i titoli, aggiornando la scadenza al massimo.
@@ -3009,32 +3023,29 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
             if(!targetInput) return alert("Seleziona mese e anno target.");
 
             const [tYear, tMonth] = targetInput.split('-');
-            
-            // CORREZIONE: Usiamo l'anno selezionato, senza sottrarre 1.
             const sYear = parseInt(tYear); 
-            const sMonth = tMonth;
+            const sMonth = parseInt(tMonth);
 
             // Filtro polizze scadute nel mese/anno sorgente
             const policiesToRenew = policies.filter(p => {
                 if(p.status !== 'ATTIVA') return false;
+                if(!p.expiry) return false;
                 const d = new Date(p.expiry);
                 // Javascript months 0-11
-                return d.getFullYear() === sYear && (d.getMonth() + 1) === parseInt(sMonth);
+                return d.getFullYear() === sYear && (d.getMonth() + 1) === sMonth;
             });
 
-            if(policiesToRenew.length === 0) return alert(`Nessuna polizza in scadenza trovata nel periodo di riferimento (${sMonth}/${sYear})`);
+            if(policiesToRenew.length === 0) return alert(`Nessuna polizza in scadenza trovata nel periodo di riferimento (${tMonth}/${sYear})`);
 
             let created = 0;
             policiesToRenew.forEach(oldP => {
-                // Controllo se esiste già un rinnovo (stesso cliente, compagnia, data effetto = vecchia scadenza)
-                const alreadyExists = policies.some(newP => 
-                    newP.clientId === oldP.clientId && 
-                    newP.company === oldP.company && 
-                    newP.effect === oldP.expiry 
-                );
+                const newEff = new Date(oldP.expiry);
+                const effIso = newEff.toISOString().split('T')[0];
+
+                // FIX: Verifichiamo se nei titoli della STESSA polizza esiste già una rata per questa scadenza
+                const alreadyExists = (oldP.titles || []).some(t => t.dueDate === effIso);
 
                 if(!alreadyExists) {
-                    const newEff = new Date(oldP.expiry);
                     const newExp = new Date(oldP.expiry);
                     newExp.setFullYear(newExp.getFullYear() + 1);
 
@@ -3050,50 +3061,56 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                         else if(oldP.split===12) dd.setMonth(newEff.getMonth()+i);
 
                         titles.push({
-                            id: Date.now() + Math.floor(Math.random()*1000000),
+                            id: Date.now() + Math.floor(Math.random()*1000000) + i,
                             n: i+1,
                             dueDate: toISODateLocal(dd),
-                            amount: 0, // IMPORTO ZERO
+                            amount: 0, 
                             status: 'DA INCASSARE',
                             commTotal: 0,
                             commPers: 0,
-                            isRenewal: true //
+                            isRenewal: true
                         });
                     }
 
-                    const newP = {
-                        id: Date.now() + Math.floor(Math.random()*1000000),
-                        clientId: oldP.clientId,
-                        ramo: oldP.ramo,
-                        company: oldP.company,
-                        notes: "Rinnovo automatico da " + (oldP.policyNumber || ''),
-                        policyNumber: oldP.policyNumber, 
-                        effect: newEff.toISOString().split('T')[0],
-                        expiry: newExp.toISOString().split('T')[0],
-                        split: oldP.split,
-                        annualPremium: 0, 
-                        commPerc: oldP.commPerc,
-                        status: 'ATTIVA',
-                        titles: titles
-                    };
-                    policies.push(newP);
+                    // Aggiungiamo i titoli direttamente alla polizza esistente (come fa il rinnovo singolo)
+                    oldP.titles = (oldP.titles || []).concat(titles);
+                    oldP.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+                    oldP.titles.forEach((t, idx) => { t.n = idx + 1; });
+                    
+                    // Avanziamo la data di scadenza della polizza
+                    oldP.expiry = newExp.toISOString().split('T')[0];
+
+                    if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', oldP);
                     created++;
                 }
             });
 
-            saveAllData();
-            alert(`Generati ${created} rinnovi per ${tMonth}/${tYear}.`);
-            renderDeadlines(); // Aggiorna tabella scadenze
+            if(created > 0) saveAllData();
+            alert(`Generati ${created} rinnovi per ${tMonth}/${sYear}.`);
+            renderDeadlines(); 
         }
 
-        // FUNZIONE RINNOVO SINGOLO
+        // FUNZIONE RINNOVO SINGOLO - CORRETTA
         function renewPolicy(id) {
             const p = policies.find(x => x.id === id);
             if(!p) return;
             if(!confirm("Creare i titoli di rinnovo per la polizza " + (p.policyNumber || '') + "?\nImporti e provvigioni verranno azzerati e potranno essere inseriti con la matita.")) return;
 
-            const newEff = new Date(p.expiry);
-            const newExp = new Date(p.expiry);
+            // FIX: Calcoliamo il nuovo effetto basandoci sui titoli realmente presenti, 
+            // così se hai cancellato un rinnovo, il sistema riparte sempre dall'anno giusto.
+            let nextEff = new Date(p.effect);
+            
+            if (p.titles && p.titles.length > 0) {
+                const maxD = Math.max(...p.titles.map(t => new Date(t.dueDate).getTime()));
+                const maxTitleDate = new Date(maxD);
+                
+                while (nextEff <= maxTitleDate) {
+                    nextEff.setFullYear(nextEff.getFullYear() + 1);
+                }
+            }
+
+            const newEff = new Date(nextEff);
+            const newExp = new Date(nextEff);
             newExp.setFullYear(newExp.getFullYear() + 1);
 
             const effIso = newEff.toISOString().split('T')[0];
@@ -3110,7 +3127,7 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                 else if(p.split===12) dd.setMonth(newEff.getMonth()+i);
 
                 titles.push({
-                    id: Date.now() + Math.floor(Math.random()*1000000),
+                    id: Date.now() + Math.floor(Math.random()*1000000) + i, // Aggiunto +i per evitare ID duplicati
                     n: 0,
                     dueDate: toISODateLocal(dd),
                     amount: 0,
@@ -3124,7 +3141,7 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
             p.titles = (p.titles || []).concat(titles);
             p.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
             p.titles.forEach((t, idx) => { t.n = idx + 1; });
-            p.expiry = newExp.toISOString().split('T')[0];
+            p.expiry = newExp.toISOString().split('T')[0]; // Riallinea l'expiry con il nuovo anno
 
             consolidateDuplicatePolicies();
             saveAllData();
