@@ -553,7 +553,7 @@
     <div id="app-container" class="hidden flex-1 flex overflow-hidden h-full w-full fade-in z-10">
         
         <!-- SIDEBAR -->
-        <aside class="w-72 bg-deep flex-shrink-0 flex flex-col border-r border-slate-800/50 p-4">
+        <aside class="w-72 bg-deep flex-shrink-0 flex flex-col border-r border-slate-800/50 p-4 overflow-y-auto">
             <div class="bg-gradient-to-br from-slate-800/80 to-surface border border-slate-700/80 rounded-2xl p-5 mb-8 shadow-xl shadow-accent/10 text-white relative overflow-hidden group cursor-default">
                 <!-- Effetti di luce di sfondo -->
                 <div class="absolute -top-10 -left-10 w-32 h-32 bg-accent/20 blur-3xl rounded-full group-hover:bg-accent/30 transition-all duration-500"></div>
@@ -619,12 +619,12 @@
                 
                 <!-- DASHBOARD -->
                 <div id="section-home" class="fade-in space-y-6">
-                   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="glass-effect p-5 rounded-2xl border-l-4 border-accent relative overflow-hidden"><i class="fa-solid fa-users absolute right-4 top-4 text-6xl text-accent opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">I Tuoi Clienti</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-total-clients">0</h3></div>
-                        <div class="glass-effect p-5 rounded-2xl border-l-4 border-warning relative overflow-hidden"><i class="fa-solid fa-file-contract absolute right-4 top-4 text-6xl text-warning opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Polizze Attive</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-total-policies">0</h3></div>
-                        <div class="glass-effect p-5 rounded-2xl border-l-4 border-danger relative overflow-hidden"><i class="fa-solid fa-circle-exclamation absolute right-4 top-4 text-6xl text-danger opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Da Incassare del mese</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-pending-money">€ 0</h3></div>
-                        <div class="glass-effect p-5 rounded-2xl border-l-4 border-success relative overflow-hidden"><i class="fa-solid fa-chart-line absolute right-4 top-4 text-6xl text-success opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Incassato (Mese)</p><h3 class="text-3xl font-bold text-white mt-1" id="dash-month-inc">€ 0</h3></div>
-                    </div>
+                   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="glass-effect p-5 rounded-2xl border-l-4 border-accent relative overflow-hidden"><i class="fa-solid fa-users absolute right-4 top-4 text-6xl text-accent opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">I Tuoi Clienti</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-total-clients">0</h3></div>
+    <div class="glass-effect p-5 rounded-2xl border-l-4 border-warning relative overflow-hidden"><i class="fa-solid fa-file-contract absolute right-4 top-4 text-6xl text-warning opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Polizze Attive</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-total-policies">0</h3></div>
+    <div class="glass-effect p-5 rounded-2xl border-l-4 border-danger relative overflow-hidden"><i class="fa-solid fa-circle-exclamation absolute right-4 top-4 text-6xl text-danger opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Da Incassare del mese</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-pending-money">€ 0</h3></div>
+    <div class="glass-effect p-5 rounded-2xl border-l-4 border-success relative overflow-hidden"><i class="fa-solid fa-chart-line absolute right-4 top-4 text-6xl text-success opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Incassato (Mese)</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-month-inc">€ 0</h3></div>
+</div>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
                             <div class="flex justify-between items-center mb-4">
