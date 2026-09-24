@@ -3135,7 +3135,7 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
             alert('Rinnovo creato: ' + titles.length + ' titoli aggiunti alla polizza.');
         }
 
-        // RENDER POLIZZE - CORRETTO PER SOSPENSIONE
+        // RENDER POLIZZE - CORRETTO PER SOSPENSIONE E RICHIESTA SOSPENSIONE
         function renderPolicies(filteredList = null, showMonthOnly = true) {
             let list = (policies || []);
             if(Array.isArray(filteredList)) {
@@ -3171,23 +3171,31 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                 let rc=''; if(p.ramo==='AUTO')rc='branch-auto'; else if(p.ramo==='VITA')rc='branch-vita'; else rc='branch-vari'; 
                 
                 let displayStatus = p.status;
-                if (p.suspensionStart && p.suspensionEnd) {
-                    if (todayStr >= p.suspensionStart && todayStr <= p.suspensionEnd) {
+                
+                // --- LOGICA SOSPENSIONE DINAMICA ---
+                if (p.suspensionStart && p.suspensionEnd && p.status === 'ATTIVA') {
+                    if (todayStr < p.suspensionStart) {
+                        displayStatus = 'RICHIESTA SOSPENSIONE';
+                    } else if (todayStr >= p.suspensionStart && todayStr <= p.suspensionEnd) {
                         displayStatus = 'SOSPESA';
                     } else {
-                        if(displayStatus === 'ATTIVA' || displayStatus === 'SOSPESA') displayStatus = 'ATTIVA';
+                        displayStatus = 'ATTIVA';
                     }
                 }
                 
+                // Creazione del Badge Colorato
                 let sb=`<span class="bg-slate-800 text-xs px-2 py-1 rounded text-white border border-slate-600">${displayStatus}</span>`; 
-                if(displayStatus==='ANNULLATA')sb=`<span class="bg-red-900/30 text-xs px-2 py-1 rounded text-red-500 border border-red-900">ANNULLATA</span>`; 
-                if(displayStatus==='SOSTITUITA')sb=`<span class="bg-yellow-900/30 text-xs px-2 py-1 rounded text-yellow-500 border border-yellow-900">SOSTITUITA</span>`; 
-                if(displayStatus==='SOSPESA')sb=`<span class="bg-purple-900/30 text-xs px-2 py-1 rounded text-purple-500 border border-purple-900">SOSPESA</span>`; 
+                if(displayStatus==='ANNULLATA') sb=`<span class="bg-red-900/30 text-xs px-2 py-1 rounded text-red-500 border border-red-900">ANNULLATA</span>`; 
+                else if(displayStatus==='SOSTITUITA') sb=`<span class="bg-yellow-900/30 text-xs px-2 py-1 rounded text-yellow-500 border border-yellow-900">SOSTITUITA</span>`; 
+                else if(displayStatus==='SOSPESA') sb=`<span class="bg-purple-900/30 text-xs px-2 py-1 rounded text-purple-500 border border-purple-900">SOSPESA</span>`; 
+                else if(displayStatus==='RICHIESTA SOSPENSIONE') sb=`<span class="bg-blue-900/30 text-xs px-2 py-1 rounded text-blue-400 border border-blue-900 whitespace-nowrap">RICHIESTA SOSP.</span>`; 
                 
                 let btnRenew = ''; 
-                if(p.status === 'ATTIVA' || displayStatus === 'SOSPESA') { btnRenew = `<button onclick="renewPolicy(${p.id})" class="text-xs border border-accent text-accent hover:bg-slate-800 px-2 py-1 rounded" title="Genera Rinnovo Annuale"><i class="fa-solid fa-calendar-plus"></i></button>`; }
+                if(p.status === 'ATTIVA' || displayStatus === 'SOSPESA' || displayStatus === 'RICHIESTA SOSPENSIONE') { 
+                    btnRenew = `<button onclick="renewPolicy(${p.id})" class="text-xs border border-accent text-accent hover:bg-slate-800 px-2 py-1 rounded" title="Genera Rinnovo Annuale"><i class="fa-solid fa-calendar-plus"></i></button>`; 
+                }
                 
-                const row=`<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${rc} ${displayStatus!=='ATTIVA' && displayStatus!=='SOSPESA'?'opacity-60':''}"><td class="px-6 py-4">${sb}</td><td class="px-6 py-4 text-white font-medium">${c}</td><td class="px-6 py-4"><div class="text-sm font-bold text-white">${p.company}</div><div class="text-xs text-slate-400 mt-1">${p.policyNumber||''}</div><div class="text-[10px] uppercase border border-slate-700 rounded px-1 w-fit mt-1">${p.ramo}</div></td><td class="px-6 py-4 font-mono text-xs text-slate-300">${new Date(p.expiry).toLocaleDateString('it-IT')}</td><td class="px-6 py-4 text-right font-mono text-white">€ ${p.annualPremium.toFixed(2)}</td><td class="px-6 py-4 text-center space-x-1">${btnRenew}<button onclick="openClaimModal(${p.id}, null)" class="text-xs border border-slate-700 text-warning hover:bg-slate-800 px-2 py-1 rounded" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation"></i></button><button onclick="openPolicyTitles(${p.id})" class="text-xs border border-slate-700 text-info hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-list-ol"></i></button><button onclick="openPolicyModal(null, ${p.id})" class="text-xs border border-slate-700 text-slate-300 hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i></button><button onclick="suspendPolicy(${p.id})" class="text-xs border border-slate-700 text-purple-400 hover:bg-slate-800 px-2 py-1 rounded" title="Sospendi"><i class="fa-solid fa-pause"></i></button><button onclick="cancelPolicy(${p.id})" class="text-xs border border-slate-700 text-red-400 hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-ban"></i></button><button onclick="replacePolicy(${p.id})" class="text-xs border border-slate-700 text-blue-400 hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-right-left"></i></button><button onclick="deletePolicy(${p.id})" class="text-xs border border-slate-700 text-slate-500 hover:text-red-600 px-2 py-1 rounded"><i class="fa-solid fa-trash"></i></button></td></tr>`; 
+                const row=`<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${rc} ${displayStatus!=='ATTIVA' && displayStatus!=='SOSPESA' && displayStatus!=='RICHIESTA SOSPENSIONE'?'opacity-60':''}"><td class="px-6 py-4">${sb}</td><td class="px-6 py-4 text-white font-medium">${c}</td><td class="px-6 py-4"><div class="text-sm font-bold text-white">${p.company}</div><div class="text-xs text-slate-400 mt-1">${p.policyNumber||''}</div><div class="text-[10px] uppercase border border-slate-700 rounded px-1 w-fit mt-1">${p.ramo}</div></td><td class="px-6 py-4 font-mono text-xs text-slate-300">${new Date(p.expiry).toLocaleDateString('it-IT')}</td><td class="px-6 py-4 text-right font-mono text-white">€ ${p.annualPremium.toFixed(2)}</td><td class="px-6 py-4 text-center space-x-1">${btnRenew}<button onclick="openClaimModal(${p.id}, null)" class="text-xs border border-slate-700 text-warning hover:bg-slate-800 px-2 py-1 rounded" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation"></i></button><button onclick="openPolicyTitles(${p.id})" class="text-xs border border-slate-700 text-info hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-list-ol"></i></button><button onclick="openPolicyModal(null, ${p.id})" class="text-xs border border-slate-700 text-slate-300 hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i></button><button onclick="suspendPolicy(${p.id})" class="text-xs border border-slate-700 text-purple-400 hover:bg-slate-800 px-2 py-1 rounded" title="Sospendi"><i class="fa-solid fa-pause"></i></button><button onclick="cancelPolicy(${p.id})" class="text-xs border border-slate-700 text-red-400 hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-ban"></i></button><button onclick="replacePolicy(${p.id})" class="text-xs border border-slate-700 text-blue-400 hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-right-left"></i></button><button onclick="deletePolicy(${p.id})" class="text-xs border border-slate-700 text-slate-500 hover:text-red-600 px-2 py-1 rounded"><i class="fa-solid fa-trash"></i></button></td></tr>`; 
                 
                 htmlBuffer += row; 
             }); 
@@ -3333,7 +3341,7 @@ function deletePolicy(id){
             updateDashboard();
         }
 
-       function suspendPolicy(id) {
+      function suspendPolicy(id) {
             const p = policies.find(x => x.id === id);
             if (!p || (p.status !== 'ATTIVA' && p.status !== 'SOSPESA')) return; 
 
@@ -3377,9 +3385,8 @@ function deletePolicy(id){
                 }
             });
 
-            // MODIFICA CRITICA: Imposta lo stato esplicitamente a SOSPESA
-            // Così l'interfaccia e i report la vedranno sospesa fin da subito
-            p.status = 'SOSPESA'; 
+            // Manteniamo la polizza ATTIVA nel database. L'interfaccia farà il resto.
+            p.status = 'ATTIVA'; 
             
             // --- SALVATAGGIO GRANULARE ---
             if (typeof fbSaveSingleDoc === 'function') {
