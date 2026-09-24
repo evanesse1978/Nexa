@@ -3333,7 +3333,7 @@ function deletePolicy(id){
             updateDashboard();
         }
 
-        function suspendPolicy(id) {
+       function suspendPolicy(id) {
             const p = policies.find(x => x.id === id);
             if (!p || (p.status !== 'ATTIVA' && p.status !== 'SOSPESA')) return; 
 
@@ -3367,9 +3367,9 @@ function deletePolicy(id){
             newExp.setDate(newExp.getDate() + days);
             p.expiry = newExp.toISOString().split('T')[0];
 
-            // Sposto rate future
+            // Sposto rate future (usando il fallback su un array vuoto per evitare crash)
             const sIso = d1.toISOString().split('T')[0];
-            p.titles.forEach(t => {
+            (p.titles || []).forEach(t => {
                 if(t.status === 'DA INCASSARE' && t.dueDate > sIso) {
                     let d = new Date(t.dueDate);
                     d.setDate(d.getDate() + days);
@@ -3377,7 +3377,17 @@ function deletePolicy(id){
                 }
             });
 
-            p.status = 'ATTIVA'; // Salvo sempre come attiva, la visualizzazione è dinamica
+            // MODIFICA CRITICA: Imposta lo stato esplicitamente a SOSPESA
+            // Così l'interfaccia e i report la vedranno sospesa fin da subito
+            p.status = 'SOSPESA'; 
+            
+            // --- SALVATAGGIO GRANULARE ---
+            if (typeof fbSaveSingleDoc === 'function') {
+                fbSaveSingleDoc('policies', p);
+            }
+            if (typeof saveLocalBackup === 'function') {
+                saveLocalBackup();
+            }
             
             saveAllData();
             renderPolicies();
