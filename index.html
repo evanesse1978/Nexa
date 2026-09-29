@@ -2022,16 +2022,17 @@ function sendBirthdayWishes(name, phone, email, channel) {
             const upcoming = appointments
                 .filter(a => new Date(a.date) >= new Date(new Date().setHours(0,0,0,0)))
                 .sort((a,b) => new Date(a.date + 'T' + (a.time||'00:00')) - new Date(b.date + 'T' + (b.time||'00:00')))
-                .slice(0,3);
+                .slice(0, 6); // AUMENTATO DA 3 a 6. Puoi cambiare questo numero a tuo piacimento.
 
             if(upcoming.length === 0) {
                 l.innerHTML = '<p class="text-slate-500 text-xs text-center mt-10">Nessun appuntamento imminente.</p>';
             } else {
                 upcoming.forEach(a => {
+                    // AGGIUNTO "min-w-0" per bloccare lo strabordamento e "title" per leggere il testo passando il mouse
                     l.innerHTML += `<div class="flex items-center justify-between p-2 rounded border bg-slate-800/30 border-slate-700">
-                        <div class="flex-1">
+                        <div class="flex-1 min-w-0">
                             <div class="text-xs text-accent font-bold">${new Date(a.date).toLocaleDateString()} ${a.time||''}</div>
-                            <div class="text-sm text-white font-medium truncate">${a.title}</div>
+                            <div class="text-sm text-white font-medium truncate" title="${a.title}">${a.title}</div>
                         </div>
                     </div>`;
                 });
@@ -4695,9 +4696,22 @@ function switchSection(sectionName){
   } else if(sectionName === 'deadlines'){
     document.getElementById('section-deadlines')?.classList.remove('hidden');
     document.getElementById('nav-deadlines')?.classList.add('nav-active');
+    
+    // Imposta automaticamente il mese e anno corrente all'ingresso
     const fMoD = document.getElementById('filterMonthDeadlines');
-    if(fMoD && !fMoD.value){ fMoD.value = ""; }
+    if(fMoD){ 
+        const now = new Date(); 
+        fMoD.value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`; 
+    }
+
+    // Imposta automaticamente "Solo prima rata" come filtro di default
+    const fMonthly = document.getElementById('filterMonthlyDeadlines');
+    if(fMonthly){ 
+        fMonthly.value = 'ANNUAL_ONLY'; 
+    }
+
     renderDeadlines();
+  }
   } else if(sectionName === 'report'){
     document.getElementById('section-report')?.classList.remove('hidden');
     document.getElementById('nav-report')?.classList.add('nav-active');
