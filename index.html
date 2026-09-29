@@ -575,15 +575,31 @@
 
             <div class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 px-2">Navigazione</div>
             <nav class="flex-1 space-y-3">
-                <a href="#" onclick="switchSection('home')" id="nav-home" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group nav-active"><i class="fa-solid fa-house w-5 text-center"></i> <span class="font-medium">Home Dashboard</span></a>
-                <a href="#" onclick="switchSection('agenda')" id="nav-agenda" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-regular fa-calendar-check w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Agenda & Calendario</span></a>
-                <a href="#" onclick="switchSection('quotes')" id="nav-quotes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-calculator w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Preventivi</span></a>
-                <a href="#" onclick="switchSection('clients')" id="nav-clients" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-users w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Anagrafica clienti</span></a>
-                <a href="#" onclick="switchSection('contracts'); resetContractFilter(); renderContractsDefault();" id="nav-contracts" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-file-contract w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Contratti / Polizze</span></a>
-                <a href="#" onclick="switchSection('claims'); renderClaims();" id="nav-claims" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-triangle-exclamation w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Sinistri</span></a>
-                <a href="#" onclick="switchSection('deadlines')" id="nav-deadlines" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-calendar-days w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Scadenze titoli</span></a>
-                <a href="#" onclick="switchSection('report')" id="nav-report" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group"><i class="fa-solid fa-chart-pie w-5 text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Report</span></a>
-            </nav>
+    <a href="#" onclick="switchSection('home')" id="nav-home" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group nav-active">
+        <i class="fa-solid fa-house w-7 text-xl text-center"></i> <span class="font-medium">Home Dashboard</span>
+    </a>
+    <a href="#" onclick="switchSection('agenda')" id="nav-agenda" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
+        <i class="fa-regular fa-calendar-check w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Agenda & Calendario</span>
+    </a>
+    <a href="#" onclick="switchSection('quotes')" id="nav-quotes" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
+        <i class="fa-solid fa-calculator w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Preventivi</span>
+    </a>
+    <a href="#" onclick="switchSection('clients')" id="nav-clients" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
+        <i class="fa-solid fa-users w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Anagrafica clienti</span>
+    </a>
+    <a href="#" onclick="switchSection('contracts'); resetContractFilter(); renderContractsDefault();" id="nav-contracts" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
+        <i class="fa-solid fa-file-contract w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Contratti / Polizze</span>
+    </a>
+    <a href="#" onclick="switchSection('claims'); renderClaims();" id="nav-claims" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
+        <i class="fa-solid fa-triangle-exclamation w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Sinistri</span>
+    </a>
+    <a href="#" onclick="switchSection('deadlines')" id="nav-deadlines" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
+        <i class="fa-solid fa-calendar-days w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Scadenze titoli</span>
+    </a>
+    <a href="#" onclick="switchSection('report')" id="nav-report" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
+        <i class="fa-solid fa-chart-pie w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Report</span>
+    </a>
+</nav>
 
             <div class="mt-auto pt-4 border-t border-slate-800">
                 <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 px-2">Area Dati</p>
@@ -1973,7 +1989,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
             document.getElementById('dash-total-clients').innerText = clients.length;
 
             // Polizze attive: conteggio univoco per (cliente + numero polizza)
-            const active = policies.filter(p => p.status === 'ATTIVA');
+            const active = policies.filter(p => p.status === 'ATTIVA' || p.status === 'SOSPESA');
             const uniqKeys = new Set(active.map(p => `${p.clientId}|${String(p.policyNumber || '').toUpperCase().trim()}`));
             document.getElementById('dash-total-policies').innerText = uniqKeys.size;
 
