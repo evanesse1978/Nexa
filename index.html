@@ -3229,7 +3229,17 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                     btnRenew = `<button onclick="renewPolicy(${p.id})" class="text-xs border border-accent text-accent hover:bg-slate-800 px-2 py-1 rounded" title="Genera Rinnovo Annuale"><i class="fa-solid fa-calendar-plus"></i></button>`; 
                 }
                 
-                const row=`<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${rc} ${displayStatus!=='ATTIVA' && displayStatus!=='SOSPESA' && displayStatus!=='RICHIESTA SOSPENSIONE'?'opacity-60':''}"><td class="px-6 py-4">${sb}</td><td class="px-6 py-4 text-white font-medium">${c}</td><td class="px-6 py-4"><div class="text-sm font-bold text-white">${p.company}</div><div class="text-xs text-slate-400 mt-1">${p.policyNumber||''}</div><div class="text-[10px] uppercase border border-slate-700 rounded px-1 w-fit mt-1">${p.ramo}</div></td><td class="px-6 py-4 font-mono text-xs text-slate-300">${new Date(p.expiry).toLocaleDateString('it-IT')}</td><td class="px-6 py-4 text-right font-mono text-white">€ ${p.annualPremium.toFixed(2)}</td><td class="px-6 py-4 text-center space-x-1">${btnRenew}<button onclick="openClaimModal(${p.id}, null)" class="text-xs border border-slate-700 text-warning hover:bg-slate-800 px-2 py-1 rounded" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation"></i></button><button onclick="openPolicyTitles(${p.id})" class="text-xs border border-slate-700 text-info hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-list-ol"></i></button><button onclick="openPolicyModal(null, ${p.id})" class="text-xs border border-slate-700 text-slate-300 hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i></button><button onclick="suspendPolicy(${p.id})" class="text-xs border border-slate-700 text-purple-400 hover:bg-slate-800 px-2 py-1 rounded" title="Sospendi"><i class="fa-solid fa-pause"></i></button><button onclick="cancelPolicy(${p.id})" class="text-xs border border-slate-700 text-red-400 hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-ban"></i></button><button onclick="replacePolicy(${p.id})" class="text-xs border border-slate-700 text-blue-400 hover:bg-slate-800 px-2 py-1 rounded"><i class="fa-solid fa-right-left"></i></button><button onclick="deletePolicy(${p.id})" class="text-xs border border-slate-700 text-slate-500 hover:text-red-600 px-2 py-1 rounded"><i class="fa-solid fa-trash"></i></button></td></tr>`; 
+                const row=`<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${rc} ${displayStatus!=='ATTIVA' && displayStatus!=='SOSPESA' && displayStatus!=='RICHIESTA SOSPENSIONE'?'opacity-60':''}"><td class="px-6 py-4">${sb}</td><td class="px-6 py-4 text-white font-medium">${c}</td><td class="px-6 py-4"><div class="text-sm font-bold text-white">${p.company}</div><div class="text-xs text-slate-400 mt-1">${p.policyNumber||''}</div><div class="text-[10px] uppercase border border-slate-700 rounded px-1 w-fit mt-1">${p.ramo}</div></td><td class="px-6 py-4 font-mono text-xs text-slate-300">${new Date(p.expiry).toLocaleDateString('it-IT')}</td><td class="px-6 py-4 text-right font-mono text-white">€ ${p.annualPremium.toFixed(2)}</td><td class="px-6 py-4 text-center space-x-1">
+                    ${btnRenew}
+                    <button onclick="openClaimModal(${p.id}, null)" class="text-xs border border-slate-700 text-warning hover:bg-slate-800 px-2 py-1 rounded" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation"></i></button>
+                    <button onclick="openPolicyTitles(${p.id})" class="text-xs border border-slate-700 text-info hover:bg-slate-800 px-2 py-1 rounded" title="Rate e Provvigioni"><i class="fa-solid fa-list-ol"></i></button>
+                    <button onclick="openPolicyModal(null, ${p.id})" class="text-xs border border-slate-700 text-slate-300 hover:bg-slate-800 px-2 py-1 rounded" title="Modifica Polizza"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="suspendPolicy(${p.id})" class="text-xs border border-slate-700 text-purple-400 hover:bg-slate-800 px-2 py-1 rounded" title="Sospendi"><i class="fa-solid fa-pause"></i></button>
+                    <button onclick="reactivatePolicy(${p.id})" class="text-xs border border-slate-700 text-emerald-400 hover:bg-slate-800 px-2 py-1 rounded" title="Riattiva Anticipatamente"><i class="fa-solid fa-play"></i></button>
+                    <button onclick="cancelPolicy(${p.id})" class="text-xs border border-slate-700 text-red-400 hover:bg-slate-800 px-2 py-1 rounded" title="Annulla"><i class="fa-solid fa-ban"></i></button>
+                    <button onclick="replacePolicy(${p.id})" class="text-xs border border-slate-700 text-blue-400 hover:bg-slate-800 px-2 py-1 rounded" title="Sostituisci"><i class="fa-solid fa-right-left"></i></button>
+                    <button onclick="deletePolicy(${p.id})" class="text-xs border border-slate-700 text-slate-500 hover:text-red-600 px-2 py-1 rounded" title="Elimina"><i class="fa-solid fa-trash"></i></button>
+                </td></tr>`; 
                 
                 htmlBuffer += row; 
             }); 
@@ -3375,7 +3385,9 @@ function deletePolicy(id){
             updateDashboard();
         }
 
-      function suspendPolicy(id) {
+      
+
+            function suspendPolicy(id) {
             const p = policies.find(x => x.id === id);
             if (!p || (p.status !== 'ATTIVA' && p.status !== 'SOSPESA')) return; 
 
@@ -3409,7 +3421,7 @@ function deletePolicy(id){
             newExp.setDate(newExp.getDate() + days);
             p.expiry = newExp.toISOString().split('T')[0];
 
-            // Sposto rate future (usando il fallback su un array vuoto per evitare crash)
+            // Sposto rate future
             const sIso = d1.toISOString().split('T')[0];
             (p.titles || []).forEach(t => {
                 if(t.status === 'DA INCASSARE' && t.dueDate > sIso) {
@@ -3429,6 +3441,61 @@ function deletePolicy(id){
             if (typeof saveLocalBackup === 'function') {
                 saveLocalBackup();
             }
+            
+            saveAllData();
+            renderPolicies();
+        }
+
+        function reactivatePolicy(id) {
+            const p = policies.find(x => x.id === id);
+            if (!p || (!p.suspensionStart || !p.suspensionEnd)) return alert("La polizza non risulta in stato di sospensione o mancano i dati.");
+
+            const parseIt = (s) => {
+                if(!s) return null;
+                const parts = s.split('/');
+                if(parts.length !== 3) return null;
+                return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); 
+            };
+
+            const reactStr = prompt("Data Riattivazione Effettiva (GG/MM/AAAA):");
+            if (!reactStr) return;
+            const dReact = parseIt(reactStr);
+            if(!dReact || isNaN(dReact)) return alert("Formato data non valido (usa GG/MM/AAAA)");
+
+            const dStart = new Date(p.suspensionStart);
+            const dEndOld = new Date(p.suspensionEnd);
+
+            if(dReact <= dStart) return alert("La data di riattivazione deve essere successiva alla data di inizio sospensione.");
+
+            // Calcoliamo la differenza di giorni tra la fine prevista e la riattivazione effettiva
+            const originalDays = Math.ceil((dEndOld - dStart) / (1000 * 60 * 60 * 24));
+            const actualDays = Math.ceil((dReact - dStart) / (1000 * 60 * 60 * 24));
+            const daysDiff = originalDays - actualDays; 
+
+            if (daysDiff !== 0) {
+                // Rettifichiamo la scadenza della polizza
+                let newExp = new Date(p.expiry);
+                newExp.setDate(newExp.getDate() - daysDiff);
+                p.expiry = newExp.toISOString().split('T')[0];
+
+                // Rettifichiamo le date delle rate future
+                const sIso = dStart.toISOString().split('T')[0];
+                (p.titles || []).forEach(t => {
+                    if(t.status === 'DA INCASSARE' && t.dueDate > sIso) {
+                        let d = new Date(t.dueDate);
+                        d.setDate(d.getDate() - daysDiff);
+                        t.dueDate = d.toISOString().split('T')[0];
+                    }
+                });
+            }
+
+            // Ripristiniamo la polizza
+            delete p.suspensionStart;
+            delete p.suspensionEnd;
+            p.status = 'ATTIVA';
+
+            if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', p);
+            if (typeof saveLocalBackup === 'function') saveLocalBackup();
             
             saveAllData();
             renderPolicies();
