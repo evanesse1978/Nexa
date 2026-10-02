@@ -4747,7 +4747,7 @@ function downloadBackup(){
   a.click();
 }
 
-// Import include sinistri
+// Import include sinistri (MODIFICATO PER AGGIUNGERE I DATI)
 async function processImport(input){
   const file = input.files[0];
   if(!file) return;
@@ -4755,20 +4755,30 @@ async function processImport(input){
   reader.onload = async function(e){
     try{
       const data = JSON.parse(e.target.result);
-      if(!confirm('ATTENZIONE: questa operazione sovrascriverà i dati attuali su Firebase con quelli del backup. Procedere?')) return;
+      if(!confirm('Vuoi AGGIUNGERE i dati del file al database esistente?\n\nI vecchi dati NON verranno cancellati. I nuovi clienti/polizze verranno aggiunti alla lista.')) return;
 
       const importBtn = document.querySelector('button[onclick*="importFile"]');
-      if(importBtn) importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Caricamento...';
+      if(importBtn) importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Aggiunta in corso...';
 
-      clients = data.clients || [];
-      policies = data.policies || [];
-      appointments = data.appointments || [];
-      claims = data.claims || [];
+      // Funzione di unione: aggiunge i nuovi elementi senza creare duplicati se l'ID esiste già
+      const mergeData = (target, source) => {
+          if(!source || !Array.isArray(source)) return target || [];
+          const map = new Map((target || []).map(x => [String(x.id), x]));
+          source.forEach(item => map.set(String(item.id), item));
+          return Array.from(map.values());
+      };
+
+      // Unisce i dati attualmente in memoria con quelli del file JSON
+      clients = mergeData(clients, data.clients);
+      policies = mergeData(policies, data.policies);
+      appointments = mergeData(appointments, data.appointments);
+      claims = mergeData(claims, data.claims);
+      if(typeof quotes !== 'undefined') quotes = mergeData(quotes, data.quotes);
 
       try{
         fbStopListeners();
         await fbFullSyncToFirestore();
-        alert('Importazione completata con successo! I dati sono stati salvati su Firebase.');
+        alert('Importazione completata! I dati sono stati aggiunti con successo su Firebase.');
         location.reload();
       } catch(fbErr){
         console.error('Errore Firebase import', fbErr);
