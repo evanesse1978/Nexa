@@ -599,7 +599,12 @@
     <a href="#" onclick="switchSection('report')" id="nav-report" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
         <i class="fa-solid fa-chart-pie w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Report</span>
     </a>
-</nav>
+    
+    <!-- NUOVO LINK UTILITY -->
+    <a href="#" onclick="switchSection('utility')" id="nav-utility" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group mt-4 border-t border-slate-800/50 pt-3">
+        <i class="fa-solid fa-toolbox w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Utility</span>
+    </a>
+</nav> <!-- Questa è la chiusura già presente nel tuo file -->
 
             <div class="mt-auto pt-4 border-t border-slate-800">
                 <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 px-2">Area Dati</p>
@@ -918,7 +923,31 @@
                         </div>
                     </div>
                 </div>
+<!-- UTILITY -->
+                <div id="section-utility" class="hidden fade-in">
+                    <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-white uppercase tracking-wide">Utility <span class="text-accent text-xs font-bold">(V1)</span></h3>
+                                <p class="text-sm text-slate-400 mt-1">Strumenti avanzati di manutenzione del database.</p>
+                            </div>
+                        </div>
 
+                        <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700 mb-6">
+                            <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+                                <h4 class="text-white font-bold text-lg"><i class="fa-solid fa-users-slash text-accent mr-2"></i>Unisci duplicati</h4>
+                                <button onclick="scanForDuplicates()" class="bg-accent text-darktext px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 active:scale-95 transition-all shadow-lg shadow-accent/20 flex gap-2 items-center">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Cerca
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-400 mb-4">Questa funzione scansiona l'intero archivio clienti alla ricerca di Codici Fiscali, Partite IVA o Nomi identici. Potrai scegliere quale anagrafica mantenere come principale: tutte le polizze, i titoli e i sinistri associati alle anagrafiche scartate verranno trasferiti su quella scelta e gli indirizzi email/telefoni eventualmente mancanti verranno salvati.</p>
+                            
+                            <div id="duplicatesResultContainer" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                                <div class="text-center text-slate-500 py-8 border border-dashed border-slate-700 rounded-lg">Premi "Cerca" per avviare la scansione dei duplicati.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="section-placeholder" class="hidden fade-in"><div class="flex flex-col items-center justify-center h-96 text-center"><div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6"><i class="fa-solid fa-person-digging text-3xl text-slate-500"></i></div><h3 class="text-2xl font-bold text-white mb-2">Sezione in Sviluppo</h3><p class="text-slate-400 max-w-md">Funzionalità: <span id="placeholder-name" class="text-accent"></span></p></div></div>
             </div>
         </main>
@@ -4747,7 +4776,7 @@ function downloadBackup(){
   a.click();
 }
 
-// Import include sinistri (MODIFICATO PER AGGIUNGERE I DATI)
+// Import include sinistri e unione intelligente anagrafiche
 async function processImport(input){
   const file = input.files[0];
   if(!file) return;
@@ -4755,12 +4784,65 @@ async function processImport(input){
   reader.onload = async function(e){
     try{
       const data = JSON.parse(e.target.result);
-      if(!confirm('Vuoi AGGIUNGERE i dati del file al database esistente?\n\nI vecchi dati NON verranno cancellati. I nuovi clienti/polizze verranno aggiunti alla lista.')) return;
+      if(!confirm('Vuoi AGGIUNGERE i dati del file al database esistente?')) return;
 
       const importBtn = document.querySelector('button[onclick*="importFile"]');
-      if(importBtn) importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Aggiunta in corso...';
+      if(importBtn) importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Elaborazione in corso...';
 
-      // Funzione di unione: aggiunge i nuovi elementi senza creare duplicati se l'ID esiste già
+      let newClients = data.clients || [];
+      let newPolicies = data.policies || [];
+      let newAppointments = data.appointments || [];
+      let newClaims = data.claims || [];
+
+      // 1. Risoluzione Conflitti Anagrafiche per Codice Fiscale
+      for (let i = 0; i < newClients.length; i++) {
+          let nc = newClients[i];
+          if (!nc.cf) continue; // Salta se manca il Codice Fiscale
+
+          // Cerca se esiste già in rubrica un cliente con lo stesso CF
+          let existingMatch = clients.find(c => c.cf && c.cf.toUpperCase() === nc.cf.toUpperCase());
+
+          // Se esiste un cliente con lo stesso CF ma con ID diverso (potenziale duplicato)
+          if (existingMatch && String(existingMatch.id) !== String(nc.id)) {
+              let msg = `Trovato duplicato per il CF: ${nc.cf}\n\n` +
+                        `1) ESISTENTE: ${existingMatch.name} (Tel: ${existingMatch.phone || '-'}, Email: ${existingMatch.email || '-'})\n` +
+                        `2) DAL FILE: ${nc.name} (Tel: ${nc.phone || '-'}, Email: ${nc.email || '-'})\n\n` +
+                        `Quali dati anagrafici vuoi mantenere?\n` +
+                        `[OK] = Mantieni dati ESISTENTI\n` +
+                        `[ANNULLA] = Aggiornali con i dati DEL FILE`;
+
+              let keepExisting = confirm(msg);
+
+              if (keepExisting) {
+                  // Non tocchiamo l'anagrafica. Spostiamo solo polizze e sinistri dal nuovo ID al vecchio
+                  redirectLinkedData(nc.id, existingMatch.id, newPolicies, newAppointments, newClaims);
+              } else {
+                  // Sovrascriviamo l'anagrafica esistente con i nuovi dati, ma MANTENIAMO l'ID vecchio per non rompere il database
+                  existingMatch.name = nc.name;
+                  existingMatch.email = nc.email;
+                  existingMatch.phone = nc.phone;
+                  existingMatch.address = nc.address || existingMatch.address;
+                  existingMatch.notes = nc.notes || existingMatch.notes;
+                  if (nc.birthDate) existingMatch.birthDate = nc.birthDate;
+
+                  // Spostiamo i riferimenti
+                  redirectLinkedData(nc.id, existingMatch.id, newPolicies, newAppointments, newClaims);
+              }
+              // Contrassegno il nuovo client per non inserirlo come riga separata
+              nc._merged = true;
+          }
+      }
+
+      // Funzione per reindirizzare polizze, appuntamenti e sinistri sul cliente unificato
+      function redirectLinkedData(oldId, newId, polList, appList, claimList) {
+          polList.forEach(p => { if (String(p.clientId) === String(oldId)) p.clientId = String(newId); });
+          claimList.forEach(c => { if (String(c.clientId) === String(oldId)) c.clientId = String(newId); });
+      }
+
+      // Rimuoviamo dalla lista in entrata i clienti che sono stati uniti (scartiamo i duplicati)
+      newClients = newClients.filter(c => !c._merged);
+
+      // 2. Unione Standard (merge per ID per tutto il resto)
       const mergeData = (target, source) => {
           if(!source || !Array.isArray(source)) return target || [];
           const map = new Map((target || []).map(x => [String(x.id), x]));
@@ -4768,17 +4850,17 @@ async function processImport(input){
           return Array.from(map.values());
       };
 
-      // Unisce i dati attualmente in memoria con quelli del file JSON
-      clients = mergeData(clients, data.clients);
-      policies = mergeData(policies, data.policies);
-      appointments = mergeData(appointments, data.appointments);
-      claims = mergeData(claims, data.claims);
+      clients = mergeData(clients, newClients);
+      policies = mergeData(policies, newPolicies);
+      appointments = mergeData(appointments, newAppointments);
+      claims = mergeData(claims, newClaims);
       if(typeof quotes !== 'undefined') quotes = mergeData(quotes, data.quotes);
 
+      // 3. Salva su Firebase
       try{
         fbStopListeners();
         await fbFullSyncToFirestore();
-        alert('Importazione completata! I dati sono stati aggiunti con successo su Firebase.');
+        alert('Importazione completata! Le anagrafiche doppie sono state unite e le relative polizze aggregate correttamente.');
         location.reload();
       } catch(fbErr){
         console.error('Errore Firebase import', fbErr);
@@ -4821,7 +4903,7 @@ function switchSection(sectionName){
     document.getElementById('nav-report')?.classList.remove('nav-active');
   } catch(e){}
 
-  ['home','clients','contracts','deadlines','agenda','report','claims','quotes'].forEach(id => {
+  ['home','clients','contracts','deadlines','agenda','report','claims','quotes','utility'].forEach(id => {
     const el = document.getElementById(`section-${id}`);
     if(el) el.classList.add('hidden');
     const nav = document.getElementById(`nav-${id}`);
@@ -4836,7 +4918,8 @@ function switchSection(sectionName){
     contracts: { t:'Polizze', s:'Gestione portafoglio' },
     deadlines: { t:'Scadenze', s:'Scadenziario titoli' },
     report:    { t:'Report', s:'Analisi Produzione, Portafoglio e Polizze Perse' },
-    claims:    { t:'Sinistri', s:'Gestione sinistri' }
+    claims:    { t:'Sinistri', s:'Gestione sinistri' },
+    utility:   { t:'Utility', s:'Strumenti avanzati di manutenzione database' }
   };
   const m = map[sectionName] || map.home;
   setHeaderTitle(m.t, m.s);
@@ -4860,20 +4943,13 @@ function switchSection(sectionName){
   } else if(sectionName === 'deadlines'){
     document.getElementById('section-deadlines')?.classList.remove('hidden');
     document.getElementById('nav-deadlines')?.classList.add('nav-active');
-    
-    // Imposta automaticamente il mese e anno corrente all'ingresso
     const fMoD = document.getElementById('filterMonthDeadlines');
-    if(fMoD){ 
+    if(fMoD && !fMoD.value) { 
         const now = new Date(); 
         fMoD.value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`; 
     }
-
-    // Imposta automaticamente "Solo prima rata" come filtro di default
     const fMonthly = document.getElementById('filterMonthlyDeadlines');
-    if(fMonthly){ 
-        fMonthly.value = 'ANNUAL_ONLY'; 
-    }
-
+    if(fMonthly && !fMonthly.value) { fMonthly.value = 'ANNUAL_ONLY'; }
     renderDeadlines();
   } else if(sectionName === 'report'){
     document.getElementById('section-report')?.classList.remove('hidden');
@@ -4888,7 +4964,172 @@ function switchSection(sectionName){
     document.getElementById('section-claims')?.classList.remove('hidden');
     document.getElementById('nav-claims')?.classList.add('nav-active');
     renderClaims();
+  } else if(sectionName === 'utility'){
+    document.getElementById('section-utility')?.classList.remove('hidden');
+    document.getElementById('nav-utility')?.classList.add('nav-active');
   }
+}
+
+// LOGICA SCANSIONE E UNIONE DUPLICATI
+let currentDuplicateGroups = [];
+
+function scanForDuplicates() {
+    const container = document.getElementById('duplicatesResultContainer');
+    container.innerHTML = '<div class="text-center text-slate-500 py-8 border border-slate-700 rounded-lg"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-accent"></i><br>Ricerca duplicati in corso...</div>';
+
+    setTimeout(() => {
+        const groups = {};
+        clients.forEach(c => {
+            let key = '';
+            let cf = (c.cf || '').trim().toUpperCase();
+            let name = (c.name || '').trim().toUpperCase();
+            
+            if (cf) {
+                key = 'CF_' + cf; 
+            } else if (name) {
+                key = 'NAME_' + name; 
+            } else {
+                return; 
+            }
+            
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(c);
+        });
+
+        currentDuplicateGroups = Object.values(groups).filter(g => g.length > 1);
+        
+        if (currentDuplicateGroups.length === 0) {
+            container.innerHTML = '<div class="text-center text-emerald-400 py-8 border border-emerald-900/50 bg-emerald-900/10 rounded-lg font-bold"><i class="fa-solid fa-check-circle text-4xl mb-3 block"></i>Ottimo! Nessun duplicato trovato.</div>';
+            return;
+        }
+
+        let html = '';
+        currentDuplicateGroups.forEach((group, groupIndex) => {
+            const groupHtml = group.map((client, clientIndex) => {
+                const polCount = policies.filter(p => String(p.clientId) === String(client.id)).length;
+                const claimCount = typeof claims !== 'undefined' ? claims.filter(c => String(c.clientId) === String(client.id)).length : 0;
+                
+                return `
+                <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/50 border border-slate-700 cursor-pointer hover:border-accent/50 transition-colors">
+                    <input type="radio" name="master_group_${groupIndex}" value="${client.id}" class="mt-1 accent-accent" ${clientIndex === 0 ? 'checked' : ''}>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm text-white font-bold truncate">${escapeHtml(client.name)} <span class="text-xs text-accent ml-2 font-mono border border-accent/30 bg-accent/10 px-1 rounded">${escapeHtml(client.cf || 'N/D')}</span></div>
+                        <div class="text-xs text-slate-400 mt-1 flex flex-wrap gap-3">
+                            <span><i class="fa-solid fa-phone mr-1"></i>${escapeHtml(client.phone || '-')}</span>
+                            <span><i class="fa-solid fa-envelope mr-1"></i>${escapeHtml(client.email || '-')}</span>
+                        </div>
+                        <div class="mt-2 text-[10px] uppercase font-bold text-slate-500">
+                            <span class="mr-3"><i class="fa-solid fa-file-contract mr-1 text-info"></i>${polCount} Polizze collegate</span>
+                            <span><i class="fa-solid fa-triangle-exclamation mr-1 text-warning"></i>${claimCount} Sinistri collegati</span>
+                        </div>
+                    </div>
+                </label>`;
+            }).join('');
+
+            html += `<div class="bg-slate-800/30 border border-slate-600 rounded-xl p-4 relative mb-4">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-3">
+                    <h5 class="text-white text-sm font-bold"><i class="fa-solid fa-object-group text-slate-400 mr-2"></i>Gruppo Duplicati ${groupIndex + 1} <span class="text-slate-500 font-normal">(${group.length} anagrafiche identiche)</span></h5>
+                    <button onclick="mergeDuplicateGroup(${groupIndex})" class="bg-info text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-500 active:scale-95 transition-all shadow-lg"><i class="fa-solid fa-link mr-1"></i> Unifica Gruppo</button>
+                </div>
+                <p class="text-[10px] text-slate-400 mb-3 uppercase tracking-wide">Seleziona l'anagrafica da mantenere come <b>PRINCIPALE</b>:</p>
+                <div class="space-y-2">
+                    ${groupHtml}
+                </div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+    }, 500);
+}
+
+async function mergeDuplicateGroup(groupIndex) {
+    const group = currentDuplicateGroups[groupIndex];
+    if (!group) return;
+
+    const selectedRadio = document.querySelector(`input[name="master_group_${groupIndex}"]:checked`);
+    if (!selectedRadio) return alert('Seleziona un\'anagrafica principale.');
+
+    const masterId = selectedRadio.value;
+    const masterClient = group.find(c => String(c.id) === String(masterId));
+    const slaveClients = group.filter(c => String(c.id) !== String(masterId));
+
+    if (!confirm(`Sei sicuro di voler unificare ${slaveClients.length} anagrafiche dentro "${masterClient.name}"?\n\nLe polizze, i sinistri e i preventivi delle altre verranno trasferiti, dopodiché le anagrafiche scartate saranno ELIMINATE in modo permanente.`)) return;
+
+    try {
+        let changed = false;
+
+        for (let slave of slaveClients) {
+            const slaveId = String(slave.id);
+
+            // 1. Sposta Polizze
+            policies.forEach(p => {
+                if (String(p.clientId) === slaveId) {
+                    p.clientId = String(masterId);
+                    if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', p);
+                    changed = true;
+                }
+            });
+
+            // 2. Sposta Sinistri
+            if (typeof claims !== 'undefined') {
+                claims.forEach(c => {
+                    if (String(c.clientId) === slaveId) {
+                        c.clientId = String(masterId);
+                        c.clientName = masterClient.name;
+                        if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('claims', c);
+                        changed = true;
+                    }
+                });
+            }
+
+            // 3. Sposta Preventivi
+            if (typeof quotes !== 'undefined') {
+                quotes.forEach(q => {
+                    if (String(q.clientId) === slaveId) {
+                        q.clientId = String(masterId);
+                        q.clientName = masterClient.name;
+                        changed = true;
+                    }
+                });
+            }
+
+            // 4. Aggiorna relazioni
+            clients.forEach(c => {
+                if (c.relation && String(c.relation.id) === slaveId) {
+                    c.relation.id = String(masterId);
+                    c.relation.name = masterClient.name;
+                    if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('clients', c);
+                    changed = true;
+                }
+            });
+
+            // 5. Copia dati mancanti
+            if (!masterClient.email && slave.email) { masterClient.email = slave.email; changed = true; }
+            if (!masterClient.phone && slave.phone) { masterClient.phone = slave.phone; changed = true; }
+            if (!masterClient.birthDate && slave.birthDate) { masterClient.birthDate = slave.birthDate; changed = true; }
+            if (!masterClient.cf && slave.cf) { masterClient.cf = slave.cf; changed = true; }
+            if (!masterClient.address && slave.address) { masterClient.address = slave.address; changed = true; }
+            if (!masterClient.notes && slave.notes) { masterClient.notes = slave.notes; changed = true; } else if (slave.notes && masterClient.notes) { masterClient.notes += " | " + slave.notes; changed = true; }
+
+            // 6. Elimina lo slave
+            clients = clients.filter(c => String(c.id) !== slaveId);
+            if (typeof fbDeleteSingleDoc === 'function') fbDeleteSingleDoc('clients', slaveId);
+        }
+
+        if (changed) {
+            if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('clients', masterClient);
+            if (typeof saveAllData === 'function') saveAllData(); 
+        }
+
+        alert('Unificazione completata con successo!');
+        scanForDuplicates();
+        if (typeof renderClients === 'function') renderClients();
+        if (typeof updateDashboard === 'function') updateDashboard();
+
+    } catch (err) {
+        console.error(err);
+        alert("Errore durante l'unificazione: " + err.message);
+    }
 }
 </script>
 <script>
