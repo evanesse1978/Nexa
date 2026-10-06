@@ -1026,6 +1026,10 @@
                                 </div>
                             </div>
                             <textarea id="inputNotes" rows="3" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Note..."></textarea>
+<div class="flex items-center gap-3 bg-slate-800/30 border border-slate-700/50 rounded-xl px-4 py-3 mt-2">
+    <input type="checkbox" id="inputDeceased" class="accent-red-500 bg-deep border-slate-700 h-4 w-4 rounded">
+    <label for="inputDeceased" class="text-sm text-red-400 font-bold select-none">Dichiara Decesso (mantiene attive le polizze)</label>
+</div>
                         </div>
                     </div>
                     <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800">
@@ -2432,6 +2436,18 @@ function sendBirthdayWishes(name, phone, email, channel) {
             reader.readAsText(file); 
         }
         
+function getGenderFluoColor(cf) {
+            if (!cf || cf.length !== 16) return 'bg-accent text-darktext shadow-[0_0_10px_rgba(226,255,0,0.3)]';
+            const dayStr = cf.substring(9, 11);
+            const day = parseInt(dayStr, 10);
+            if (isNaN(day)) return 'bg-accent text-darktext shadow-[0_0_10px_rgba(226,255,0,0.3)]';
+            
+            if (day > 40) {
+                return 'bg-fuchsia-500 text-white shadow-[0_0_10px_rgba(217,70,239,0.5)]';
+            } else {
+                return 'bg-cyan-400 text-darktext shadow-[0_0_10px_rgba(34,211,238,0.5)]';
+            }
+        }
         function renderClients(list = null) {
             const tb = document.getElementById('clientsTableBody');
             const searchVal = document.getElementById('searchInput').value;
@@ -2444,11 +2460,42 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     return;
                 }
             } document.getElementById('client-count').innerText = data.length; tb.innerHTML = '';
-            if (data.length === 0) { tb.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">Nessun cliente trovato.</td></tr>`; return; }
-            data.slice(0, 50).forEach(c => { let badge = c.relation ? `<div class="mt-1 flex items-center gap-1 text-[10px] text-darktext bg-accent px-2 py-0.5 rounded font-bold w-fit"><i class="fa-solid fa-link"></i> ${c.relation.type} di ${c.relation.name}</div>` : ''; const row = `<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 cursor-pointer" onclick="openClientDetail(${c.id})"><td class="px-6 py-4 font-medium text-white"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-accent text-darktext flex items-center justify-center text-sm font-bold">${c.name.charAt(0).toUpperCase()}</div><div><div class="text-sm font-semibold">${c.name}</div>${badge}</div></div></td><td class="px-6 py-4"><div class="font-mono text-xs text-slate-300">${c.cf}</div></td><td class="px-6 py-4">
-    <div class="text-sm text-slate-300 font-medium">${c.phone||'-'}</div>
-    <div class="text-xs text-slate-500 mt-0.5">${c.email||'-'}</div>
-</td><td class="px-6 py-4 text-right space-x-2"><button onclick="alert('Note: ' + ('${c.notes}' || 'Nessuna'))" class="w-8 h-8 rounded-full border border-slate-700 text-yellow-500 hover:bg-slate-700 hover:text-white transition-all"><i class="fa-regular fa-note-sticky"></i></button><button onclick="event.stopPropagation(); filterPoliciesByClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-info hover:bg-info hover:text-white transition-all"><i class="fa-solid fa-file-contract"></i></button><button onclick="event.stopPropagation(); openModal(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-accent hover:bg-accent hover:text-darktext transition-all"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="event.stopPropagation(); deleteClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-all" title="Elimina cliente"><i class="fa-solid fa-trash"></i></button></td></tr>`; tb.innerHTML += row; });
+           if (data.length === 0) { tb.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">Nessun cliente trovato.</td></tr>`; return; }
+            
+            data.slice(0, 50).forEach(c => { 
+                let badge = c.relation ? `<div class="mt-1 flex items-center gap-1 text-[10px] text-darktext bg-accent px-2 py-0.5 rounded font-bold w-fit"><i class="fa-solid fa-link"></i> ${c.relation.type} di ${c.relation.name}</div>` : ''; 
+                
+                // --- INIZIO LOGICA COLORI E DECESSO ---
+                const avatarColor = getGenderFluoColor(c.cf);
+                const nameColor = c.isDeceased ? 'text-slate-500' : 'text-white';
+                const deadBadge = c.isDeceased ? `<span class="bg-red-900/30 text-[10px] px-2 py-0.5 rounded text-red-500 border border-red-900 ml-2 font-bold uppercase"><i class="fa-solid fa-cross text-xs mr-1"></i>Deceduto</span>` : '';
+                const rowOpacity = c.isDeceased ? 'opacity-75' : '';
+                // --- FINE LOGICA COLORI E DECESSO ---
+
+                const row = `<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 cursor-pointer ${rowOpacity}" onclick="openClientDetail(${c.id})">
+                    <td class="px-6 py-4 font-medium">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full ${avatarColor} flex items-center justify-center text-sm font-bold border border-white/20 transition-all">${c.name.charAt(0).toUpperCase()}</div>
+                            <div>
+                                <div class="text-sm font-semibold ${nameColor}">${c.name}${deadBadge}</div>
+                                ${badge}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4"><div class="font-mono text-xs text-slate-300">${c.cf}</div></td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-slate-300 font-medium">${c.phone||'-'}</div>
+                        <div class="text-xs text-slate-500 mt-0.5">${c.email||'-'}</div>
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button onclick="event.stopPropagation(); alert('Note: ' + ('${c.notes}' || 'Nessuna'))" class="w-8 h-8 rounded-full border border-slate-700 text-yellow-500 hover:bg-slate-700 hover:text-white transition-all"><i class="fa-regular fa-note-sticky"></i></button>
+                        <button onclick="event.stopPropagation(); filterPoliciesByClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-info hover:bg-info hover:text-white transition-all"><i class="fa-solid fa-file-contract"></i></button>
+                        <button onclick="event.stopPropagation(); openModal(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-accent hover:bg-accent hover:text-darktext transition-all"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="event.stopPropagation(); deleteClient(${c.id})" class="w-8 h-8 rounded-full border border-slate-700 text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-all" title="Elimina cliente"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`; 
+                tb.innerHTML += row; 
+            });
         }
         function openModal(id=null, viewOnly=false) { 
             document.getElementById('clientModal').classList.remove('hidden'); 
@@ -2465,10 +2512,12 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     document.getElementById('inputBirthDate').value=c.birthDate||''; 
                     document.getElementById('inputAddress').value=c.address||''; 
                     document.getElementById('inputNotes').value=c.notes||''; 
+                    document.getElementById('inputDeceased').checked=c.isDeceased||false; // <-- NUOVA RIGA
                 }
             } else {
                 editingClientId=null; 
                 document.getElementById('clientForm').reset(); 
+                document.getElementById('inputDeceased').checked=false; // <-- NUOVA RIGA
             } 
             
             // Gestione consultazione (Click sulla riga) vs Modifica (Click sulla matitina)
@@ -2494,7 +2543,8 @@ function sendBirthdayWishes(name, phone, email, channel) {
         // DETTAGLIO CLIENTE (VIEW MODE)
         // =============================
         function setClientModalReadOnly(isReadOnly){
-            const ids = ['inputName','inputCF','inputEmail','inputPhone','inputBirthDate','inputAddress','inputNotes','relationSelect','relationType'];
+            // <-- MODIFICATA LA RIGA QUI SOTTO PER INCLUDERE inputDeceased -->
+            const ids = ['inputName','inputCF','inputEmail','inputPhone','inputBirthDate','inputAddress','inputNotes','relationSelect','relationType','inputDeceased'];
             ids.forEach(id => {
                 const el = document.getElementById(id);
                 if(!el) return;
@@ -2518,7 +2568,8 @@ function sendBirthdayWishes(name, phone, email, channel) {
                   ph=document.getElementById('inputPhone').value, 
                   bd=document.getElementById('inputBirthDate').value, // DATA DI NASCITA
                   ad=document.getElementById('inputAddress').value, 
-                  nt=document.getElementById('inputNotes').value, 
+                  nt=document.getElementById('inputNotes').value,
+                  isDec=document.getElementById('inputDeceased').checked, 
                   ri=document.getElementById('relationSelect').value, 
                   rt=document.getElementById('relationType').value, 
                   cid=editingClientId||Date.now(); 
@@ -2531,7 +2582,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
                 if(p) rl={id:ri,name:p.name,type:rt};
             } 
             
-            const d={id:cid,name:nm,cf,email:em,phone:ph,birthDate:bd,address:ad,notes:nt,relation:rl,createdAt:new Date().toLocaleDateString('it-IT')}; 
+            const d={id:cid,name:nm,cf,email:em,phone:ph,birthDate:bd,address:ad,notes:nt,isDeceased:isDec,relation:rl,createdAt:new Date().toLocaleDateString('it-IT')}; 
             
             // 2. Salvo il cliente corrente
             if(editingClientId){
