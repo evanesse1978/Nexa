@@ -932,10 +932,76 @@
                                 <p class="text-sm text-slate-400 mt-1">Strumenti avanzati di manutenzione del database.</p>
                             </div>
                         </div>
+<!-- ESPORTAZIONE DATI CLIENTE (GDPR) -->
+<div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700 mb-6">
+    <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+        <h4 class="text-white font-bold text-lg">
+            <i class="fa-solid fa-file-pdf text-danger mr-2"></i>Esportazione Dati Cliente (GDPR)
+        </h4>
+    </div>
+    <p class="text-xs text-slate-400 mb-4">Genera un dossier completo in formato PDF contenente l'anagrafica, le polizze, i sinistri e i preventivi associati a un singolo cliente. Ideale per le richieste di accesso ai dati o per fornire un riepilogo al cliente.</p>
+    
+    <div class="flex flex-col md:flex-row gap-4 items-end">
+        <div class="flex-1 w-full">
+            <label class="block text-xs text-slate-500 font-bold mb-1">Seleziona Cliente</label>
+            <select id="utilityGdprClientSelect" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
+                <option value="">Caricamento clienti...</option>
+            </select>
+        </div>
+        <button onclick="exportClientDataPDF()" class="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-600 active:scale-95 transition-all shadow-lg flex gap-2 items-center border border-slate-600">
+            <i class="fa-solid fa-download text-danger"></i> Esporta Dossier
+        </button>
+    </div>
+</div>
 
-                        <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700 mb-6">
-                            <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
-                                <h4 class="text-white font-bold text-lg"><i class="fa-solid fa-users-slash text-accent mr-2"></i>Unisci duplicati</h4>
+<!-- GENERATORE DI DISDETTE PDF -->
+<div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700 mb-6">
+    <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+        <h4 class="text-white font-bold text-lg">
+            <i class="fa-solid fa-file-signature text-warning mr-2"></i>Generatore Lettera di Disdetta
+        </h4>
+    </div>
+    <p class="text-xs text-slate-400 mb-4">Crea rapidamente una lettera di disdetta formale da far firmare al cliente. Seleziona prima l'anagrafica, poi la polizza da disdettare.</p>
+    
+    <div class="flex flex-col md:flex-row gap-4 items-end">
+        <div class="flex-1 w-full">
+            <label class="block text-xs text-slate-500 font-bold mb-1">1. Seleziona Cliente</label>
+            <select id="utilityDisdettaClientSelect" onchange="populateDisdettaPolicySelect()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-accent">
+                <option value="">Caricamento clienti...</option>
+            </select>
+        </div>
+        <div class="flex-1 w-full">
+            <label class="block text-xs text-slate-500 font-bold mb-1">2. Seleziona Polizza</label>
+            <select id="utilityDisdettaPolicySelect" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-accent disabled:opacity-50">
+                <option value="">Prima seleziona un cliente...</option>
+            </select>
+        </div>
+        <button onclick="exportDisdettaPDF()" class="bg-warning text-darktext px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-500 active:scale-95 transition-all shadow-lg flex gap-2 items-center border border-yellow-600">
+            <i class="fa-solid fa-file-pdf"></i> Genera Lettera
+        </button>
+    </div>
+</div>
+
+<!-- SCANNER DATI INCOMPLETI -->
+<div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700 mb-6">
+    <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+        <h4 class="text-white font-bold text-lg">
+            <i class="fa-solid fa-file-circle-exclamation text-info mr-2"></i>Scanner Dati Incompleti
+        </h4>
+        <button onclick="scanIncompleteData()" class="bg-info text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-600 active:scale-95 transition-all shadow-lg flex gap-2 items-center border border-blue-500">
+            <i class="fa-solid fa-radar"></i> Avvia Scansione
+        </button>
+    </div>
+    <p class="text-xs text-slate-400 mb-4">Verifica la qualità del tuo archivio. Trova rapidamente i clienti senza recapiti (telefono/email) o senza Codice Fiscale, e le polizze con dati essenziali mancanti.</p>
+    
+    <div id="scannerResultContainer" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+        <div class="text-center text-slate-500 py-8 border border-dashed border-slate-700 rounded-lg">Premi "Avvia Scansione" per controllare l'archivio.</div>
+    </div>
+</div>
+
+<div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700 mb-6">
+    <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+        <h4 class="text-white font-bold text-lg"><i class="fa-solid fa-users-slash text-accent mr-2"></i>Unisci duplicati</h4>
                                 <button onclick="scanForDuplicates()" class="bg-accent text-darktext px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-400 active:scale-95 transition-all shadow-lg shadow-accent/20 flex gap-2 items-center">
                                     <i class="fa-solid fa-magnifying-glass"></i> Cerca
                                 </button>
@@ -5018,6 +5084,8 @@ function switchSection(sectionName){
   } else if(sectionName === 'utility'){
     document.getElementById('section-utility')?.classList.remove('hidden');
     document.getElementById('nav-utility')?.classList.add('nav-active');
+    populateGdprClientSelect();
+    populateDisdettaClientSelect(); // <--- NUOVA RIGA AGGIUNTA QUI
   }
 }
 
@@ -5181,6 +5249,396 @@ async function mergeDuplicateGroup(groupIndex) {
         console.error(err);
         alert("Errore durante l'unificazione: " + err.message);
     }
+}
+
+// ==========================================
+// UTILITY: ESPORTAZIONE DOSSIER CLIENTE PDF
+// ==========================================
+
+function populateGdprClientSelect() {
+    const sel = document.getElementById('utilityGdprClientSelect');
+    if(!sel) return;
+    sel.innerHTML = '<option value="">Cerca e seleziona un cliente...</option>';
+    
+    // Ordina alfabeticamente
+    const sortedClients = clients.slice().sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+    sortedClients.forEach(c => {
+        sel.innerHTML += `<option value="${c.id}">${c.name} - ${c.cf || 'CF mancante'}</option>`;
+    });
+}
+
+function exportClientDataPDF() {
+    const clientId = document.getElementById('utilityGdprClientSelect').value;
+    if(!clientId) return alert("Per favore, seleziona un cliente dalla lista.");
+    
+    const client = clients.find(c => String(c.id) === String(clientId));
+    if(!client) return alert("Cliente non trovato nell'archivio.");
+
+    // Inizializza jsPDF (Impostazione Portrait/Verticale)
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4'); 
+
+    // Raccogli i dati collegati
+    const clientPolicies = policies.filter(p => String(p.clientId) === String(clientId));
+    const clientClaims = typeof claims !== 'undefined' ? claims.filter(c => String(c.clientId) === String(clientId)) : [];
+    const clientQuotes = typeof quotes !== 'undefined' ? quotes.filter(q => String(q.clientId) === String(clientId)) : [];
+
+    // --- HEADER ---
+    doc.setFontSize(18);
+    doc.setTextColor(30, 58, 138); // Blu scuro
+    doc.text("Dossier Riepilogativo Cliente", 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Generato tramite NEXA il: " + new Date().toLocaleDateString('it-IT') + " alle " + new Date().toLocaleTimeString('it-IT').slice(0,5), 14, 26);
+    
+    // --- SEZIONE 1: ANAGRAFICA ---
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text("1. Dati Anagrafici e di Contatto", 14, 38);
+    
+    doc.autoTable({
+        startY: 42,
+        theme: 'plain',
+        styles: { fontSize: 10, cellPadding: 2, textColor: [15, 23, 42] },
+        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50, textColor: [100, 116, 139] } },
+        body: [
+            ["Nome / Ragione Sociale:", client.name || "-"],
+            ["Codice Fiscale / P.IVA:", client.cf || "-"],
+            ["Data di Nascita:", client.birthDate ? new Date(client.birthDate).toLocaleDateString('it-IT') : "-"],
+            ["Indirizzo di Residenza:", client.address || "-"],
+            ["Telefono:", client.phone || "-"],
+            ["Email:", client.email || "-"],
+            ["Stato in Anagrafica:", client.isDeceased ? "Deceduto" : "Attivo"],
+            ["Note interne:", client.notes || "-"]
+        ]
+    });
+
+    let finalY = doc.lastAutoTable.finalY + 15;
+
+    // --- SEZIONE 2: POLIZZE ---
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text("2. Polizze e Contratti", 14, finalY);
+    
+    if(clientPolicies.length > 0) {
+        const polBody = clientPolicies.map(p => [
+            p.status,
+            p.company,
+            p.policyNumber || "-",
+            p.ramo,
+            p.expiry ? new Date(p.expiry).toLocaleDateString('it-IT') : "-",
+            "€ " + Number(p.annualPremium || 0).toFixed(2)
+        ]);
+
+        doc.autoTable({
+            startY: finalY + 4,
+            head: [['Stato', 'Compagnia', 'N° Polizza', 'Ramo', 'Scadenza', 'Premio Annuo']],
+            body: polBody,
+            theme: 'striped',
+            headStyles: { fillColor: [37, 99, 235] }, // Accent Blue
+            styles: { fontSize: 9 }
+        });
+        finalY = doc.lastAutoTable.finalY + 15;
+    } else {
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Nessuna polizza registrata per questo cliente.", 14, finalY + 6);
+        finalY += 15;
+    }
+
+    // --- SEZIONE 3: SINISTRI ---
+    if (finalY > 230) { doc.addPage(); finalY = 20; } // Controllo paginazione
+    
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text("3. Storico Sinistri", 14, finalY);
+
+    if(clientClaims.length > 0) {
+        const claimBody = clientClaims.map(c => [
+            c.closed ? "CHIUSO" : "APERTO",
+            c.claimNumber || "-",
+            c.company || "-",
+            c.openedAt ? new Date(c.openedAt).toLocaleDateString('it-IT') : "-",
+            (c.notes || "-").substring(0, 50) + ((c.notes||'').length > 50 ? '...' : '')
+        ]);
+
+        doc.autoTable({
+            startY: finalY + 4,
+            head: [['Stato', 'N° Sinistro', 'Compagnia', 'Data Apertura', 'Note']],
+            body: claimBody,
+            theme: 'striped',
+            headStyles: { fillColor: [220, 38, 38] }, // Rosso Danger
+            styles: { fontSize: 9 }
+        });
+        finalY = doc.lastAutoTable.finalY + 15;
+    } else {
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Nessun sinistro registrato.", 14, finalY + 6);
+        finalY += 15;
+    }
+
+    // --- SEZIONE 4: PREVENTIVI ---
+    if (finalY > 230) { doc.addPage(); finalY = 20; }
+    
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text("4. Storico Preventivi", 14, finalY);
+
+    if(clientQuotes.length > 0) {
+        const quoteBody = clientQuotes.map(q => [
+            q.quoteNumber || "-",
+            q.company,
+            q.policyType || q.ramo,
+            q.effectDate ? new Date(q.effectDate).toLocaleDateString('it-IT') : "-",
+            "€ " + Number(q.price || 0).toFixed(2)
+        ]);
+
+        doc.autoTable({
+            startY: finalY + 4,
+            head: [['N° Preventivo', 'Compagnia', 'Dettaglio', 'Data', 'Premio Proposto']],
+            body: quoteBody,
+            theme: 'striped',
+            headStyles: { fillColor: [16, 185, 129] }, // Verde Success
+            styles: { fontSize: 9 }
+        });
+    } else {
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Nessun preventivo registrato.", 14, finalY + 6);
+    }
+
+    // Costruisce il nome del file ripulendo gli spazi e i caratteri speciali
+    const safeName = (client.name || "Cliente").replace(/[^a-zA-Z0-9]/g, '_');
+    const safeCF = (client.cf || "NOCF").toUpperCase();
+    
+    // Esporta
+    // Esporta
+    doc.save(`Dossier_${safeName}_${safeCF}.pdf`);
+}
+
+// ==========================================
+// UTILITY: GENERATORE LETTERA DI DISDETTA
+// ==========================================
+
+// Dizionario Indirizzi Compagnie (Espandibile)
+const COMPANY_ADDRESSES = {
+    'ALLIANZ': "Allianz S.p.A.\nPiazza Tre Torri, 3\n20145 Milano (MI)",
+    'HDI': "HDI Assicurazioni S.p.A.\nVia Abruzzi, 10\n00187 Roma (RM)",
+    'VITTORIA': "Vittoria Assicurazioni S.p.A.\nVia Ignazio Gardella, 2\n20149 Milano (MI)",
+    'HELVETIA': "Helvetia Compagnia Svizzera d'Assicurazioni SA\nVia G.B. Cassinis, 21\n20139 Milano (MI)",
+    'GENIALPIU': "Allianz Direct S.p.A. (Genialpiù)\nPiazza Tre Torri, 3\n20145 Milano (MI)",
+    'ARAG': "ARAG SE Rappresentanza Generale per l'Italia\nViale del Commercio, 59\n37135 Verona (VR)",
+    'METLIFE': "MetLife Europe d.a.c.\nVia Andrea Pesadori, 73\n00156 Roma (RM)"
+};
+
+function populateDisdettaClientSelect() {
+    const sel = document.getElementById('utilityDisdettaClientSelect');
+    if(!sel) return;
+    sel.innerHTML = '<option value="">Seleziona un cliente...</option>';
+    
+    const sortedClients = clients.slice().sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+    sortedClients.forEach(c => {
+        sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+    
+    // Reset polizze
+    document.getElementById('utilityDisdettaPolicySelect').innerHTML = '<option value="">Prima seleziona un cliente...</option>';
+}
+
+function populateDisdettaPolicySelect() {
+    const clientId = document.getElementById('utilityDisdettaClientSelect').value;
+    const polSel = document.getElementById('utilityDisdettaPolicySelect');
+    
+    if(!clientId) {
+        polSel.innerHTML = '<option value="">Prima seleziona un cliente...</option>';
+        return;
+    }
+    
+    const clientPolicies = policies.filter(p => String(p.clientId) === String(clientId) && p.status !== 'ANNULLATA' && p.status !== 'SOSTITUITA');
+    
+    if(clientPolicies.length === 0) {
+        polSel.innerHTML = '<option value="">Nessuna polizza attiva trovata</option>';
+        return;
+    }
+    
+    polSel.innerHTML = '<option value="">Seleziona la polizza da disdettare...</option>';
+    clientPolicies.forEach(p => {
+        polSel.innerHTML += `<option value="${p.id}">${p.company} - N° ${p.policyNumber || 'Senza Numero'} (${p.ramo})</option>`;
+    });
+}
+
+function exportDisdettaPDF() {
+    const clientId = document.getElementById('utilityDisdettaClientSelect').value;
+    const policyId = document.getElementById('utilityDisdettaPolicySelect').value;
+    
+    if(!clientId || !policyId) return alert("Seleziona sia il cliente che la polizza.");
+    
+    const client = clients.find(c => String(c.id) === String(clientId));
+    const policy = policies.find(p => String(p.id) === String(policyId));
+    
+    if(!client || !policy) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    
+    doc.setFont("helvetica");
+    
+    // 1. MITTENTE (Alto a sinistra)
+    doc.setFontSize(10);
+    doc.text("MITTENTE:", 20, 30);
+    doc.setFont(undefined, 'bold');
+    doc.text(client.name || "", 20, 35);
+    doc.setFont(undefined, 'normal');
+    if(client.cf) doc.text("C.F./P.IVA: " + client.cf, 20, 40);
+    if(client.address) doc.text(client.address, 20, 45);
+    if(client.phone) doc.text("Tel: " + client.phone, 20, 50);
+
+    // 2. DESTINATARIO (Alto a destra)
+    const companyKey = (policy.company || '').trim().toUpperCase();
+    const destAddress = COMPANY_ADDRESSES[companyKey] || `${policy.company}\nSpett.le Direzione`;
+    
+    doc.text("Spett.le", 120, 60);
+    doc.setFont(undefined, 'bold');
+    
+    const splitDest = doc.splitTextToSize(destAddress, 70);
+    doc.text(splitDest, 120, 65);
+    doc.setFont(undefined, 'normal');
+    
+    // 3. LUOGO E DATA
+    const today = new Date().toLocaleDateString('it-IT');
+    doc.text(`Data: ${today}`, 20, 90);
+    
+    // 4. OGGETTO
+    doc.setFont(undefined, 'bold');
+    const polNum = policy.policyNumber ? policy.policyNumber : "_____________";
+    doc.text(`OGGETTO: Disdetta polizza n. ${polNum} - Ramo ${policy.ramo || ''}`, 20, 105);
+    doc.setFont(undefined, 'normal');
+    
+    // 5. CORPO DELLA LETTERA
+    const bodyText = `Con la presente, il sottoscritto ${client.name}, in qualità di contraente della polizza in oggetto indicata, comunica formale disdetta del contratto di assicurazione alla sua naturale scadenza del ${policy.expiry ? new Date(policy.expiry).toLocaleDateString('it-IT') : '_____________'}, o alla prima scadenza utile successiva ai termini di preavviso contrattuali.
+
+Vi diffido pertanto dal procedere all'incasso di ulteriori premi e dal rinnovare tacitamente il contratto.
+
+In attesa di un Vostro riscontro scritto a conferma dell'avvenuta ricezione e presa in carico della presente disdetta, colgo l'occasione per porgere cordiali saluti.`;
+
+    const splitBody = doc.splitTextToSize(bodyText, 170);
+    doc.text(splitBody, 20, 125);
+    
+    // 6. FIRMA
+    doc.text("In fede,", 140, 200);
+    doc.text("___________________________________", 130, 220);
+    doc.setFontSize(8);
+    doc.text("(Firma del Contraente)", 143, 225);
+    
+    // Salva PDF
+    const safeName = (client.name || "Cliente").replace(/[^a-zA-Z0-9]/g, '_');
+    doc.save(`Disdetta_${safeName}_${policy.company}.pdf`);
+}
+
+// ==========================================
+// UTILITY: SCANNER DATI INCOMPLETI
+// ==========================================
+
+function scanIncompleteData() {
+    const container = document.getElementById('scannerResultContainer');
+    container.innerHTML = '<div class="text-center text-slate-500 py-8 border border-slate-700 rounded-lg"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-info"></i><br>Scansione in corso...</div>';
+
+    // Piccolo timeout per mostrare l'animazione di caricamento
+    setTimeout(() => {
+        let issues = { clients: [], policies: [] };
+
+        // 1. Controllo Clienti
+        (clients || []).forEach(c => {
+            let missing = [];
+            if (!c.cf || c.cf.trim() === '') missing.push("Codice Fiscale");
+            if (!c.phone || c.phone.trim() === '') missing.push("Telefono");
+            if (!c.email || c.email.trim() === '') missing.push("Email");
+
+            if (missing.length > 0) {
+                issues.clients.push({ client: c, missing });
+            }
+        });
+
+        // 2. Controllo Polizze
+        (policies || []).forEach(p => {
+            // Ignoriamo le polizze annullate o sostituite
+            if (p.status !== 'ATTIVA' && p.status !== 'SOSPESA') return; 
+            
+            let missing = [];
+            if (!p.policyNumber || p.policyNumber.trim() === '') missing.push("N° Polizza");
+            if (!p.annualPremium || safeParseFloat(p.annualPremium) === 0) missing.push("Premio Annuo");
+            if (!p.expiry || p.expiry.trim() === '') missing.push("Data Scadenza");
+
+            if (missing.length > 0) {
+                issues.policies.push({ policy: p, missing });
+            }
+        });
+
+        renderScannerResults(issues, container);
+    }, 400); 
+}
+
+function renderScannerResults(issues, container) {
+    if (issues.clients.length === 0 && issues.policies.length === 0) {
+        container.innerHTML = '<div class="text-center text-emerald-400 py-8 border border-emerald-900/50 bg-emerald-900/10 rounded-lg font-bold"><i class="fa-solid fa-check-circle text-4xl mb-3 block"></i>Perfetto! Nessun dato essenziale mancante.</div>';
+        return;
+    }
+
+    let html = '';
+
+    // Render Clienti Incompleti
+    if (issues.clients.length > 0) {
+        html += `<h5 class="text-white font-bold text-sm mb-3 flex items-center gap-2"><i class="fa-solid fa-users text-accent"></i> Clienti con dati mancanti (${issues.clients.length})</h5>`;
+        html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">`;
+        
+        issues.clients.forEach(item => {
+            const c = item.client;
+            const cName = escapeHtml(c.name || 'Sconosciuto');
+            const missingBadges = item.missing.map(m => `<span class="bg-red-900/30 text-red-400 border border-red-800/50 text-[10px] px-1.5 py-0.5 rounded">${m}</span>`).join(' ');
+            
+            html += `
+            <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3 flex justify-between items-center hover:border-slate-500 transition-colors">
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-bold text-white truncate">${cName}</div>
+                    <div class="mt-1 flex flex-wrap gap-1">${missingBadges}</div>
+                </div>
+                <button onclick="openModal('${c.id}')" class="ml-3 bg-slate-700 hover:bg-accent hover:text-darktext text-white w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0" title="Compila Anagrafica">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+            </div>`;
+        });
+        html += `</div>`;
+    }
+
+    // Render Polizze Incomplete
+    if (issues.policies.length > 0) {
+        html += `<h5 class="text-white font-bold text-sm mb-3 flex items-center gap-2 border-t border-slate-700 pt-4"><i class="fa-solid fa-file-contract text-info"></i> Polizze con dati mancanti (${issues.policies.length})</h5>`;
+        html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
+        
+        issues.policies.forEach(item => {
+            const p = item.policy;
+            // Usa la funzione già esistente per trovare il nome
+            const cName = escapeHtml(getClientNameById(p.clientId) || 'Cliente Sconosciuto');
+            const comp = escapeHtml(p.company || 'Compagnia N/D');
+            const missingBadges = item.missing.map(m => `<span class="bg-yellow-900/30 text-yellow-400 border border-yellow-800/50 text-[10px] px-1.5 py-0.5 rounded">${m}</span>`).join(' ');
+            
+            html += `
+            <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3 flex justify-between items-center hover:border-slate-500 transition-colors">
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-bold text-white truncate">${cName} <span class="text-xs text-slate-400 font-normal ml-1">(${comp})</span></div>
+                    <div class="mt-1 flex flex-wrap gap-1">${missingBadges}</div>
+                </div>
+                <button onclick="openPolicyModal(null, '${p.id}')" class="ml-3 bg-slate-700 hover:bg-info hover:text-white text-white w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0" title="Modifica Polizza">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+            </div>`;
+        });
+        html += `</div>`;
+    }
+
+    container.innerHTML = html;
 }
 </script>
 <script>
