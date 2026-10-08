@@ -1096,6 +1096,10 @@
     <input type="checkbox" id="inputDeceased" class="accent-red-500 bg-deep border-slate-700 h-4 w-4 rounded">
     <label for="inputDeceased" class="text-sm text-red-400 font-bold select-none">Dichiara Decesso (mantiene attive le polizze)</label>
 </div>
+<div class="flex items-center gap-3 bg-slate-800/30 border border-slate-700/50 rounded-xl px-4 py-3 mt-2">
+    <input type="checkbox" id="inputCeased" class="accent-orange-500 bg-deep border-slate-700 h-4 w-4 rounded">
+    <label for="inputCeased" class="text-sm text-orange-400 font-bold select-none">Cessata Attività (mantiene attive le polizze)</label>
+</div>
                         </div>
                     </div>
                     <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800">
@@ -2531,19 +2535,25 @@ function getGenderFluoColor(cf) {
             data.slice(0, 50).forEach(c => { 
                 let badge = c.relation ? `<div class="mt-1 flex items-center gap-1 text-[10px] text-darktext bg-accent px-2 py-0.5 rounded font-bold w-fit"><i class="fa-solid fa-link"></i> ${c.relation.type} di ${c.relation.name}</div>` : ''; 
                 
-                // --- INIZIO LOGICA COLORI E DECESSO ---
+                // --- INIZIO LOGICA COLORI E DECESSO / CESSATA ATTIVITA' ---
                 const avatarColor = getGenderFluoColor(c.cf);
-                const nameColor = c.isDeceased ? 'text-slate-500' : 'text-white';
-                const deadBadge = c.isDeceased ? `<span class="bg-red-900/30 text-[10px] px-2 py-0.5 rounded text-red-500 border border-red-900 ml-2 font-bold uppercase"><i class="fa-solid fa-cross text-xs mr-1"></i>Deceduto</span>` : '';
-                const rowOpacity = c.isDeceased ? 'opacity-75' : '';
-                // --- FINE LOGICA COLORI E DECESSO ---
+                const isInactive = c.isDeceased || c.isCeased;
+                const nameColor = isInactive ? 'text-slate-500' : 'text-white';
+                let statusBadge = '';
+                if (c.isDeceased) {
+                    statusBadge = `<span class="bg-red-900/30 text-[10px] px-2 py-0.5 rounded text-red-500 border border-red-900 ml-2 font-bold uppercase"><i class="fa-solid fa-cross text-xs mr-1"></i>Deceduto</span>`;
+                } else if (c.isCeased) {
+                    statusBadge = `<span class="bg-orange-900/30 text-[10px] px-2 py-0.5 rounded text-orange-500 border border-orange-900 ml-2 font-bold uppercase"><i class="fa-solid fa-store-slash text-xs mr-1"></i>Cessata Attività</span>`;
+                }
+                const rowOpacity = isInactive ? 'opacity-75' : '';
+                // --- FINE LOGICA COLORI E DECESSO / CESSATA ATTIVITA' ---
 
                 const row = `<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 cursor-pointer ${rowOpacity}" onclick="openClientDetail(${c.id})">
                     <td class="px-6 py-4 font-medium">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-full ${avatarColor} flex items-center justify-center text-sm font-bold border border-white/20 transition-all">${c.name.charAt(0).toUpperCase()}</div>
                             <div>
-                                <div class="text-sm font-semibold ${nameColor}">${c.name}${deadBadge}</div>
+                            <div class="text-sm font-semibold ${nameColor}">${c.name}${statusBadge}</div>    
                                 ${badge}
                             </div>
                         </div>
@@ -2570,7 +2580,7 @@ function getGenderFluoColor(cf) {
             if(id){
                 editingClientId=id; 
                 const c=clients.find(x=>x.id===id); 
-                if(c){ 
+            if(c){ 
                     document.getElementById('inputName').value=c.name; 
                     document.getElementById('inputCF').value=c.cf; 
                     document.getElementById('inputEmail').value=c.email||''; 
@@ -2578,13 +2588,15 @@ function getGenderFluoColor(cf) {
                     document.getElementById('inputBirthDate').value=c.birthDate||''; 
                     document.getElementById('inputAddress').value=c.address||''; 
                     document.getElementById('inputNotes').value=c.notes||''; 
-                    document.getElementById('inputDeceased').checked=c.isDeceased||false; // <-- NUOVA RIGA
+                    document.getElementById('inputDeceased').checked=c.isDeceased||false; 
+                    document.getElementById('inputCeased').checked=c.isCeased||false; // <-- AGGIUNTA CESSATA ATTIVITA'
                 }
             } else {
                 editingClientId=null; 
                 document.getElementById('clientForm').reset(); 
-                document.getElementById('inputDeceased').checked=false; // <-- NUOVA RIGA
-            } 
+                document.getElementById('inputDeceased').checked=false; 
+                document.getElementById('inputCeased').checked=false; // <-- AGGIUNTA CESSATA ATTIVITA'
+            }     
             
             // Gestione consultazione (Click sulla riga) vs Modifica (Click sulla matitina)
             if(id && viewOnly){
@@ -2609,9 +2621,9 @@ function getGenderFluoColor(cf) {
         // DETTAGLIO CLIENTE (VIEW MODE)
         // =============================
         function setClientModalReadOnly(isReadOnly){
-            // <-- MODIFICATA LA RIGA QUI SOTTO PER INCLUDERE inputDeceased -->
-            const ids = ['inputName','inputCF','inputEmail','inputPhone','inputBirthDate','inputAddress','inputNotes','relationSelect','relationType','inputDeceased'];
-            ids.forEach(id => {
+            // <-- MODIFICATA LA RIGA QUI SOTTO PER INCLUDERE inputDeceased E inputCeased -->
+        const ids = ['inputName','inputCF','inputEmail','inputPhone','inputBirthDate','inputAddress','inputNotes','relationSelect','relationType','inputDeceased', 'inputCeased'];
+        ids.forEach(id => {
                 const el = document.getElementById(id);
                 if(!el) return;
                 if(el.tagName === 'SELECT' || el.type === 'date') el.disabled = !!isReadOnly;
@@ -2636,6 +2648,7 @@ function getGenderFluoColor(cf) {
                   ad=document.getElementById('inputAddress').value, 
                   nt=document.getElementById('inputNotes').value,
                   isDec=document.getElementById('inputDeceased').checked, 
+                  isCeas=document.getElementById('inputCeased').checked, 
                   ri=document.getElementById('relationSelect').value, 
                   rt=document.getElementById('relationType').value, 
                   cid=editingClientId||Date.now(); 
@@ -2648,7 +2661,7 @@ function getGenderFluoColor(cf) {
                 if(p) rl={id:ri,name:p.name,type:rt};
             } 
             
-            const d={id:cid,name:nm,cf,email:em,phone:ph,birthDate:bd,address:ad,notes:nt,isDeceased:isDec,relation:rl,createdAt:new Date().toLocaleDateString('it-IT')}; 
+            const d={id:cid,name:nm,cf,email:em,phone:ph,birthDate:bd,address:ad,notes:nt,isDeceased:isDec,isCeased:isCeas,relation:rl,createdAt:new Date().toLocaleDateString('it-IT')};
             
             // 2. Salvo il cliente corrente
             if(editingClientId){
