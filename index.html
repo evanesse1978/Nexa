@@ -96,7 +96,8 @@
                 rows = rows.filter(p => {
                     if (p.status === 'SOSTITUITA' || p.status === 'ANNULLATA') return false;
                     
-                    // NUOVO BLOCCO: Escludi la nuova polizza se è frutto di una sostituzione
+                    // NUOVO BLOCCO: Escludi la nuova polizza se è frutto di una sostituzione (tramite flag nativo o note retroattive)
+                    if (p.isReplacement === true) return false;
                     if (p.notes && String(p.notes).toUpperCase().includes('SOSTITUZIONE')) return false;
 
                     const d = parseISODate(p.effect);
@@ -186,7 +187,8 @@
             rowsOut.push({
                 cliente: cname, ramo: p.ramo, compagnia: p.company, 
                 polizza: p.policyNumber, effetto: p.effect, scadenza: p.expiry, 
-                premio: prem, stato: p.status
+                premio: prem, stato: p.status,
+                _policyId: p.id, _clientId: p.clientId
             });
         });
         window.__lastReportRows = rowsOut;
@@ -197,12 +199,35 @@
         const rows = window.__lastReportRows || [];
         if(!rows.length) return alert("Nessun dato da estrarre.");
 
-        const headers = Object.keys(rows[0]);
+        // Mappatura estesa per inserire tutti i dettagli extra nel CSV
+        const extendedRows = rows.map(r => {
+            const p = policies.find(x => x.id === r._policyId) || {};
+            const c = clients.find(x => x.id === r._clientId) || {};
+            return {
+                Cliente: r.cliente,
+                Codice_Fiscale: c.cf || '',
+                Telefono: c.phone || '',
+                Email: c.email || '',
+                Ramo: r.ramo,
+                Compagnia: r.compagnia,
+                Polizza: r.polizza,
+                Effetto: r.effetto,
+                Scadenza: r.scadenza,
+                Frazionamento: p.split || '',
+                Premio_Annuo: r.premio,
+                Provvigione_Perc: p.commPerc ? p.commPerc + '%' : '0%',
+                Provvigione_Euro: p.annualPremium ? ((p.annualPremium * (p.commPerc||0)) / 100).toFixed(2) : '0.00',
+                Stato: r.stato,
+                Note: p.notes || ''
+            };
+        });
+
+        const headers = Object.keys(extendedRows[0]);
         const esc = (v) => ('"' + String(v||'').replace(/"/g, '""') + '"');
         
         // Costruisci righe CSV
         const lines = [headers.map(esc).join(';')];
-        rows.forEach(r => {
+        extendedRows.forEach(r => {
             lines.push(headers.map(h => esc(r[h])).join(';'));
         });
 
@@ -230,8 +255,15 @@
         const title = `Report ${document.getElementById('reportType').value} - ${document.getElementById('reportMonth').value}/${document.getElementById('reportYear').value}`;
         doc.text(title, 14, 15);
         
-        const body = rows.map(r => Object.values(r));
-        const head = [Object.keys(rows[0]).map(k => k.toUpperCase())];
+        // Rimuove gli ID tecnici in modo da non stamparli come colonne nel PDF
+        const pdfRows = rows.map(r => {
+            const cleanRow = { ...r };
+            delete cleanRow._policyId;
+            delete cleanRow._clientId;
+            return cleanRow;
+        });
+        const body = pdfRows.map(r => Object.values(r));
+        const head = [Object.keys(pdfRows[0]).map(k => k.toUpperCase())];
 
         doc.autoTable({
             head: head,
@@ -3214,7 +3246,8 @@ function editTitle(pid, tid){
                     const cPers = (split===12 && i>0) ? 0 : cPersBase;
                     titles.push({id:Date.now()+i, n:i+1, dueDate:toISODateLocal(dd), amount:amt, status:'DA INCASSARE', commTotal:cTot, commPers:cPers});
                 }
-                const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, company:comp, notes, policyNumber:polNum, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:'ATTIVA', titles};
+                const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, company:comp, notes, policyNumber:polNum, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:'ATTIVA', titles, isReplacement: window.isReplacingPolicy || false};
+                window.isReplacingPolicy = false;
 if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); policies[idx]=pData;} else {policies.push(pData);}
                 fbSaveSingleDoc('policies', pData);
                 saveLocalBackup();
@@ -3581,7 +3614,7 @@ function addManualTitle(pid) {
     renderDeadlines();
     updateDashboard();
 }
-        function replacePolicy(id){const old=policies.find(x=>x.id===id); if(!old)return; if(!confirm("Sostituire?"))return; const d=new Date().toISOString().split('T')[0]; old.status='SOSTITUITA'; old.titles.forEach(t=>{if(t.dueDate>=d && t.status==='DA INCASSARE')t.status='ANNULLATO';}); openPolicyModal(null,null); document.getElementById('polClientSelect').value=old.clientId; document.querySelector(`input[name="ramo"][value="${old.ramo}"]`).checked=true; if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(old.company))document.getElementById('polCompany').value=old.company; else{document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=old.company;document.getElementById('polCustomCompany').classList.remove('hidden');} document.getElementById('polNotes').value="Sostituzione"; document.getElementById('polEffectDate').value=d; document.getElementById('polExpiryDate').value=old.expiry; document.getElementById('polSplit').value=old.split; document.getElementById('polAnnualPremium').value=old.annualPremium; saveAllData(); renderPolicies();}
+        function replacePolicy(id){const old=policies.find(x=>x.id===id); if(!old)return; if(!confirm("Sostituire?"))return; const d=new Date().toISOString().split('T')[0]; old.status='SOSTITUITA'; old.titles.forEach(t=>{if(t.dueDate>=d && t.status==='DA INCASSARE')t.status='ANNULLATO';}); openPolicyModal(null,null); window.isReplacingPolicy = true; document.getElementById('polClientSelect').value=old.clientId; document.querySelector(`input[name="ramo"][value="${old.ramo}"]`).checked=true; if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(old.company))document.getElementById('polCompany').value=old.company; else{document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=old.company;document.getElementById('polCustomCompany').classList.remove('hidden');} document.getElementById('polNotes').value="Sostituzione"; document.getElementById('polEffectDate').value=d; document.getElementById('polExpiryDate').value=old.expiry; document.getElementById('polSplit').value=old.split; document.getElementById('polAnnualPremium').value=old.annualPremium; saveAllData(); renderPolicies();}
 function deletePolicy(id){
     if(confirm("Eliminare?")){
         policies=policies.filter(p=>p.id!==id); 
