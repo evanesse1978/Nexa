@@ -3769,9 +3769,9 @@ function deletePolicy(id){
             }
 
             // Ripristiniamo la polizza
-            delete p.suspensionStart;
-            delete p.suspensionEnd;
-            p.status = 'ATTIVA';
+p.suspensionStart = null;
+p.suspensionEnd = null;
+p.status = 'ATTIVA';
 
             if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', p);
             if (typeof saveLocalBackup === 'function') saveLocalBackup();
