@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale v13 | Restyling completo</title>
+    <title>NEXA CRM Professionale v19 | Provvigioni personali effettive</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -47,18 +47,29 @@
         function getReportDates(){
         const year = parseInt(document.getElementById('reportYear').value);
         const month = parseInt(document.getElementById('reportMonth').value);
-        // Date sicure a mezzogiorno
-        const start = new Date(year, month-1, 1, 12, 0, 0); 
-        const end = new Date(year, month, 1, 12, 0, 0);
+        // Intervallo mensile locale: include tutto il primo giorno ed esclude il primo giorno del mese successivo.
+        const start = new Date(year, month-1, 1, 0, 0, 0, 0);
+        const end = new Date(year, month, 1, 0, 0, 0, 0);
         return {start, end, year, month};
     }
 
         function parseISODate(d){
             if(!d) return null;
+            const value = String(d).slice(0,10);
+            const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+            if(m){
+                const dt = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), 0, 0, 0, 0);
+                if(dt.getFullYear() !== Number(m[1]) || dt.getMonth() !== Number(m[2])-1 || dt.getDate() !== Number(m[3])) return null;
+                return dt;
+            }
             const dt = new Date(d);
-            if(isNaN(dt)) return null;
+            if(isNaN(dt.getTime())) return null;
             dt.setHours(0,0,0,0);
             return dt;
+        }
+
+        function isReplacementPolicy(p){
+            return p?.isReplacement === true || /SOSTITUZION/i.test(String(p?.notes || ''));
         }
 
         function matchesReportFilters(p){
@@ -69,7 +80,7 @@
             if(comp!=='TUTTE'){
                 const fixed = ['ALLIANZ','HDI','VITTORIA','GENIALPIU','HELVETIA','ARAG','METLIFE'];
                 const fixedSet = new Set(fixed.map(x=>String(x).trim()));
-                const pc = String(p.company||'').trim();
+                const pc = String(p.company||'').trim().toUpperCase();
 
                 if(comp==='ALTRE'){
                     if(!pc) return false;
@@ -82,49 +93,56 @@
             return true;
         }
 
+        // Somma esclusivamente le provvigioni personali inserite manualmente nei titoli.
+        // Non calcola percentuali sul premio e non stima provvigioni di agenzia.
+        function getPersonalCommission(p){
+            const titles = Array.isArray(p?.titles) ? p.titles : [];
+            return titles.reduce((sum, t) => sum + (safeParseFloat(t?.commPers) || 0), 0);
+        }
+
         function computeReport(dates){
-            const type = document.getElementById('reportType').value || 'PROD';
-            const ramoFilter = document.getElementById('reportRamo').value;
-            
-            let rows = policies.filter(p => {
-                 // Filtro Ramo
-                 if(ramoFilter !== 'TUTTI' && (p.ramo||'').toUpperCase() !== ramoFilter) return false;
-                 return true;
-            });
+            const type = document.getElementById('reportType')?.value || 'PROD';
+            let rows = (Array.isArray(policies) ? policies : []).filter(p => matchesReportFilters(p));
 
             if(type === 'PROD'){
-                // Nuova Produzione: Effetto nel mese, escludendo sostituite, annullate
+                // Nuova produzione: effetto nel mese, senza polizze sostituite, annullate o nate da sostituzione.
                 rows = rows.filter(p => {
-                    if (p.status === 'SOSTITUITA' || p.status === 'ANNULLATA') return false;
-                    
-                    // NUOVO BLOCCO: Escludi la nuova polizza se è frutto di una sostituzione (tramite flag nativo o note retroattive)
-                    if (p.isReplacement === true) return false;
-                    if (p.notes && String(p.notes).toUpperCase().includes('SOSTITUZIONE')) return false;
-
+                    const status = String(p.status || '').toUpperCase();
+                    if(status === 'SOSTITUITA' || status === 'ANNULLATA' || isReplacementPolicy(p)) return false;
+                    const d = parseISODate(p.effect);
+                    return d && d >= dates.start && d < dates.end;
+                });
+            } else if(type === 'REPL'){
+                // Report separato delle nuove polizze inserite come sostituzione.
+                rows = rows.filter(p => {
+                    const status = String(p.status || '').toUpperCase();
+                    if(status === 'SOSTITUITA' || status === 'ANNULLATA' || !isReplacementPolicy(p)) return false;
                     const d = parseISODate(p.effect);
                     return d && d >= dates.start && d < dates.end;
                 });
             } else if(type === 'LOST'){
-                // Polizze Perse: Non attive, scadenza nel mese (escludi sostituite)
+                // Polizze perse: stato non attivo e scadenza nel mese; le sostituite hanno report dedicato.
                 rows = rows.filter(p => {
-                    if(String(p.status) === 'ATTIVA' || String(p.status) === 'SOSPESA' || String(p.status) === 'SOSTITUITA') return false;
+                    const status = String(p.status || '').toUpperCase();
+                    if(status === 'ATTIVA' || status === 'SOSPESA' || status === 'SOSTITUITA') return false;
                     const d = parseISODate(p.expiry);
                     return d && d >= dates.start && d < dates.end;
                 });
             } else if(type === 'PORT'){
-                // Portafoglio: Attive fino a data start
+                // Portafoglio con stato attuale e copertura che interseca il mese selezionato.
                 rows = rows.filter(p => {
-                    if(String(p.status) === 'ATTIVA' || String(p.status) === 'SOSPESA'){
-                        const eff = parseISODate(p.effect);
-                        return eff && eff <= dates.start;
-                    }
-                    return false;
+                    const status = String(p.status || '').toUpperCase();
+                    if(status !== 'ATTIVA' && status !== 'SOSPESA') return false;
+                    const eff = parseISODate(p.effect);
+                    const exp = parseISODate(p.expiry);
+                    return eff && exp && eff < dates.end && exp >= dates.start;
                 });
             }
 
             const count = rows.length;
-            const premium = rows.reduce((s,p)=> s + safeParseFloat(p.annualPremium), 0);
-            return {rows, count, premium};
+            const premium = rows.reduce((sum,p) => sum + (safeParseFloat(p.annualPremium) || 0), 0);
+            const commission = rows.reduce((sum,p) => sum + getPersonalCommission(p), 0);
+            return {rows, count, premium, commission};
         }
         function renderReport(){
         const dates = getReportDates();
@@ -134,8 +152,8 @@
         let prev = null;
         if(document.getElementById('reportCompare').checked){
             const prevDates = {
-                start: new Date(dates.year-1, dates.month-1, 1, 12,0,0),
-                end: new Date(dates.year-1, dates.month, 1, 12,0,0),
+                start: new Date(dates.year-1, dates.month-1, 1, 0,0,0,0),
+                end: new Date(dates.year-1, dates.month, 1, 0,0,0,0),
                 year: dates.year-1, month: dates.month
             };
             prev = computeReport(prevDates);
@@ -146,13 +164,15 @@
 
         document.getElementById('repCount').innerText = cur.count;
         document.getElementById('repPremium').innerText = '€ ' + cur.premium.toFixed(2);
+        const commissionEl = document.getElementById('repCommission');
+        if(commissionEl) commissionEl.innerText = '€ ' + cur.commission.toFixed(2);
         document.getElementById('repDelta').innerText = prev ? ('€ ' + delta.toFixed(2)) : '—';
         document.getElementById('repDeltaPerc').innerText = prev ? (deltaPerc!==null?deltaPerc.toFixed(1)+'%':'—') : '—';
 
         const tb = document.getElementById('reportTableBody');
         tb.innerHTML = '';
         if(cur.rows.length === 0){
-            tb.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-slate-500">Nessun dato trovato.</td></tr>';
+            tb.innerHTML = '<tr><td colspan="9" class="px-6 py-8 text-center text-slate-500">Nessun dato trovato per i filtri selezionati.</td></tr>';
             window.__lastReportRows = [];
             return;
         }
@@ -162,6 +182,7 @@
             const c = clients.find(x => String(x.id) === String(p.clientId));
             const cname = c ? c.name : 'Sconosciuto';
             const prem = safeParseFloat(p.annualPremium).toFixed(2);
+            const personalCommission = getPersonalCommission(p).toFixed(2);
             
             // --- INIZIO NUOVO CODICE PER I BADGE ---
             let badgeStatus = `<span class="bg-slate-800 text-xs px-2 py-1 rounded text-white border border-slate-600">${p.status}</span>`; 
@@ -176,19 +197,20 @@
             
             tb.innerHTML += `<tr class="hover:bg-slate-800/30">
                 <td class="px-6 py-3 text-white font-medium">${cname}</td>
-                <td class="px-6 py-3">${p.ramo||''}</td>
+                <td class="px-6 py-3">${branchIconMarkup(p.ramo, true)}</td>
                 <td class="px-6 py-3">${p.company||''}</td>
                 <td class="px-6 py-3 font-mono text-xs">${p.policyNumber||''}</td>
                 <td class="px-6 py-3 text-xs">${p.effect||''}</td>
                 <td class="px-6 py-3 text-xs">${p.expiry||''}</td>
                 <td class="px-6 py-3 text-right text-white">€ ${prem}</td>
-                <td class="px-6 py-3">${badgeStatus}</td> <!-- Modificata questa riga per usare la variabile badgeStatus -->
+                <td class="px-6 py-3 text-right text-emerald-300">€ ${personalCommission}</td>
+                <td class="px-6 py-3">${badgeStatus}</td>
             </tr>`;
 
             rowsOut.push({
-                cliente: cname, ramo: p.ramo, compagnia: p.company, 
-                polizza: p.policyNumber, effetto: p.effect, scadenza: p.expiry, 
-                premio: prem, stato: p.status,
+                cliente: cname, ramo: p.ramo, compagnia: p.company,
+                polizza: p.policyNumber, effetto: p.effect, scadenza: p.expiry,
+                premio: prem, provvigione: personalCommission, stato: p.status,
                 _policyId: p.id, _clientId: p.clientId
             });
         });
@@ -216,8 +238,7 @@
                 Scadenza: r.scadenza,
                 Frazionamento: p.split || '',
                 Premio_Annuo: r.premio,
-                Provvigione_Perc: p.commPerc ? p.commPerc + '%' : '0%',
-                Provvigione_Euro: p.annualPremium ? ((p.annualPremium * (p.commPerc||0)) / 100).toFixed(2) : '0.00',
+                Provvigione_Personale_Effettiva_Euro: r.provvigione,
                 Stato: r.stato,
                 Note: p.notes || ''
             };
@@ -950,7 +971,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                 <!-- DASHBOARD -->
                 <div id="section-home" class="fade-in space-y-6">
                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="glass-effect p-5 rounded-2xl border-l-4 border-accent relative overflow-hidden"><i class="fa-solid fa-users absolute right-4 top-4 text-6xl text-accent opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">I Tuoi Clienti</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-total-clients">0</h3></div>
+    <div class="glass-effect p-5 rounded-2xl border-l-4 border-accent relative overflow-hidden"><i class="fa-solid fa-users absolute right-4 top-4 text-6xl text-accent opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">I Tuoi Clienti</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-total-clients">0</h3><p class="text-xs text-slate-400 mt-2">Con almeno una polizza: <strong class="text-emerald-300" id="dash-clients-with-policy">0</strong></p></div>
     <div class="glass-effect p-5 rounded-2xl border-l-4 border-warning relative overflow-hidden"><i class="fa-solid fa-file-contract absolute right-4 top-4 text-6xl text-warning opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Polizze Attive</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-total-policies">0</h3></div>
     <div class="glass-effect p-5 rounded-2xl border-l-4 border-danger relative overflow-hidden"><i class="fa-solid fa-circle-exclamation absolute right-4 top-4 text-6xl text-danger opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Da Incassare del mese</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-pending-money">€ 0</h3></div>
     <div class="glass-effect p-5 rounded-2xl border-l-4 border-success relative overflow-hidden"><i class="fa-solid fa-chart-line absolute right-4 top-4 text-6xl text-success opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Incassato (Mese)</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-month-inc">€ 0</h3></div>
@@ -1200,6 +1221,10 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                             </div>
                         </div>
 
+                        <div id="sddPendingBanner" class="hidden mb-4 rounded-lg border border-amber-500/50 bg-amber-950/25 px-4 py-3 text-sm text-amber-200 flex items-start gap-3">
+                            <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+                            <div><strong class="block mb-1">Rate SDD da verificare</strong><span id="sddPendingBannerText">Le rate SDD in scadenza saranno mostrate qui.</span></div>
+                        </div>
                         <div id="crm-deadlines-focus-banner" class="hidden mb-4 rounded-lg border border-rose-700/50 bg-rose-950/30 px-4 py-3 text-sm text-rose-200 flex items-center justify-between gap-3">
                             <span id="crm-deadlines-focus-text">Filtro dal Centro operativo attivo.</span>
                             <button type="button" onclick="clearCRMOperationalFocus()" class="shrink-0 rounded border border-rose-700 px-3 py-1 text-xs font-bold hover:bg-rose-900/50">Mostra tutti i titoli</button>
@@ -1272,7 +1297,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 
                         <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex flex-col gap-4">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Tipo</label><select id="reportType" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="PROD">Nuova Produzione</option><option value="LOST">Polizze Perse</option><option value="PORT">Portafoglio</option></select></div>
+                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Tipo</label><select id="reportType" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="PROD">Nuova Produzione (escluse sostituzioni)</option><option value="REPL">Polizze in sostituzione</option><option value="LOST">Polizze Perse</option><option value="PORT">Portafoglio nel mese</option></select></div>
                                 <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Anno</label><select id="reportYear" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="2025">2025</option><option value="2026">2026</option></select></div>
                                 <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Mese</label><select id="reportMonth" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="01">Gennaio</option><option value="02">Febbraio</option><option value="03">Marzo</option><option value="04">Aprile</option><option value="05">Maggio</option><option value="06">Giugno</option><option value="07">Luglio</option><option value="08">Agosto</option><option value="09">Settembre</option><option value="10">Ottobre</option><option value="11">Novembre</option><option value="12">Dicembre</option></select></div>
                                 <div class="flex items-end"><label class="flex items-center gap-2 text-xs text-slate-300 select-none"><input type="checkbox" id="reportCompare" checked onchange="renderReport()" class="accent-accent" /><span>Confronta anno prec.</span></label></div>
@@ -1283,17 +1308,18 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
                             <div class="glass-effect p-4 rounded-2xl border-l-4 border-accent"><div class="text-xs text-slate-500 font-bold uppercase">N° Polizze</div><div class="text-3xl font-bold text-white mt-1" id="repCount">0</div></div>
-                            <div class="glass-effect p-4 rounded-2xl border-l-4 border-success"><div class="text-xs text-slate-500 font-bold uppercase">Premi Totali</div><div class="text-3xl font-bold text-white mt-1" id="repPremium">€ 0.00</div></div>
-                            <div class="glass-effect p-4 rounded-2xl border-l-4 border-warning"><div class="text-xs text-slate-500 font-bold uppercase">Δ vs anno prec.</div><div class="text-3xl font-bold text-white mt-1" id="repDelta">—</div></div>
+                            <div class="glass-effect p-4 rounded-2xl border-l-4 border-success"><div class="text-xs text-slate-500 font-bold uppercase">Premi annui</div><div class="text-3xl font-bold text-white mt-1" id="repPremium">€ 0.00</div></div>
+                            <div class="glass-effect p-4 rounded-2xl border-l-4 border-emerald-500"><div class="text-xs text-slate-500 font-bold uppercase">Provvigioni personali effettive inserite</div><div class="text-3xl font-bold text-white mt-1" id="repCommission">€ 0.00</div></div>
+                            <div class="glass-effect p-4 rounded-2xl border-l-4 border-warning"><div class="text-xs text-slate-500 font-bold uppercase">Δ premi vs anno prec.</div><div class="text-3xl font-bold text-white mt-1" id="repDelta">—</div></div>
                             <div class="glass-effect p-4 rounded-2xl border-l-4 border-info"><div class="text-xs text-slate-500 font-bold uppercase">Δ %</div><div class="text-3xl font-bold text-white mt-1" id="repDeltaPerc">—</div></div>
                         </div>
 
                         <div class="overflow-x-auto rounded-lg border border-slate-800">
                             <table class="w-full text-left text-sm text-slate-400">
                                 <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
-                                    <tr><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Ramo</th><th class="px-6 py-4">Compagnia</th><th class="px-6 py-4">Polizza</th><th class="px-6 py-4">Effetto</th><th class="px-6 py-4">Scadenza</th><th class="px-6 py-4 text-right">Premio</th><th class="px-6 py-4">Stato</th></tr>
+                                    <tr><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Ramo</th><th class="px-6 py-4">Compagnia</th><th class="px-6 py-4">Polizza</th><th class="px-6 py-4">Effetto</th><th class="px-6 py-4">Scadenza</th><th class="px-6 py-4 text-right">Premio annuo</th><th class="px-6 py-4 text-right">Provvigione personale effettiva (€)</th><th class="px-6 py-4">Stato</th></tr>
                                 </thead>
                                 <tbody id="reportTableBody" class="divide-y divide-slate-800/50"></tbody>
                             </table>
@@ -1499,13 +1525,16 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
                 <div class="flex justify-between items-start mb-6">
-                    <div><h3 id="modalTitle" class="text-xl font-bold text-white">Dettaglio Cliente</h3></div>
+                    <div class="flex items-center gap-3"><span id="clientModalTypeIcon" class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-slate-800 text-slate-300 border border-slate-700" title="Tipo anagrafica"><i class="fa-solid fa-user"></i></span><h3 id="modalTitle" class="text-xl font-bold text-white">Dettaglio Cliente</h3></div>
                     <button onclick="closeModal()" class="text-slate-500 hover:text-accent transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
                 <form id="clientForm" onsubmit="saveClient(event)">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
-                            <input type="text" id="inputName" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Cognome Nome">
+                            <div class="flex items-center gap-2">
+                                <select id="inputClientType" onchange="updateClientTypeIcon()" aria-label="Tipo anagrafica" class="w-36 shrink-0 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-xs text-white focus:outline-none focus:border-accent"><option value="PERSON_MALE">♂ Uomo</option><option value="PERSON_FEMALE">♀ Donna</option><option value="COMPANY">▦ Azienda</option></select>
+                                <input type="text" id="inputName" required class="min-w-0 flex-1 bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Cognome Nome / Ragione sociale" oninput="updateClientTypeIcon()">
+                            </div>
                             <input type="text" id="inputCF" oninput="parseCF()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white uppercase placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Codice Fiscale">
                             <input type="email" id="inputEmail" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Email">
                             <input type="tel" id="inputPhone" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Telefono">
@@ -1517,11 +1546,14 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                             </div>
                             <input type="text" id="inputAddress" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Residenza">
                             <div class="bg-slate-800/30 p-3 rounded-lg border border-slate-700/50">
-                                <label class="block text-xs text-slate-400 mb-1">Parente</label>
-                                <div class="flex gap-2">
-                                    <select id="relationSelect" class="w-2/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="">Nessuno</option></select>
-                                    <select id="relationType" class="w-1/3 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option></select>
+                                <label class="block text-xs text-slate-400 mb-2">Legami con altre anagrafiche</label>
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <select id="relationSelect" class="min-w-0 flex-1 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:border-accent"><option value="">Seleziona cliente...</option></select>
+                                    <select id="relationType" class="sm:w-32 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:border-accent"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option><option value="Altro">Altro</option></select>
+                                    <button type="button" onclick="addClientRelation()" class="px-3 py-2 rounded-lg bg-accent text-darktext text-xs font-bold whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i>Aggiungi</button>
                                 </div>
+                                <div id="clientRelationsList" class="mt-3 space-y-2"><p class="text-xs text-slate-500">Nessun legame aggiunto.</p></div>
+                                <p class="text-[10px] text-slate-500 mt-2">Puoi collegare più familiari, soci o altre anagrafiche. I legami sono salvati anche nel profilo dei contatti collegati.</p>
                             </div>
                             <textarea id="inputNotes" rows="3" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Note..."></textarea>
 <div class="flex items-center gap-3 bg-slate-800/30 border border-slate-700/50 rounded-xl px-4 py-3 mt-2">
@@ -1564,7 +1596,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div class="space-y-4">
                             <h4 class="text-accent text-xs font-bold uppercase border-b border-slate-800 pb-2">Dati Contratto</h4>
-                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Ramo *</label><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="ramo" value="AUTO" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-blue-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors">AUTO</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="RAMI VARI" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-orange-500 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors">VARI</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="VITA" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-green-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors">VITA</span></label></div></div>
+                            <div><label class="block text-xs text-slate-500 font-bold mb-1">Ramo *</label><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="ramo" value="AUTO" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-blue-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors"><i class="fa-solid fa-car-side mr-1"></i>AUTO</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="RAMI VARI" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-orange-500 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors"><i class="fa-solid fa-shield-halved mr-1"></i>VARI</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="VITA" class="peer hidden" onchange="updateCommDefaults()"><span class="peer-checked:bg-green-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors"><i class="fa-solid fa-heart-pulse mr-1"></i>VITA</span></label></div></div>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Compagnia *</label><select id="polCompany" onchange="checkCustomCompany()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="HELVETIA">HELVETIA</option><option value="GENIALPIU">GENIALPIU</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option><option value="ALTRO">ALTRO...</option></select><input type="text" id="polCustomCompany" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm mt-2 hidden focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Inserisci nome compagnia..."></div>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Numero Polizza *</label><input type="text" id="polNumber" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm uppercase placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Es. 123456789"></div>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Provvigioni Pers. (%)</label><input type="number" step="0.01" id="polCommPerc" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-accent font-bold placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="35" oninput="generateInstallmentPreview()"></div>
@@ -2435,29 +2467,49 @@ function initApp() {
 
 
         // ==================================================
-        // AUTO-INCASSO: SDD mensile (split==12) il giorno di scadenza
+        // SEGNALAZIONE SDD MENSILE: mai registrare un incasso senza conferma esplicita
         // ==================================================
         function autoCollectSDDTitles(){
             try{
                 if(fbIsApplyingRemote) return;
-                if(!Array.isArray(policies) || policies.length===0) return;
+                if(!Array.isArray(policies) || policies.length===0) { renderSDDPendingBanner(); return; }
                 const now = new Date();
                 const todayStr = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().split('T')[0];
                 let changed = false;
                 policies.forEach(p => {
-                    if(p.status !== 'ATTIVA') return;
-                    if(Number(p.split) !== 12) return;
+                    if(p.status !== 'ATTIVA' || Number(p.split) !== 12) return;
                     (p.titles || []).forEach(t => {
-                        if(t.status === 'DA INCASSARE' && String(t.dueDate) === todayStr){
-                            t.status = 'INCASSATO';
-                            t.paymentDate = t.dueDate ? String(t.dueDate) : todayStr;
-                            t.paymentMethod = 'SDD';
+                        const isDue = !!t.dueDate && String(t.dueDate).slice(0,10) <= todayStr;
+                        if(t.status === 'DA INCASSARE' && isDue && t.sddPendingConfirmation !== true){
+                            t.sddPendingConfirmation = true;
+                            changed = true;
+                        } else if((t.status !== 'DA INCASSARE' || !isDue) && t.sddPendingConfirmation === true){
+                            t.sddPendingConfirmation = false;
                             changed = true;
                         }
                     });
                 });
-                if(changed){ saveAllData(); }
+                if(changed) saveAllData();
+                renderSDDPendingBanner();
             } catch(e){ console.log('autoCollectSDDTitles error', e); }
+        }
+
+        function renderSDDPendingBanner(){
+            const banner = document.getElementById('sddPendingBanner');
+            const textEl = document.getElementById('sddPendingBannerText');
+            if(!banner || !textEl) return;
+            const today = new Date();
+            const todayStr = new Date(today.getTime() - today.getTimezoneOffset()*60000).toISOString().split('T')[0];
+            const pending = [];
+            (Array.isArray(policies) ? policies : []).forEach(p => {
+                if(p.status !== 'ATTIVA' || Number(p.split) !== 12) return;
+                (p.titles || []).forEach(t => {
+                    if(t.status === 'DA INCASSARE' && t.sddPendingConfirmation === true && String(t.dueDate || '').slice(0,10) <= todayStr) pending.push(t);
+                });
+            });
+            const total = pending.reduce((sum,t) => sum + safeParseFloat(t.amount), 0);
+            banner.classList.toggle('hidden', pending.length === 0);
+            textEl.textContent = `${pending.length} ${pending.length === 1 ? 'rata SDD' : 'rate SDD'} da confermare · Totale € ${total.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}. Le rate restano DA INCASSARE fino alla conferma esplicita.`;
         }
 
        
@@ -2657,6 +2709,9 @@ function sendBirthdayWishes(name, phone, email, channel) {
         function updateDashboard(){
             autoCollectSDDTitles();
             document.getElementById('dash-total-clients').innerText = clients.length;
+            const clientsWithPolicy = (Array.isArray(clients) ? clients : []).filter(c => (Array.isArray(policies) ? policies : []).some(p => String(p.clientId) === String(c.id))).length;
+            const clientsWithPolicyEl = document.getElementById('dash-clients-with-policy');
+            if(clientsWithPolicyEl) clientsWithPolicyEl.innerText = String(clientsWithPolicy);
 
             // Polizze attive: conteggio univoco per (cliente + numero polizza)
             const active = policies.filter(p => p.status === 'ATTIVA' || p.status === 'SOSPESA');
@@ -2995,6 +3050,74 @@ function getGenderFluoColor(cf) {
                 return 'bg-cyan-400 text-darktext shadow-[0_0_10px_rgba(34,211,238,0.5)]';
             }
         }
+        // Tipo anagrafica e icone condivise nelle varie schermate.
+        let clientRelationsDraft = [];
+        function inferClientType(c) {
+            if (c && ['PERSON_MALE','PERSON_FEMALE','COMPANY'].includes(c.clientType)) return c.clientType;
+            const name = String(c?.name || '').toUpperCase();
+            const cf = String(c?.cf || '').toUpperCase().replace(/\s+/g, '');
+            if (/\b(S\.R\.L|SRL|S\.P\.A|SPA|S\.A\.S|SAS|S\.N\.C|SNC|S\.A\.P\.A|COOPERATIVA|SOCIETA|SOCIETÀ|S\.R\.L\.S|SRLS)\b/.test(name) || /^\d{11}$/.test(cf)) return 'COMPANY';
+            if (cf.length === 16) {
+                const day = parseInt(cf.substring(9,11),10);
+                if (!Number.isNaN(day)) return day > 40 ? 'PERSON_FEMALE' : 'PERSON_MALE';
+            }
+            return 'PERSON_MALE';
+        }
+        function clientTypeIconMarkup(type, extra='') {
+            const t = ['PERSON_MALE','PERSON_FEMALE','COMPANY'].includes(type) ? type : 'PERSON_MALE';
+            const map = { PERSON_MALE:['fa-mars','text-sky-400','Uomo'], PERSON_FEMALE:['fa-venus','text-fuchsia-400','Donna'], COMPANY:['fa-building','text-amber-400','Azienda'] };
+            const [icon,color,label] = map[t];
+            return `<span class="inline-flex items-center justify-center ${color} ${extra}" title="${label}" aria-label="${label}"><i class="fa-solid ${icon}"></i></span>`;
+        }
+        function updateClientTypeIcon() {
+            const type = document.getElementById('inputClientType')?.value || 'PERSON_MALE';
+            const el = document.getElementById('clientModalTypeIcon');
+            if (el) { const map={PERSON_MALE:['fa-mars','text-sky-400'],PERSON_FEMALE:['fa-venus','text-fuchsia-400'],COMPANY:['fa-building','text-amber-400']}; const v=map[type]||map.PERSON_MALE; el.innerHTML=`<i class="fa-solid ${v[0]} ${v[1]} text-base"></i>`; }
+        }
+        function branchIconMarkup(ramo, withLabel=true) {
+            const r = String(ramo || '').toUpperCase();
+            let icon='fa-shield-halved', color='text-amber-400', label='Rami vari';
+            if (r === 'AUTO') { icon='fa-car-side'; color='text-sky-400'; label='Auto'; }
+            else if (r === 'VITA') { icon='fa-heart-pulse'; color='text-emerald-400'; label='Vita'; }
+            return `<span class="inline-flex items-center gap-1.5 ${color}" title="${label}"><i class="fa-solid ${icon}"></i>${withLabel ? `<span>${label}</span>` : ''}</span>`;
+        }
+        function getClientRelations(c) {
+            if (!c) return [];
+            const src = Array.isArray(c.relations) ? c.relations : (c.relation && c.relation.id ? [c.relation] : []);
+            const seen = new Set();
+            return src.filter(r => r && r.id != null && !seen.has(String(r.id)) && seen.add(String(r.id))).map(r => ({id:r.id, name:r.name || '', type:r.type || 'Altro'}));
+        }
+        function renderClientRelationsDraft() {
+            const list = document.getElementById('clientRelationsList');
+            if (!list) return;
+            if (!clientRelationsDraft.length) { list.innerHTML = '<p class="text-xs text-slate-500">Nessun legame aggiunto.</p>'; return; }
+            list.innerHTML = clientRelationsDraft.map((r,i) => `<div class="flex items-center justify-between gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2"><div class="min-w-0"><div class="text-xs text-white font-semibold truncate">${escapeHtml(r.name || (clients.find(c=>String(c.id)===String(r.id))?.name) || 'Cliente')}</div><div class="text-[10px] text-slate-400">${escapeHtml(r.type || 'Altro')}</div></div><button type="button" onclick="removeClientRelation(${i})" class="text-rose-400 hover:text-rose-300 px-2" title="Rimuovi legame"><i class="fa-solid fa-xmark"></i></button></div>`).join('');
+        }
+        function addClientRelation() {
+            const select = document.getElementById('relationSelect');
+            const type = document.getElementById('relationType')?.value || 'Altro';
+            const id = select?.value;
+            if (!id) { alert('Seleziona prima un’anagrafica da collegare.'); return; }
+            if (clientRelationsDraft.some(r=>String(r.id)===String(id))) { alert('Questo legame è già presente.'); return; }
+            const target = clients.find(c=>String(c.id)===String(id));
+            if (!target) { alert('L’anagrafica selezionata non è più disponibile.'); return; }
+            clientRelationsDraft.push({id:target.id,name:target.name||'',type});
+            renderClientRelationsDraft();
+            select.value='';
+        }
+        function removeClientRelation(index) { clientRelationsDraft.splice(index,1); renderClientRelationsDraft(); }
+        function inverseRelationType(type) {
+            if (type === 'Genitore') return 'Figlio/a';
+            if (type === 'Figlio/a') return 'Genitore';
+            if (type === 'Coniuge') return 'Coniuge';
+            if (type === 'Socio') return 'Socio';
+            return 'Altro';
+        }
+        function setClientRelationRecords(target, relations) {
+            target.relations = relations;
+            target.relation = relations.length ? {...relations[0]} : null; // compatibilità con le versioni precedenti
+        }
+
         function renderClients(list = null) {
             const tb = document.getElementById('clientsTableBody');
             const searchVal = document.getElementById('searchInput').value;
@@ -3010,7 +3133,7 @@ function getGenderFluoColor(cf) {
            if (data.length === 0) { tb.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500">Nessun cliente trovato.</td></tr>`; return; }
             
             data.slice(0, 50).forEach(c => { 
-                let badge = c.relation ? `<div class="mt-1 flex items-center gap-1 text-[10px] text-darktext bg-accent px-2 py-0.5 rounded font-bold w-fit"><i class="fa-solid fa-link"></i> ${c.relation.type} di ${c.relation.name}</div>` : ''; 
+                const relsForBadge = getClientRelations(c); let badge = relsForBadge.length ? `<div class="mt-1 flex flex-wrap items-center gap-1 text-[10px]">${relsForBadge.slice(0,3).map(r=>`<span class="inline-flex items-center gap-1 text-darktext bg-accent px-2 py-0.5 rounded font-bold"><i class="fa-solid fa-link"></i>${escapeHtml(r.type)}: ${escapeHtml(r.name || clients.find(x=>String(x.id)===String(r.id))?.name || 'Cliente')}</span>`).join('')}${relsForBadge.length>3?`<span class="text-slate-400">+${relsForBadge.length-3}</span>`:''}</div>` : ''; 
                 
                 // --- INIZIO LOGICA COLORI E DECESSO / CESSATA ATTIVITA' ---
                 const avatarColor = getGenderFluoColor(c.cf);
@@ -3030,7 +3153,7 @@ function getGenderFluoColor(cf) {
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-full ${avatarColor} flex items-center justify-center text-sm font-bold border border-white/20 transition-all">${c.name.charAt(0).toUpperCase()}</div>
                             <div>
-                            <div class="text-sm font-semibold ${nameColor}">${c.name}${statusBadge}</div>    
+                            <div class="text-sm font-semibold ${nameColor} flex flex-wrap items-center gap-2">${clientTypeIconMarkup(inferClientType(c), 'text-base') }<span>${escapeHtml(c.name||'')}</span>${statusBadge}</div>    
                                 ${badge}
                             </div>
                         </div>
@@ -3058,7 +3181,8 @@ function getGenderFluoColor(cf) {
                 editingClientId=id; 
                 const c=clients.find(x=>x.id===id); 
             if(c){ 
-                    document.getElementById('inputName').value=c.name; 
+                    document.getElementById('inputName').value=c.name||'';
+                    document.getElementById('inputClientType').value=inferClientType(c); 
                     document.getElementById('inputCF').value=c.cf; 
                     document.getElementById('inputEmail').value=c.email||''; 
                     document.getElementById('inputPhone').value=c.phone||''; 
@@ -3073,6 +3197,7 @@ function getGenderFluoColor(cf) {
                 document.getElementById('clientForm').reset(); 
                 document.getElementById('inputDeceased').checked=false; 
                 document.getElementById('inputCeased').checked=false; // <-- AGGIUNTA CESSATA ATTIVITA'
+                document.getElementById('inputClientType').value='PERSON_MALE';
             }     
             
             // Gestione consultazione (Click sulla riga) vs Modifica (Click sulla matitina)
@@ -3091,21 +3216,29 @@ function getGenderFluoColor(cf) {
                 document.getElementById('modalTitle').innerText = editingClientId ? "Modifica Anagrafica" : "Nuovo Cliente";
             }
 
-            const s=document.getElementById('relationSelect'); s.innerHTML='<option value="">Nessuno</option>'; clients.forEach(c=>{if(c.id!==id){const o=document.createElement('option');o.value=c.id;o.text=c.name;s.appendChild(o);}}); 
+            const s=document.getElementById('relationSelect');
+            s.innerHTML='<option value="">Seleziona cliente...</option>';
+            clients.forEach(c=>{if(String(c.id)!==String(id)){const o=document.createElement('option');o.value=c.id;o.text=c.name||'Cliente senza nome';s.appendChild(o);}});
+            const currentClient = id ? clients.find(x=>String(x.id)===String(id)) : null;
+            clientRelationsDraft = getClientRelations(currentClient).filter(r=>String(r.id)!==String(id)).map(r=>({...r, name:r.name || clients.find(c=>String(c.id)===String(r.id))?.name || ''}));
+            renderClientRelationsDraft();
+            document.getElementById('relationType').value = 'Coniuge';
+            updateClientTypeIcon();
+            setClientModalReadOnly(!!(id && viewOnly));
         }
 
         // =============================
         // DETTAGLIO CLIENTE (VIEW MODE)
         // =============================
         function setClientModalReadOnly(isReadOnly){
-            // <-- MODIFICATA LA RIGA QUI SOTTO PER INCLUDERE inputDeceased E inputCeased -->
-        const ids = ['inputName','inputCF','inputEmail','inputPhone','inputBirthDate','inputAddress','inputNotes','relationSelect','relationType','inputDeceased', 'inputCeased'];
-        ids.forEach(id => {
+            const ids = ['inputName','inputClientType','inputCF','inputEmail','inputPhone','inputBirthDate','inputAddress','inputNotes','relationSelect','relationType','inputDeceased','inputCeased'];
+            ids.forEach(id => {
                 const el = document.getElementById(id);
                 if(!el) return;
-                if(el.tagName === 'SELECT' || el.type === 'date') el.disabled = !!isReadOnly;
+                if(el.tagName === 'SELECT' || el.type === 'date' || el.type === 'checkbox') el.disabled = !!isReadOnly;
                 else el.readOnly = !!isReadOnly;
             });
+            document.querySelectorAll('#clientRelationsList button, #clientModal button[onclick="addClientRelation()"]')?.forEach(btn => { btn.disabled = !!isReadOnly; btn.classList.toggle('opacity-40', !!isReadOnly); });
         }
 
         function openClientDetail(id){
@@ -3115,68 +3248,87 @@ function getGenderFluoColor(cf) {
         function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
         
         // --- SAVE CLIENT CON LOGICA BIDIREZIONALE ---
-        function saveClient(e) { 
-            e.preventDefault(); 
-            const nm=document.getElementById('inputName').value, 
-                  cf=document.getElementById('inputCF').value.toUpperCase(), 
-                  em=document.getElementById('inputEmail').value, 
-                  ph=document.getElementById('inputPhone').value, 
-                  bd=document.getElementById('inputBirthDate').value, // DATA DI NASCITA
-                  ad=document.getElementById('inputAddress').value, 
-                  nt=document.getElementById('inputNotes').value,
-                  isDec=document.getElementById('inputDeceased').checked, 
-                  isCeas=document.getElementById('inputCeased').checked, 
-                  ri=document.getElementById('relationSelect').value, 
-                  rt=document.getElementById('relationType').value, 
-                  cid=editingClientId||Date.now(); 
-            
-            let rl=null; 
-            
-            // 1. Definisco la relazione per il cliente corrente
-            if(ri){
-                const p=clients.find(x=>x.id==ri);
-                if(p) rl={id:ri,name:p.name,type:rt};
-            } 
-            
-            const d={id:cid,name:nm,cf,email:em,phone:ph,birthDate:bd,address:ad,notes:nt,isDeceased:isDec,isCeased:isCeas,relation:rl,createdAt:new Date().toLocaleDateString('it-IT')};
-            
-            // 2. Salvo il cliente corrente
-            if(editingClientId){
-                const i=clients.findIndex(x=>x.id===editingClientId);
-                clients[i]=d;
-            } else {
-                clients.push(d);
-            } 
-            
-            // 3. AGGIORNO IL CLIENTE COLLEGATO (BIDIREZIONALE)
-            if(ri) {
-                const targetIdx = clients.findIndex(c => c.id == ri);
-                if(targetIdx !== -1) {
-                    let inverseType = 'Socio'; // Default fallback
-                    if (rt === 'Coniuge') inverseType = 'Coniuge';
-                    else if (rt === 'Socio') inverseType = 'Socio';
-                    else if (rt === 'Genitore') inverseType = 'Figlio/a';
-                    else if (rt === 'Figlio/a') inverseType = 'Genitore';
+        function saveClient(e) {
+            e.preventDefault();
+            const nm = document.getElementById('inputName').value.trim().replace(/\s+/g, ' ');
+            const clientType = document.getElementById('inputClientType').value || 'PERSON_MALE';
+            const cf = document.getElementById('inputCF').value.toUpperCase().replace(/\s+/g, '');
+            const em = document.getElementById('inputEmail').value.trim();
+            const ph = document.getElementById('inputPhone').value.trim();
+            const bd = document.getElementById('inputBirthDate').value;
+            const ad = document.getElementById('inputAddress').value.trim();
+            const nt = document.getElementById('inputNotes').value.trim();
+            const isDec = document.getElementById('inputDeceased').checked;
+            const isCeas = document.getElementById('inputCeased').checked;
+            const newRelations = clientRelationsDraft.map(r=>({...r}));
+            const cid = editingClientId || Date.now();
 
-                    // Aggiorno il record dell'altro cliente
-                    clients[targetIdx].relation = {
-                        id: cid,
-                        name: nm,
-                        type: inverseType
-                    };
+            if (!nm) {
+                alert('Inserisci il nome o la ragione sociale del cliente.');
+                document.getElementById('inputName').focus();
+                return;
+            }
+            if (cf) {
+                const duplicate = (clients || []).find(c => String(c.id) !== String(editingClientId || '') && String(c.cf || '').toUpperCase().replace(/\s+/g, '') === cf);
+                if (duplicate) {
+                    alert('Esiste già un cliente con questo codice fiscale: ' + (duplicate.name || 'Nome non indicato') + '. Controlla l’anagrafica prima di salvare.');
+                    document.getElementById('inputCF').focus();
+                    return;
                 }
             }
-    // --- INIZIO NUOVO SALVATAGGIO GRANULARE ---
-            fbSaveSingleDoc('clients', d); 
-            if(ri && typeof targetIdx !== 'undefined' && targetIdx !== -1) {
-                 fbSaveSingleDoc('clients', clients[targetIdx]);
-            }
-            saveLocalBackup();
-            // --- FINE NUOVO SALVATAGGIO ---
 
-            closeModal(); 
-            renderClients([d]); 
-            updateDashboard(); 
+            const previousIndex = editingClientId ? clients.findIndex(x => String(x.id) === String(editingClientId)) : -1;
+            if (editingClientId && previousIndex < 0) {
+                alert('Il cliente da aggiornare non è più presente nell’archivio. Ricarica la lista prima di riprovare.');
+                return;
+            }
+            const previous = previousIndex >= 0 ? clients[previousIndex] : null;
+            const oldRelations = getClientRelations(previous);
+            const normalizedRelations = [];
+            for (const rel of newRelations) {
+                if (String(rel.id) === String(cid)) { alert('Un’anagrafica non può essere collegata a se stessa.'); return; }
+                const target = clients.find(x => String(x.id) === String(rel.id));
+                if (!target) { alert('Un cliente collegato non è più disponibile. Aggiorna la scheda e riprova.'); return; }
+                if (!normalizedRelations.some(x=>String(x.id)===String(target.id))) normalizedRelations.push({id:target.id,name:target.name||rel.name||'',type:rel.type||'Altro'});
+            }
+
+            const changedRelatedClients = new Set();
+            // Rimuove dai contatti collegati soltanto gli inversi di legami rimossi.
+            oldRelations.filter(old => !normalizedRelations.some(n=>String(n.id)===String(old.id))).forEach(old => {
+                const target = clients.find(x=>String(x.id)===String(old.id));
+                if (!target) return;
+                const remaining = getClientRelations(target).filter(r=>String(r.id)!==String(cid));
+                setClientRelationRecords(target, remaining);
+                changedRelatedClients.add(target);
+            });
+
+            // Aggiunge/aggiorna il legame reciproco senza eliminare gli altri legami già presenti.
+            normalizedRelations.forEach(rel => {
+                const target = clients.find(x=>String(x.id)===String(rel.id));
+                if (!target) return;
+                let targetRelations = getClientRelations(target).filter(r=>String(r.id)!==String(cid));
+                targetRelations.push({id:cid,name:nm,type:inverseRelationType(rel.type)});
+                setClientRelationRecords(target, targetRelations);
+                changedRelatedClients.add(target);
+            });
+
+            const d = {
+                ...(previous || {}), id: cid, name: nm, cf, email: em, phone: ph,
+                birthDate: bd, address: ad, notes: nt, isDeceased: isDec, isCeased: isCeas,
+                clientType, relations: normalizedRelations, relation: normalizedRelations.length ? {...normalizedRelations[0]} : null,
+                createdAt: previous && previous.createdAt ? previous.createdAt : new Date().toLocaleDateString('it-IT')
+            };
+
+            if (previousIndex >= 0) clients[previousIndex] = d;
+            else clients.push(d);
+
+            // Salva anagrafica e ogni record modificato dalla gestione delle relazioni.
+            fbSaveSingleDoc('clients', d);
+            changedRelatedClients.forEach(related => fbSaveSingleDoc('clients', related));
+            saveLocalBackup();
+            closeModal();
+            renderClients();
+            updateDashboard();
         }
 
         // --- FUNZIONE PARSE CF ---
@@ -3700,102 +3852,153 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
             }
         }
 
-        // GENERATORE DI RINNOVI MASSIVO - CORRETTO CON DATE ESATTE
+        // GENERATORE DI RINNOVI MASSIVO - ANTEPRIMA, CONTROLLO DUPLICATI E CONFERMA
         function generateBulkRenewals() {
             const targetInput = document.getElementById('bulkRenewalInput').value;
-            if(!targetInput) return alert("Seleziona mese e anno target.");
+            if (!targetInput) return alert("Seleziona mese e anno target.");
 
-            const [tYear, tMonth] = targetInput.split('-');
-            const sYear = parseInt(tYear); 
-            const sMonth = parseInt(tMonth);
+            const [yearText, monthText] = targetInput.split('-');
+            const targetYear = Number(yearText);
+            const targetMonth = Number(monthText);
+            if (!Number.isInteger(targetYear) || !Number.isInteger(targetMonth) || targetMonth < 1 || targetMonth > 12) {
+                return alert("Mese e anno selezionati non validi.");
+            }
 
-            const policiesToRenew = policies.filter(p => {
-                if(p.status !== 'ATTIVA') return false;
-                if(!p.expiry) return false;
-                const d = new Date(p.expiry);
-                return d.getFullYear() === sYear && (d.getMonth() + 1) === sMonth;
+            const policiesToRenew = (policies || []).filter(p => {
+                if (p.status !== 'ATTIVA' || !p.expiry) return false;
+                const parts = String(p.expiry).slice(0, 10).split('-').map(Number);
+                return parts.length === 3 && parts[0] === targetYear && parts[1] === targetMonth;
             });
 
-            if(policiesToRenew.length === 0) return alert(`Nessuna polizza in scadenza trovata nel periodo di riferimento (${tMonth}/${sYear})`);
+            if (policiesToRenew.length === 0) {
+                return alert(`Nessuna polizza attiva in scadenza nel periodo ${monthText}/${targetYear}.`);
+            }
+
+            const planned = [];
+            const skipped = [];
+            const dateOnly = value => String(value || '').slice(0, 10);
+            const localNoon = value => new Date(dateOnly(value) + 'T12:00:00');
+            const addYear = value => {
+                const d = localNoon(value);
+                if (Number.isNaN(d.getTime())) return null;
+                d.setFullYear(d.getFullYear() + 1);
+                return toISODateLocal(d);
+            };
+
+            policiesToRenew.forEach(oldP => {
+                const rawCount = Number(oldP.split);
+                const count = (rawCount === 1 || rawCount === 0 || !Number.isFinite(rawCount)) ? 1 : Math.max(1, Math.min(12, Math.trunc(rawCount)));
+                const existingTitles = Array.isArray(oldP.titles) ? oldP.titles : [];
+                const sortedTitles = existingTitles
+                    .filter(t => t && t.dueDate && !Number.isNaN(localNoon(t.dueDate).getTime()))
+                    .slice()
+                    .sort((a, b) => localNoon(a.dueDate) - localNoon(b.dueDate));
+                let dates = [];
+
+                // Preferisce le date dell'ultimo ciclo già presente, mantenendo il giorno di scadenza.
+                const lastCycle = sortedTitles.slice(-count);
+                if (lastCycle.length === count) {
+                    dates = lastCycle.map(t => addYear(t.dueDate));
+                }
+
+                // Se non esiste un ciclo completo, usa la scadenza della polizza come base.
+                if (dates.length !== count || dates.some(d => !d)) {
+                    const base = localNoon(oldP.expiry);
+                    if (Number.isNaN(base.getTime())) {
+                        skipped.push({ policy: oldP, reason: 'data di scadenza non valida' });
+                        return;
+                    }
+                    dates = [];
+                    for (let i = 0; i < count; i++) {
+                        const d = new Date(base);
+                        if (rawCount === 2) d.setMonth(base.getMonth() + i * 6);
+                        else if (rawCount === 3) d.setMonth(base.getMonth() + i * 4);
+                        else if (rawCount === 4) d.setMonth(base.getMonth() + i * 3);
+                        else if (rawCount === 12) d.setMonth(base.getMonth() + i);
+                        dates.push(toISODateLocal(d));
+                    }
+                }
+
+                const uniqueDates = [...new Set(dates)];
+                if (uniqueDates.length !== count) {
+                    skipped.push({ policy: oldP, reason: 'le date calcolate non sono univoche' });
+                    return;
+                }
+
+                const existingByDate = new Map();
+                existingTitles.forEach(t => {
+                    const key = dateOnly(t.dueDate);
+                    if (key) existingByDate.set(key, (existingByDate.get(key) || []).concat(t));
+                });
+                const renewalDatesAlreadyPresent = dates.filter(d =>
+                    (existingByDate.get(d) || []).some(t => t.isRenewal === true)
+                );
+                if (renewalDatesAlreadyPresent.length > 0) {
+                    skipped.push({ policy: oldP, reason: renewalDatesAlreadyPresent.length === count ? 'rinnovo già presente' : 'rinnovo parziale già presente' });
+                    return;
+                }
+                const anyDateCollision = dates.find(d => (existingByDate.get(d) || []).length > 0);
+                if (anyDateCollision) {
+                    skipped.push({ policy: oldP, reason: `esiste già un titolo con data ${anyDateCollision}` });
+                    return;
+                }
+
+                const newTitles = dates.map((dueDate, i) => ({
+                    id: Date.now() + Math.floor(Math.random() * 1000000) + i,
+                    n: 0,
+                    dueDate,
+                    amount: 0,
+                    status: 'DA INCASSARE',
+                    commTotal: 0,
+                    commPers: 0,
+                    isRenewal: true
+                }));
+                planned.push({ policy: oldP, newTitles });
+            });
+
+            if (planned.length === 0) {
+                const skippedText = skipped.slice(0, 8).map(x => `• ${x.policy.policyNumber || 'Polizza senza numero'}: ${x.reason}`).join('\n');
+                return alert(`Nessun rinnovo da creare per ${monthText}/${targetYear}.\nPolizze già presenti o non elaborabili: ${skipped.length}.` + (skippedText ? `\n\nDettagli:\n${skippedText}` : ''));
+            }
+
+            const previewLines = planned.slice(0, 12).map(({ policy, newTitles }) => {
+                const client = (clients || []).find(c => String(c.id) === String(policy.clientId));
+                return `• ${policy.policyNumber || 'Senza numero'}${client ? ' — ' + client.name : ''}: ${newTitles.length} titol${newTitles.length === 1 ? 'o' : 'i'}, dal ${newTitles[0].dueDate} al ${newTitles[newTitles.length - 1].dueDate}`;
+            });
+            if (planned.length > 12) previewLines.push(`… e altre ${planned.length - 12} polizze.`);
+            const skippedLine = skipped.length ? `\n\nDa saltare per evitare duplicati o errori: ${skipped.length}.` : '';
+            const confirmed = confirm(
+                `ANTEPRIMA RINNOVI — ${monthText}/${targetYear}\n\n` +
+                `Polizze da rinnovare: ${planned.length}\nNuovi titoli da creare: ${planned.reduce((sum, x) => sum + x.newTitles.length, 0)}\nImporti e provvigioni iniziali: € 0,00` + skippedLine +
+                `\n\n${previewLines.join('\n')}\n\nProcedere con il salvataggio? Nessuna modifica viene applicata prima della conferma.`
+            );
+            if (!confirmed) return;
 
             let created = 0;
-            policiesToRenew.forEach(oldP => {
-                let count = (oldP.split === 1 ? 1 : (oldP.split === 0 ? 1 : oldP.split));
-                let newTitles = [];
-                let fallbackNeeded = true;
-
-                // Nuova logica: basi le date ESATTAMENTE su quelle dell'anno precedente!
-                if (oldP.titles && oldP.titles.length > 0) {
-                    let sortedTitles = [...oldP.titles].sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
-                    let lastCycle = sortedTitles.slice(-count);
-                    
-                    if (lastCycle.length === count) {
-                        fallbackNeeded = false;
-                        for (let i = 0; i < count; i++) {
-                            let oldD = new Date(lastCycle[i].dueDate);
-                            let dd = new Date(oldD);
-                            dd.setFullYear(dd.getFullYear() + 1); // Aggiunge esattamente 1 anno
-                            
-                            newTitles.push({
-                                id: Date.now() + Math.floor(Math.random()*1000000) + i,
-                                n: 0,
-                                dueDate: toISODateLocal(dd),
-                                amount: 0, 
-                                status: 'DA INCASSARE',
-                                commTotal: 0,
-                                commPers: 0,
-                                isRenewal: true
-                            });
-                        }
-                    }
+            planned.forEach(({ policy, newTitles }) => {
+                // Ricontrollo immediato prima di scrivere, per evitare doppioni anche dopo l'anteprima.
+                const currentTitles = Array.isArray(policy.titles) ? policy.titles : [];
+                if (newTitles.some(nt => currentTitles.some(t => dateOnly(t.dueDate) === nt.dueDate))) {
+                    skipped.push({ policy, reason: 'titolo comparso durante la conferma' });
+                    return;
                 }
-
-                // Fallback alla vecchia logica solo in assenza di un ciclo precedente valido
-                if (fallbackNeeded) {
-                    const newEff = new Date(oldP.expiry);
-                    for(let i=0; i<count; i++){
-                        let dd = new Date(newEff);
-                        if(oldP.split===2) dd.setMonth(newEff.getMonth()+(i*6));
-                        else if(oldP.split===3) dd.setMonth(newEff.getMonth()+(i*4));
-                        else if(oldP.split===4) dd.setMonth(newEff.getMonth()+(i*3));
-                        else if(oldP.split===12) dd.setMonth(newEff.getMonth()+i);
-
-                        newTitles.push({
-                            id: Date.now() + Math.floor(Math.random()*1000000) + i,
-                            n: 0,
-                            dueDate: toISODateLocal(dd),
-                            amount: 0, 
-                            status: 'DA INCASSARE',
-                            commTotal: 0,
-                            commPers: 0,
-                            isRenewal: true
-                        });
-                    }
-                }
-
-                const effIso = newTitles[0].dueDate;
-                const alreadyExists = (oldP.titles || []).some(t => t.dueDate === effIso);
-
-                if(!alreadyExists) {
-                    oldP.titles = (oldP.titles || []).concat(newTitles);
-                    oldP.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
-                    oldP.titles.forEach((t, idx) => {
-                        if (/^\d+$/.test(String(t.n)) || t.n === 0 || t.n === undefined) {
-                            t.n = idx + 1;
-                        }
-                    });
-                    
-                    let maxNewD = Math.max(...newTitles.map(t => new Date(t.dueDate).getTime()));
-                    oldP.expiry = new Date(maxNewD).toISOString().split('T')[0];
-
-                    if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', oldP);
-                    created++;
-                }
+                policy.titles = currentTitles.concat(newTitles).sort((a, b) => localNoon(a.dueDate) - localNoon(b.dueDate));
+                policy.titles.forEach((t, idx) => {
+                    if (/^\d+$/.test(String(t.n)) || t.n === 0 || t.n === undefined) t.n = idx + 1;
+                });
+                policy.expiry = newTitles[newTitles.length - 1].dueDate;
+                if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('policies', policy);
+                created++;
             });
 
-            if(created > 0) saveAllData();
-            alert(`Generati ${created} rinnovi per ${tMonth}/${sYear}.`);
-            renderDeadlines(); 
+            if (created > 0) {
+                if (typeof saveLocalBackup === 'function') saveLocalBackup();
+                saveAllData();
+            }
+            alert(`Rinnovi creati: ${created} polizze per ${monthText}/${targetYear}.` + (skipped.length ? `\nPolizze saltate: ${skipped.length} (per evitare duplicati o date non valide).` : ''));
+            renderDeadlines();
+            renderPolicies(currentActiveClientId, true);
+            updateDashboard();
         }
 
         // FUNZIONE RINNOVO SINGOLO - CORRETTA CON DATE ESATTE
@@ -3977,7 +4180,7 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                     btnRenew = `<button onclick="renewPolicy(${p.id})" class="text-xs border border-accent text-accent hover:bg-slate-800 px-2 py-1 rounded" title="Genera Rinnovo Annuale"><i class="fa-solid fa-calendar-plus"></i></button>`; 
                 }
                 
-                const row=`<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${rc} ${displayStatus!=='ATTIVA' && displayStatus!=='SOSPESA' && displayStatus!=='RICHIESTA SOSPENSIONE'?'opacity-60':''}"><td class="px-6 py-4">${sb}</td><td class="px-6 py-4 text-white font-medium">${c}</td><td class="px-6 py-4"><div class="text-sm font-bold text-white">${p.company}</div><div class="text-xs text-slate-400 mt-1">${p.policyNumber||''}</div><div class="text-[10px] uppercase border border-slate-700 rounded px-1 w-fit mt-1">${p.ramo}</div></td><td class="px-6 py-4 font-mono text-xs text-slate-300">${new Date(p.expiry).toLocaleDateString('it-IT')}</td><td class="px-6 py-4 text-right font-mono text-white">€ ${p.annualPremium.toFixed(2)}</td><td class="px-6 py-4 text-center space-x-1">
+                const row=`<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${rc} ${displayStatus!=='ATTIVA' && displayStatus!=='SOSPESA' && displayStatus!=='RICHIESTA SOSPENSIONE'?'opacity-60':''}"><td class="px-6 py-4">${sb}</td><td class="px-6 py-4 text-white font-medium">${escapeHtml(c)}</td><td class="px-6 py-4"><div class="text-sm font-bold text-white">${escapeHtml(p.company||'')}</div><div class="text-xs text-slate-400 mt-1">${escapeHtml(p.policyNumber||'')}</div><div class="text-[10px] uppercase border border-slate-700 rounded px-1 w-fit mt-1">${branchIconMarkup(p.ramo, true)}</div></td><td class="px-6 py-4 font-mono text-xs text-slate-300">${new Date(p.expiry).toLocaleDateString('it-IT')}</td><td class="px-6 py-4 text-right font-mono text-white">€ ${p.annualPremium.toFixed(2)}</td><td class="px-6 py-4 text-center space-x-1">
                     ${btnRenew}
                     <button onclick="openClaimModal(${p.id}, null)" class="text-xs border border-slate-700 text-warning hover:bg-slate-800 px-2 py-1 rounded" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation"></i></button>
                     <button onclick="openPolicyTitles(${p.id})" class="text-xs border border-slate-700 text-info hover:bg-slate-800 px-2 py-1 rounded" title="Rate e Provvigioni"><i class="fa-solid fa-list-ol"></i></button>
@@ -4110,10 +4313,18 @@ function deletePolicy(id){
 
             if(!confirm(msg)) return;
 
-            // Rimuovi relazioni che puntano a questo cliente
+            // Rimuovi i legami singoli e multipli che puntano al cliente eliminato.
+            const relationChanged = [];
             (clients||[]).forEach(x => {
-                if(x && x.relation && x.relation.id && String(x.relation.id) === String(clientId)) x.relation = null;
+                if (!x || String(x.id) === String(clientId)) return;
+                const before = getClientRelations(x);
+                const after = before.filter(r => String(r.id) !== String(clientId));
+                if (after.length !== before.length) {
+                    setClientRelationRecords(x, after);
+                    relationChanged.push(x);
+                }
             });
+            relationChanged.forEach(x => fbSaveSingleDoc('clients', x));
 // Elimina polizze collegate su Firebase e in locale
             const policiesToDelete = (policies||[]).filter(p => String(p.clientId) === String(clientId));
             policiesToDelete.forEach(p => fbDeleteSingleDoc('policies', p.id));
@@ -4270,6 +4481,9 @@ p.status = 'ATTIVA';
             if(d) sl += ' (' + d + md + ')';
         } else if(t.status === 'ANNULLATO'){
             st = 'text-red-500';
+        } else if(t.status === 'DA INCASSARE' && t.sddPendingConfirmation){
+            st = 'text-amber-400 font-bold';
+            sl = 'SDD DA CONFERMARE';
         }
 
         // --- MODIFICA QUI: Rimosso il blocco che impediva l'incasso su polizze annullate ---
@@ -4570,7 +4784,10 @@ function getFilteredDeadlines() {
                     statusIcon = `<span class="text-success font-bold">INCASSATO <span class="text-[10px] text-slate-500 block">${new Date(t.paymentDate).toLocaleDateString()}${md}</span></span>`;
                     payBtn = `<button onclick=\"cancelPayment(${t.pid},${t.id})\" class=\"bg-slate-700 text-white px-3 py-1 rounded-md text-xs font-bold hover:bg-slate-600 shadow-lg\"><i class=\"fa-solid fa-rotate-left\"></i> ANNULLA</button>`;
                 } else {
-                    if (diffDays > 15) {
+                    if(t.sddPendingConfirmation && Number(policies.find(p=>String(p.id)===String(t.pid))?.split) === 12){
+                        rowClass = "row-warning";
+                        statusIcon = '<span class="text-amber-400 font-bold"><i class="fa-solid fa-circle-exclamation"></i> SDD DA CONFERMARE</span>';
+                    } else if (diffDays > 15) {
                         rowClass = "row-expired";
                         statusIcon = '<span class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> SCADUTO</span>';
                     } else if (diffDays >= -5 && diffDays <= 15) {
@@ -4581,7 +4798,7 @@ function getFilteredDeadlines() {
                         statusIcon = '<span class="text-white">DA INCASSARE</span>';
                     }
 
-                    payBtn = `<button onclick="openPaymentModal(${t.pid},${t.id})" class="bg-success text-white px-3 py-1 rounded-md text-xs font-bold hover:bg-green-600 shadow-lg"><i class="fa-solid fa-coins"></i> INCASSA</button>`;
+                    payBtn = `<button onclick="openPaymentModal(${t.pid},${t.id})" class="${t.sddPendingConfirmation ? 'bg-amber-600 hover:bg-amber-500' : 'bg-success hover:bg-green-600'} text-white px-3 py-1 rounded-md text-xs font-bold shadow-lg"><i class="fa-solid fa-coins"></i> ${t.sddPendingConfirmation ? 'CONFERMA SDD' : 'INCASSA'}</button>`;
                 }
 
                 let amountDisplay = `€ ${(t.amount || 0).toFixed(2)}`;
@@ -4599,7 +4816,7 @@ function getFilteredDeadlines() {
                         <div class="text-[10px] text-slate-500">${t.comp}</div>
                         <div class="text-[10px] text-accent mt-0.5"><i class="fa-solid fa-hashtag"></i> ${t.polNum}</div>
                     </td>
-                    <td class="px-6 py-4 text-xs font-bold text-slate-300 uppercase">${t.ramo || '-'}</td>
+                    <td class="px-6 py-4 text-xs font-bold uppercase">${branchIconMarkup(t.ramo, true)}</td>
                     <td class="px-6 py-4 text-xs text-slate-400 max-w-[150px] truncate" title="${t.notes ? String(t.notes).replace(/"/g, '&quot;') : ''}">${t.notes || '-'}</td>
                     <td class="px-6 py-4 text-xs text-slate-400">Rata ${t.n}</td>
                     <td class="px-6 py-4 font-mono text-white">${amountDisplay}</td>
@@ -4616,6 +4833,7 @@ function getFilteredDeadlines() {
             });
 
             tb.innerHTML = htmlBuffer; 
+            renderSDDPendingBanner();
             document.getElementById('deadlines-total-amount').innerText = '€ ' + totAmount.toFixed(2);
             document.getElementById('deadlines-total-comm').innerText = '€ ' + totComm.toFixed(2);
         }
@@ -4685,7 +4903,17 @@ function getFilteredDeadlines() {
         }
 
         // INCASSO
-        function openPaymentModal(pid,tid){document.getElementById('paymentModal').classList.remove('hidden'); document.getElementById('payPolicyId').value=pid; document.getElementById('payTitleId').value=tid;}
+        function openPaymentModal(pid,tid){
+            const pol = policies.find(p => String(p.id) === String(pid));
+            const title = (pol?.titles || []).find(t => String(t.id) === String(tid));
+            document.getElementById('paymentModal').classList.remove('hidden');
+            document.getElementById('payPolicyId').value=pid;
+            document.getElementById('payTitleId').value=tid;
+            const dateEl = document.getElementById('payDate');
+            if(dateEl){ const now=new Date(); dateEl.value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+            const methodEl = document.getElementById('payMethod');
+            if(methodEl) methodEl.value = title?.sddPendingConfirmation ? 'SDD' : (title?.paymentMethod || 'CONTANTI');
+        }
         function closePaymentModal(){document.getElementById('paymentModal').classList.add('hidden');}
         
         function confirmPayment() {
@@ -4703,37 +4931,13 @@ function getFilteredDeadlines() {
                 const t = (pol.titles || []).find(x => String(x.id) === titleId);
                 if (!t) return alert('Titolo non trovato.');
 
-                // --- INIZIO MODIFICA: Incasso automatico 12 rate SDD in base all'ANNO ASSICURATIVO ---
-if (method === 'SDD' && Number(pol.split) === 12) {
-    // Calcola il ciclo dell'anno assicurativo (es. 0 per rate 1-12, 1 per rate 13-24, ecc.)
-    const targetCycle = Math.floor((Number(t.n) - 1) / 12);
-
-    (pol.titles || []).forEach(tt => {
-        const ttCycle = Math.floor((Number(tt.n) - 1) / 12);
-        
-        // Verifica che la rata faccia parte dello stesso anno assicurativo
-        if (!isNaN(targetCycle) && ttCycle === targetCycle) {
-            tt.status = 'INCASSATO';
-            tt.paymentMethod = 'SDD';
-            // Imposta in automatico come data incasso la data di scadenza della singola rata
-            tt.paymentDate = String(tt.dueDate);
-        }
-    });
-
-    fbSaveSingleDoc('policies', pol);
-    saveLocalBackup();
-
-    closePaymentModal();
-    renderDeadlines();
-    updateDashboard();
-    if (currentViewingPolicyId == pol.id) openPolicyTitles(pol.id);
-    return;
-}
-// --- FINE MODIFICA ---
+                // Conferma sempre e soltanto il titolo selezionato, anche per SDD mensile.
+                // Non marcare le altre rate dell'anno assicurativo come incassate automaticamente.
 
                 t.status = 'INCASSATO';
                 t.paymentMethod = method;
                 t.paymentDate = payDate;
+                t.sddPendingConfirmation = false;
 
                 fbSaveSingleDoc('policies', pol);
                 saveLocalBackup();
@@ -4759,6 +4963,7 @@ if (method === 'SDD' && Number(pol.split) === 12) {
                 t.status = 'DA INCASSARE';
                 t.paymentDate = null;
                 t.paymentMethod = null;
+                t.sddPendingConfirmation = false;
 
                 fbSaveSingleDoc('policies', p);
                 saveLocalBackup();
@@ -4952,7 +5157,7 @@ function renderQuotes() {
                 <td class="px-6 py-4 text-sm text-slate-200 font-semibold">${escapeHtml(x.clientName)}</td>
                 <td class="px-6 py-4">
                     <div class="text-xs text-slate-300 font-medium">${escapeHtml(x.policyType)}</div>
-                    <span class="text-[9px] uppercase border border-slate-700 rounded px-1 font-bold text-accent bg-slate-900/40">${escapeHtml(x.ramo)}</span>
+                    <span class="text-[9px] uppercase border border-slate-700 rounded px-2 py-1 font-bold bg-slate-900/40">${branchIconMarkup(x.ramo, true)}</span>
                 </td>
                 <td class="px-6 py-4 text-xs text-slate-300">${escapeHtml(x.company)}</td>
                 <td class="px-6 py-4 font-mono text-xs text-slate-400">${x.effectDate ? new Date(x.effectDate).toLocaleDateString('it-IT') : '-'}</td>
