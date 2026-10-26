@@ -10,7 +10,8 @@
 
 <meta name="theme-color" content="#b9f06a">
 
-    <title>NEXA - Insurance Manager</title>
+    <meta name="application-name" content="NEXA CRM Assicurativo">
+    <title>NEXA CRM Professionale v9.0 | Storico Firebase e backup</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -522,6 +523,11 @@
     </style>
 </head>
 <body class="bg-deep text-slate-300 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
+<div id="nexaV41Notice" role="status" class="fixed top-3 right-3 z-[120] max-w-md rounded-xl border border-lime-400/50 bg-slate-950/95 text-slate-100 shadow-2xl px-4 py-3 flex items-start gap-3">
+  <span class="mt-0.5 text-lime-300"><i class="fa-solid fa-circle-check"></i></span>
+  <div class="text-xs leading-relaxed"><strong class="text-lime-300">NEXA CRM v9.0 caricato</strong><br>Storico attività sincronizzato con Firebase e incluso nei backup. Dashboard, filtro polizze e flusso preventivi mantenuti.</div>
+  <button type="button" aria-label="Chiudi avviso versione" onclick="document.getElementById('nexaV41Notice').remove()" class="ml-1 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+</div>
 
     <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none z-0"></div>
 
@@ -628,6 +634,11 @@
     <a href="#" onclick="switchSection('deadlines')" id="nav-deadlines" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
         <i class="fa-solid fa-calendar-days w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Scadenze titoli</span>
     </a>
+    <a href="#" onclick="switchSection('tasks')" id="nav-tasks" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
+        <i class="fa-solid fa-list-check w-7 text-xl text-center group-hover:text-accent transition-colors"></i>
+        <span class="font-medium">Le mie attività</span>
+        <span id="nav-tasks-count" class="ml-auto text-[10px] font-black rounded-full bg-rose-500/15 text-rose-300 px-2 py-1">0</span>
+    </a>
     <a href="#" onclick="switchSection('report')" id="nav-report" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
         <i class="fa-solid fa-chart-pie w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Report</span>
     </a>
@@ -678,6 +689,62 @@
     <div class="glass-effect p-5 rounded-2xl border-l-4 border-danger relative overflow-hidden"><i class="fa-solid fa-circle-exclamation absolute right-4 top-4 text-6xl text-danger opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Da Incassare del mese</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-pending-money">€ 0</h3></div>
     <div class="glass-effect p-5 rounded-2xl border-l-4 border-success relative overflow-hidden"><i class="fa-solid fa-chart-line absolute right-4 top-4 text-6xl text-success opacity-30"></i><p class="text-xs font-bold text-slate-500 uppercase">Incassato (Mese)</p><h3 class="text-3xl font-bold text-white mt-1 truncate" id="dash-month-inc">€ 0</h3></div>
 </div>
+                    <!-- NUOVO CENTRO OPERATIVO CRM -->
+                    <section class="glass-effect rounded-2xl p-5 md:p-6 border border-accent/20 space-y-5" aria-labelledby="crm-operativo-title">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div>
+                                <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-accent mb-1">NEXA · Centro operativo</p>
+                                <h3 id="crm-operativo-title" class="text-xl md:text-2xl font-black text-white">La tua giornata, sotto controllo</h3>
+                                <p class="text-sm text-slate-400 mt-1">Accesso rapido alle attività commerciali e alle priorità del portafoglio.</p>
+                            </div>
+                            <div class="text-xs text-slate-500" id="crm-today-label"></div>
+                        </div>
+                        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                            <button type="button" onclick="switchSection('clients')" class="text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-accent/70 hover:bg-slate-800/80 transition-all group">
+                                <span class="w-9 h-9 rounded-lg bg-accent/10 text-accent flex items-center justify-center mb-3"><i class="fa-solid fa-users"></i></span>
+                                <span class="block text-sm font-bold text-white">Clienti</span><span class="block text-xs text-slate-400 mt-1">Apri anagrafiche e portafoglio</span>
+                                <span class="block text-xs text-accent mt-3 font-bold">Apri clienti <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                            </button>
+                            <button type="button" onclick="switchSection('quotes'); openQuoteModal()" class="text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-accent/70 hover:bg-slate-800/80 transition-all group">
+                                <span class="w-9 h-9 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center mb-3"><i class="fa-solid fa-file-circle-plus"></i></span>
+                                <span class="block text-sm font-bold text-white">Nuovo preventivo</span><span class="block text-xs text-slate-400 mt-1">Registra una nuova opportunità</span>
+                                <span class="block text-xs text-sky-400 mt-3 font-bold">Crea preventivo <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                            </button>
+                            <button type="button" onclick="switchSection('agenda'); if(document.getElementById('newEventForm')?.classList.contains('hidden')) toggleNewEventForm()" class="text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-accent/70 hover:bg-slate-800/80 transition-all group">
+                                <span class="w-9 h-9 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-3"><i class="fa-solid fa-calendar-plus"></i></span>
+                                <span class="block text-sm font-bold text-white">Fissa un richiamo</span><span class="block text-xs text-slate-400 mt-1">Pianifica contatti e appuntamenti</span>
+                                <span class="block text-xs text-violet-400 mt-3 font-bold">Aggiungi in agenda <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                            </button>
+                            <button type="button" onclick="switchSection('deadlines')" class="text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-accent/70 hover:bg-slate-800/80 transition-all group">
+                                <span class="w-9 h-9 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center mb-3"><i class="fa-solid fa-calendar-check"></i></span>
+                                <span class="block text-sm font-bold text-white">Scadenziario</span><span class="block text-xs text-slate-400 mt-1">Controlla incassi e titoli</span>
+                                <span class="block text-xs text-rose-400 mt-3 font-bold">Verifica scadenze <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3" aria-live="polite">
+                            <button type="button" onclick="openCRMOperationalFocus('overdue')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-rose-500/50 transition-colors">
+                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Titoli scaduti da incassare</span><span class="block text-xs text-slate-500 mt-1">Richiedono verifica</span></span>
+                                <strong id="crm-overdue-count" class="text-2xl font-black text-rose-400">—</strong>
+                            </button>
+                            <button type="button" onclick="openCRMOperationalFocus('dueSoon')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-amber-500/50 transition-colors">
+                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Titoli in scadenza 7 giorni</span><span class="block text-xs text-slate-500 mt-1">Preparare il contatto</span></span>
+                                <strong id="crm-due-soon-count" class="text-2xl font-black text-amber-400">—</strong>
+                            </button>
+                            <button type="button" onclick="openCRMOperationalFocus('quotes')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-sky-500/50 transition-colors">
+                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Preventivi da seguire</span><span class="block text-xs text-slate-500 mt-1">Da lavorare, inviati o da ricontattare</span></span>
+                                <strong id="crm-quotes-count" class="text-2xl font-black text-sky-400">—</strong>
+                            </button>
+                            <button type="button" onclick="openCRMOperationalFocus('policyExpiry')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-violet-500/50 transition-colors">
+                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Polizze in scadenza 30 giorni</span><span class="block text-xs text-slate-500 mt-1">Attive o sospese · verificare rinnovo</span></span>
+                                <strong id="crm-policy-expiry-count" class="text-2xl font-black text-violet-400">—</strong>
+                            </button>
+                            <button type="button" onclick="openCRMTaskFocus('open')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-emerald-500/50 transition-colors">
+                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Attività aperte</span><strong id="crm-task-open-count-dashboard" class="block text-2xl text-white mt-1">0</strong><span class="block text-[11px] text-slate-500 mt-1">Richiami e cose da fare</span></span>
+                                <span class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-300 flex items-center justify-center"><i class="fa-solid fa-list-check"></i></span>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-500">I contatori sono calcolati sui dati già presenti nel gestionale; non sostituiscono la verifica delle singole posizioni.</p>
+                    </section>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
                             <div class="flex justify-between items-center mb-4">
@@ -749,6 +816,10 @@
                                 <button onclick="openQuoteModal()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2 active:scale-95 transition-all duration-200"><i class="fa-solid fa-plus"></i> Nuovo Preventivo</button>
                             </div>
                         </div>
+                        <div id="crm-quotes-focus-banner" class="hidden mb-4 rounded-lg border border-sky-700/50 bg-sky-950/30 px-4 py-3 text-sm text-sky-200 flex items-center justify-between gap-3">
+                            <span id="crm-quotes-focus-text">Filtro dal Centro operativo attivo.</span>
+                            <button type="button" onclick="clearCRMOperationalFocus()" class="shrink-0 rounded border border-sky-700 px-3 py-1 text-xs font-bold hover:bg-sky-900/50">Mostra tutti i preventivi</button>
+                        </div>
                         <div class="overflow-x-auto rounded-lg border border-slate-800">
                             <table class="w-full text-left text-sm text-slate-400">
                                 <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
@@ -759,6 +830,7 @@
                                         <th class="px-6 py-4">Compagnia</th>
                                         <th class="px-6 py-4">Decorrenza</th>
                                         <th class="px-6 py-4 text-right">Prezzo Proposto</th>
+                                        <th class="px-6 py-4">Stato</th>
                                         <th class="px-6 py-4 text-right">Azioni</th>
                                     </tr>
                                 </thead>
@@ -799,12 +871,26 @@
                                 <button onclick="switchSection('clients')" class="border border-slate-700 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-sm active:scale-95 transition-all"><i class="fa-solid fa-arrow-left mr-2"></i>Indietro</button>
                                 <button onclick="openPolicyModalWithFilter()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2 active:scale-95 transition-all duration-200"><i class="fa-solid fa-file-circle-plus"></i> Nuova Polizza</button>
                                 <div>
+                                    <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Stato polizze</label>
+                                    <select id="policyStatusFilter" value="ACTIVE" onchange="renderPolicies(currentActiveClientId, false)" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-accent">
+                                        <option value="ACTIVE">Attive e sospese</option>
+                                        <option value="SOSTITUITE_ANNULLATE">Sostituite e annullate</option>
+                                        <option value="SOSTITUITA">Solo sostituite</option>
+                                        <option value="ANNULLATA">Solo annullate</option>
+                                        <option value="ALL">Tutti gli stati</option>
+                                    </select>
+                                </div>
+                                <div>
                                     <label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">N° Polizza</label>
                                     <input type="text" id="searchPolicyNumber" onkeyup="searchPoliciesByNumber()" placeholder="Es. 123456..." class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-44 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
                                 </div>
                             </div>
                         </div>
 
+                        <div id="crm-contracts-focus-banner" class="hidden mb-4 rounded-lg border border-violet-700/50 bg-violet-950/30 px-4 py-3 text-sm text-violet-200 flex items-center justify-between gap-3">
+                            <span id="crm-contracts-focus-text">Filtro dal Centro operativo attivo.</span>
+                            <button type="button" onclick="clearCRMOperationalFocus()" class="shrink-0 rounded border border-violet-700 px-3 py-1 text-xs font-bold hover:bg-violet-900/50">Mostra tutte le polizze</button>
+                        </div>
                         <div class="overflow-x-auto rounded-lg border border-slate-800 mt-6">
                             <table class="w-full text-left text-sm text-slate-400">
                                 <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
@@ -859,6 +945,10 @@
                             </div>
                         </div>
 
+                        <div id="crm-deadlines-focus-banner" class="hidden mb-4 rounded-lg border border-rose-700/50 bg-rose-950/30 px-4 py-3 text-sm text-rose-200 flex items-center justify-between gap-3">
+                            <span id="crm-deadlines-focus-text">Filtro dal Centro operativo attivo.</span>
+                            <button type="button" onclick="clearCRMOperationalFocus()" class="shrink-0 rounded border border-rose-700 px-3 py-1 text-xs font-bold hover:bg-rose-900/50">Mostra tutti i titoli</button>
+                        </div>
                         <div class="overflow-x-auto rounded-lg border border-slate-800 mt-6">
                             <table class="w-full text-left text-sm text-slate-400">
                                 <thead class="bg-slate-900/50 text-slate-200 uppercase text-xs font-bold tracking-wider">
@@ -956,6 +1046,61 @@
                     </div>
                 </div>
 <!-- UTILITY -->
+                <!-- LE MIE ATTIVITÀ / PROMEMORIA -->
+                <div id="section-tasks" class="hidden fade-in space-y-6">
+                    <section class="glass-effect rounded-2xl p-6 border border-emerald-500/20">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                            <div>
+                                <p class="text-[10px] uppercase tracking-[0.22em] font-bold text-emerald-300 mb-1">NEXA · Organizzazione commerciale</p>
+                                <h3 class="text-xl md:text-2xl font-black text-white">Le mie attività</h3>
+                                <p class="text-sm text-slate-400 mt-1">Richiami, preventivi da seguire, documenti da richiedere e rinnovi da verificare.</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span id="crm-tasks-sync-status" class="text-xs text-slate-400">Caricamento archivio attività…</span>
+                                <button type="button" onclick="openCRMTaskForm()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold"><i class="fa-solid fa-plus mr-1"></i> Nuova attività</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+                            <button type="button" onclick="openCRMTaskFocus('overdue')" class="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 text-left hover:border-rose-400/60">
+                                <span class="text-xs uppercase tracking-wider text-rose-300">Scadute</span><strong id="crm-task-overdue-count" class="block text-2xl text-white mt-1">0</strong>
+                            </button>
+                            <button type="button" onclick="openCRMTaskFocus('today')" class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-left hover:border-amber-400/60">
+                                <span class="text-xs uppercase tracking-wider text-amber-300">Da fare oggi</span><strong id="crm-task-today-count" class="block text-2xl text-white mt-1">0</strong>
+                            </button>
+                            <button type="button" onclick="openCRMTaskFocus('upcoming')" class="rounded-xl border border-sky-500/20 bg-sky-500/5 p-4 text-left hover:border-sky-400/60">
+                                <span class="text-xs uppercase tracking-wider text-sky-300">Prossimi giorni</span><strong id="crm-task-upcoming-count" class="block text-2xl text-white mt-1">0</strong>
+                            </button>
+                        </div>
+                        <div id="crm-task-form" class="hidden rounded-xl border border-slate-700 bg-slate-950/50 p-4 mb-5">
+                            <div class="flex items-center justify-between mb-4"><h4 id="crm-task-form-title" class="text-white font-bold">Nuova attività</h4><button type="button" onclick="closeCRMTaskForm()" class="text-slate-400 hover:text-white" aria-label="Chiudi"><i class="fa-solid fa-xmark"></i></button></div>
+                            <input type="hidden" id="crm-task-edit-id" value="">
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                                <div><label for="crm-task-title" class="block text-xs text-slate-400 mb-1">Attività *</label><input id="crm-task-title" maxlength="160" type="text" placeholder="Es. Ricontattare per il preventivo" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></div>
+                                <div><label for="crm-task-type" class="block text-xs text-slate-400 mb-1">Tipo</label><select id="crm-task-type" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"><option>Telefonata</option><option>Preventivo da ricontattare</option><option>Appuntamento</option><option>Rinnovo da verificare</option><option>Documenti da richiedere</option><option>Pratica da completare</option><option>Altro</option></select></div>
+                                <div><label for="crm-task-client" class="block text-xs text-slate-400 mb-1">Cliente (facoltativo)</label><select id="crm-task-client" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"><option value="">Nessun cliente collegato</option></select></div>
+                                <div><label for="crm-task-due" class="block text-xs text-slate-400 mb-1">Scadenza *</label><input id="crm-task-due" type="date" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></div>
+                                <div><label for="crm-task-priority" class="block text-xs text-slate-400 mb-1">Priorità</label><select id="crm-task-priority" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"><option value="Normale">Normale</option><option value="Alta">Alta</option><option value="Urgente">Urgente</option><option value="Bassa">Bassa</option></select></div>
+                                <div><label for="crm-task-status" class="block text-xs text-slate-400 mb-1">Stato</label><select id="crm-task-status" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"><option value="Da fare">Da fare</option><option value="In corso">In corso</option><option value="Completata">Completata</option></select></div>
+                                <div class="md:col-span-2 xl:col-span-3"><label for="crm-task-notes" class="block text-xs text-slate-400 mb-1">Note</label><textarea id="crm-task-notes" rows="2" maxlength="3000" placeholder="Dettagli utili per il ricontatto…" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></textarea></div>
+                            </div>
+                            <div class="flex justify-end gap-2 mt-4"><button type="button" onclick="closeCRMTaskForm()" class="px-4 py-2 rounded-lg text-sm text-slate-300 border border-slate-700">Annulla</button><button type="button" onclick="saveCRMTask()" class="px-4 py-2 rounded-lg text-sm font-bold bg-accent text-darktext"><i class="fa-solid fa-floppy-disk mr-1"></i> Salva attività</button></div>
+                        </div>
+                        <div class="flex flex-col md:flex-row gap-3 justify-between mb-4">
+                            <div class="flex flex-wrap gap-2" role="group" aria-label="Filtra attività">
+                                <button type="button" data-crm-task-filter="open" onclick="openCRMTaskFocus('open')" class="crm-task-filter rounded-lg px-3 py-2 text-xs font-bold border border-slate-600 text-white bg-slate-800">Tutte aperte</button>
+                                <button type="button" data-crm-task-filter="overdue" onclick="openCRMTaskFocus('overdue')" class="crm-task-filter rounded-lg px-3 py-2 text-xs font-bold border border-slate-700 text-slate-400">Scadute</button>
+                                <button type="button" data-crm-task-filter="today" onclick="openCRMTaskFocus('today')" class="crm-task-filter rounded-lg px-3 py-2 text-xs font-bold border border-slate-700 text-slate-400">Oggi</button>
+                                <button type="button" data-crm-task-filter="upcoming" onclick="openCRMTaskFocus('upcoming')" class="crm-task-filter rounded-lg px-3 py-2 text-xs font-bold border border-slate-700 text-slate-400">Prossimi giorni</button>
+                                <button type="button" data-crm-task-filter="completed" onclick="openCRMTaskFocus('completed')" class="crm-task-filter rounded-lg px-3 py-2 text-xs font-bold border border-slate-700 text-slate-400">Completate</button>
+                                <button type="button" data-crm-task-filter="all" onclick="openCRMTaskFocus('all')" class="crm-task-filter rounded-lg px-3 py-2 text-xs font-bold border border-slate-700 text-slate-400">Tutte</button>
+                            </div>
+                            <input id="crm-task-search" type="search" oninput="renderCRMTasks()" placeholder="Cerca attività o cliente…" class="w-full md:max-w-xs bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                        </div>
+                        <div id="crm-task-list" class="space-y-6"><p class="text-sm text-slate-500">Caricamento attività…</p></div>
+                        <p class="text-[11px] text-slate-500 mt-4">Le attività contengono promemoria organizzativi: verifica sempre i dati della pratica prima di contattare il cliente o assumere decisioni operative.</p>
+                    </section>
+                </div>
+
                 <div id="section-utility" class="hidden fade-in">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
@@ -1283,6 +1428,16 @@
                         </div>
                     </div>
                     <div class="mb-4">
+                        <label class="block text-xs text-slate-500 font-bold mb-1">Stato commerciale</label>
+                        <select id="quoteStatus" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent">
+                            <option value="DA LAVORARE">Da lavorare</option>
+                            <option value="INVIATO">Inviato al cliente</option>
+                            <option value="DA RICONTATTARE">Da ricontattare</option>
+                            <option value="ACCETTATO">Accettato</option>
+                            <option value="PERSO">Perso</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
                         <label class="block text-xs text-slate-500 font-bold mb-1">Ampia sezione note / Dettagli</label>
                         <textarea id="quoteNotes" rows="4" placeholder="Inserisci qui franchigie, massimali, scoperti o dettagli sul frazionamento..." class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"></textarea>
                     </div>
@@ -1394,7 +1549,7 @@
   } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
   import {
-    getFirestore, doc, setDoc, getDoc, collection, onSnapshot, writeBatch, serverTimestamp,
+    getFirestore, doc, setDoc, getDoc, getDocs, collection, onSnapshot, writeBatch, serverTimestamp,
     deleteDoc, enableIndexedDbPersistence // <-- NUOVE IMPORTAZIONI
   } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
@@ -1418,7 +1573,7 @@
 
   window.FB = {
     app, auth, db, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-    doc, setDoc, getDoc, collection, onSnapshot, writeBatch, serverTimestamp,
+    doc, setDoc, getDoc, getDocs, collection, onSnapshot, writeBatch, serverTimestamp,
     deleteDoc // <-- ESPORTATO PER L'USO GLOBALE
   };
 
@@ -2119,6 +2274,134 @@ function sendBirthdayWishes(name, phone, email, channel) {
     }
 }
 // --- FINE FUNZIONE AUGURI ---
+
+        // Filtri rapidi dal Centro operativo: mostrano solo gli elementi conteggiati nel widget.
+        let crmOperationalFocus = null;
+        const crmFocusLabels = {
+            overdue: 'Solo titoli scaduti da incassare',
+            dueSoon: 'Solo titoli in scadenza nei prossimi 7 giorni',
+            coverage: 'Solo titoli in allerta copertura',
+            quotes: 'Solo preventivi da seguire',
+            policyExpiry: 'Solo polizze in scadenza nei prossimi 30 giorni'
+        };
+
+        function updateCRMFocusBanners(){
+            const mappings = [
+                ['deadlines', ['overdue','dueSoon','coverage']],
+                ['quotes', ['quotes']],
+                ['contracts', ['policyExpiry']]
+            ];
+            mappings.forEach(([section, focusList]) => {
+                const banner = document.getElementById(`crm-${section}-focus-banner`);
+                const label = document.getElementById(`crm-${section}-focus-text`);
+                const active = focusList.includes(crmOperationalFocus);
+                if (banner) banner.classList.toggle('hidden', !active);
+                if (label && active) label.textContent = crmFocusLabels[crmOperationalFocus] || 'Filtro dal Centro operativo attivo.';
+            });
+        }
+
+        function openCRMOperationalFocus(focus){
+            crmOperationalFocus = focus;
+            if (focus === 'quotes') {
+                const search = document.getElementById('searchQuotesInput');
+                if (search) search.value = '';
+                switchSection('quotes');
+                renderQuotes();
+                return;
+            }
+            if (focus === 'policyExpiry') {
+                const status = document.getElementById('policyStatusFilter');
+                if (status) status.value = 'ACTIVE';
+                const search = document.getElementById('searchPolicyNumber');
+                if (search) search.value = '';
+                currentActiveClientId = null;
+                switchSection('contracts');
+                renderPolicies(null, false);
+                updateCRMFocusBanners();
+                return;
+            }
+            // Rimuove i filtri ordinari che potrebbero nascondere i titoli del conteggio.
+            ['filterMonthDeadlines','filterPayDateDeadlines','filterCompDeadlines'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const status = document.getElementById('filterStatusDeadlines');
+            if (status) status.value = 'DA INCASSARE';
+            const monthly = document.getElementById('filterMonthlyDeadlines');
+            if (monthly) monthly.value = 'ALL';
+            switchSection('deadlines');
+            renderDeadlines();
+            updateCRMFocusBanners();
+        }
+
+        function clearCRMOperationalFocus(){
+            crmOperationalFocus = null;
+            updateCRMFocusBanners();
+            const qSearch = document.getElementById('searchQuotesInput');
+            if (qSearch) qSearch.value = '';
+            const dMonth = document.getElementById('filterMonthDeadlines');
+            if (dMonth && !dMonth.value) {
+                const now = new Date();
+                dMonth.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+            }
+            const dStatus = document.getElementById('filterStatusDeadlines');
+            if (dStatus) dStatus.value = '';
+            const dPayDate = document.getElementById('filterPayDateDeadlines');
+            if (dPayDate) dPayDate.value = '';
+            const dComp = document.getElementById('filterCompDeadlines');
+            if (dComp) dComp.value = '';
+            const dMonthly = document.getElementById('filterMonthlyDeadlines');
+            if (dMonthly) dMonthly.value = 'ANNUAL_ONLY';
+            if (!document.getElementById('section-deadlines')?.classList.contains('hidden')) renderDeadlines();
+            if (!document.getElementById('section-quotes')?.classList.contains('hidden')) renderQuotes();
+            if (!document.getElementById('section-contracts')?.classList.contains('hidden')) {
+                const status = document.getElementById('policyStatusFilter');
+                if (status) status.value = 'ACTIVE';
+                currentActiveClientId = null;
+                renderPolicies(null, false);
+            }
+            updateCRMFocusBanners();
+        }
+
+        function updateCRMOperationalPanel(){
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const todayIso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+            const inSevenDays = new Date(today);
+            inSevenDays.setDate(inSevenDays.getDate() + 7);
+            const sevenIso = `${inSevenDays.getFullYear()}-${String(inSevenDays.getMonth()+1).padStart(2,'0')}-${String(inSevenDays.getDate()).padStart(2,'0')}`;
+            let overdue = 0;
+            let dueSoon = 0;
+            let policyExpirySoon = 0;
+            const inThirtyDays = new Date(today);
+            inThirtyDays.setDate(inThirtyDays.getDate() + 30);
+            const thirtyIso = `${inThirtyDays.getFullYear()}-${String(inThirtyDays.getMonth()+1).padStart(2,'0')}-${String(inThirtyDays.getDate()).padStart(2,'0')}`;
+            (Array.isArray(policies) ? policies : []).forEach(p => {
+                if(p.status !== 'ATTIVA' && p.status !== 'SOSPESA') return;
+                if(p.expiry) {
+                    const expiry = String(p.expiry).slice(0,10);
+                    if(expiry >= todayIso && expiry <= thirtyIso) policyExpirySoon++;
+                }
+                (Array.isArray(p.titles) ? p.titles : []).forEach(t => {
+                    if(t.status !== 'DA INCASSARE' || !t.dueDate) return;
+                    const due = String(t.dueDate).slice(0,10);
+                    if(due < todayIso) overdue++;
+                    else if(due <= sevenIso) dueSoon++;
+                });
+            });
+            const overdueEl = document.getElementById('crm-overdue-count');
+            const dueSoonEl = document.getElementById('crm-due-soon-count');
+            const quotesEl = document.getElementById('crm-quotes-count');
+            const expiryEl = document.getElementById('crm-policy-expiry-count');
+            const dateEl = document.getElementById('crm-today-label');
+            const quotesToFollow = (Array.isArray(quotes) ? quotes : []).filter(q => ['DA LAVORARE','INVIATO','DA RICONTATTARE'].includes(String(q.status || 'DA LAVORARE').toUpperCase())).length;
+            if(overdueEl) overdueEl.textContent = String(overdue);
+            if(dueSoonEl) dueSoonEl.textContent = String(dueSoon);
+            if(quotesEl) quotesEl.textContent = String(quotesToFollow);
+            if(expiryEl) expiryEl.textContent = String(policyExpirySoon);
+            if(dateEl) dateEl.textContent = today.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        }
+
         function updateDashboard(){
             autoCollectSDDTitles();
             document.getElementById('dash-total-clients').innerText = clients.length;
@@ -2150,6 +2433,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
 
             document.getElementById('dash-pending-money').innerText = pendingMonth.toFixed(2);
             document.getElementById('dash-month-inc').innerText = monthInc.toFixed(2);
+            updateCRMOperationalPanel();
 
             // Dashboard Agenda Summary
             const l = document.getElementById('dash-agenda-list');
@@ -2320,7 +2604,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
                 }
 
                 outListContainer.innerHTML += `
-                <div class="p-3 rounded-lg border ${borderClass} hover:bg-slate-800 transition-all mb-2 cursor-pointer" onclick="switchSection('deadlines');">
+                <div class="p-3 rounded-lg border ${borderClass} hover:bg-slate-800 transition-all mb-2 cursor-pointer" onclick="openCRMOperationalFocus('coverage');">
                     <div class="flex items-center justify-between mb-1">
                         <div class="text-sm font-bold text-white leading-none truncate pr-2">${t.cname}</div>
                         <div class="text-xs ${colorClass} whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${statusText}</div>
@@ -2845,16 +3129,14 @@ function getGenderFluoColor(cf) {
         }
 
         function renderContractsDefault(){
-            const recent = getRecentPoliciesList(5);
-            if(recent.length > 0){
-                renderPolicies(recent, false);
-                const st = document.getElementById('contract-subtitle');
-                if(st) st.innerText = 'Ultime 5 viste';
-                const btn = document.getElementById('btn-show-all-contracts');
-                if(btn) btn.classList.remove('hidden');
-            } else {
-                renderPolicies(null, false);
-            }
+            const filter = document.getElementById('policyStatusFilter');
+            if (filter) filter.value = 'ACTIVE';
+            currentActiveClientId = null;
+            renderPolicies(null, false);
+            const st = document.getElementById('contract-subtitle');
+            if (st) st.innerText = 'Portafoglio attivo e sospeso';
+            const btn = document.getElementById('btn-show-all-contracts');
+            if (btn) btn.classList.add('hidden');
         }
 
 
@@ -3450,6 +3732,7 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
 
         // RENDER POLIZZE - CORRETTO PER SOSPENSIONE E RICHIESTA SOSPENSIONE
         function renderPolicies(filteredList = null, showMonthOnly = true) {
+            updateCRMFocusBanners();
             let list = (policies || []);
             if(Array.isArray(filteredList)) {
                 list = filteredList;
@@ -3459,13 +3742,38 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
             if (!filteredList && showMonthOnly) {
                 const now = new Date();
                 list = list.filter(p => { const d = new Date(p.expiry); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
-                document.getElementById('contract-subtitle').innerText = "Scadenze Mese Corrente";
+                document.getElementById('contract-subtitle').innerText = "Scadenze del mese · filtro stato applicato";
                 document.getElementById('btn-show-all-contracts').classList.remove('hidden');
             } else if (!filteredList && !showMonthOnly) {
-                document.getElementById('contract-subtitle').innerText = "Tutte le polizze";
+                document.getElementById('contract-subtitle').innerText = "Portafoglio polizze · filtro stato applicato";
                 document.getElementById('btn-show-all-contracts').classList.add('hidden');
             }
             
+            // Filtro mirato attivato dal contatore "Polizze in scadenza 30 giorni".
+            if (crmOperationalFocus === 'policyExpiry') {
+                const today = new Date(); today.setHours(0,0,0,0);
+                const end = new Date(today); end.setDate(end.getDate() + 30);
+                list = list.filter(p => {
+                    if (p.status !== 'ATTIVA' && p.status !== 'SOSPESA') return false;
+                    if (!p.expiry) return false;
+                    const expiry = new Date(String(p.expiry).slice(0,10) + 'T00:00:00');
+                    return expiry >= today && expiry <= end;
+                });
+            }
+
+            // Filtro predefinito: mostra solo polizze attive/sospese; archivio accessibile dal menu.
+            const statusFilter = document.getElementById('policyStatusFilter')?.value || 'ACTIVE';
+            const nowForStatus = new Date();
+            const todayForStatus = new Date(nowForStatus.getTime() - (nowForStatus.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            list = list.filter(p => {
+                let st = String(p.status || '').toUpperCase();
+                if (p.suspensionStart && p.suspensionEnd && st === 'ATTIVA' && todayForStatus >= p.suspensionStart && todayForStatus <= p.suspensionEnd) st = 'SOSPESA';
+                if (statusFilter === 'ACTIVE') return st === 'ATTIVA' || st === 'SOSPESA' || st === 'RICHIESTA SOSPENSIONE';
+                if (statusFilter === 'SOSTITUITE_ANNULLATE') return st === 'SOSTITUITA' || st === 'ANNULLATA';
+                if (statusFilter === 'SOSTITUITA') return st === 'SOSTITUITA';
+                if (statusFilter === 'ANNULLATA') return st === 'ANNULLATA';
+                return true;
+            });
             const tb = document.getElementById('policiesTableBody'); 
             document.getElementById('policy-count').innerText=list.length; 
             
@@ -3999,6 +4307,7 @@ function getFilteredDeadlines() {
     let all = [];
     policies.forEach(p => {
         if(fComp && p.company !== fComp) return;
+        if (['overdue','dueSoon','coverage'].includes(crmOperationalFocus) && p.status !== 'ATTIVA' && p.status !== 'SOSPESA') return;
 
         p.titles.forEach(t => {
             // Se la polizza è annullata, mostriamo SOLO i titoli attivi (Storni o rate insolute pre-annullamento)
@@ -4011,8 +4320,25 @@ function getFilteredDeadlines() {
                 if(!t.paymentDate || !t.paymentDate.startsWith(fPayDate)) return;
             }
 
+            // Filtri di dettaglio provenienti dal Centro operativo.
+            if (crmOperationalFocus === 'overdue' || crmOperationalFocus === 'dueSoon' || crmOperationalFocus === 'coverage') {
+                if (t.status !== 'DA INCASSARE' || !t.dueDate) return;
+                const due = new Date(String(t.dueDate).slice(0,10) + 'T00:00:00');
+                const today = new Date(); today.setHours(0,0,0,0);
+                const sevenDays = new Date(today); sevenDays.setDate(sevenDays.getDate() + 7);
+                if (crmOperationalFocus === 'overdue' && !(due < today)) return;
+                if (crmOperationalFocus === 'dueSoon' && !(due >= today && due <= sevenDays)) return;
+                if (crmOperationalFocus === 'coverage') {
+                    const policy = policies.find(x => String(x.id) === String(p.id));
+                    if (!policy || (policy.status !== 'ATTIVA' && policy.status !== 'SOSPESA')) return;
+                    const endCoverage = new Date(due); endCoverage.setDate(endCoverage.getDate() + 15);
+                    const diffDays = Math.ceil((endCoverage - today) / (1000 * 60 * 60 * 24));
+                    if (!(diffDays <= 5 && diffDays >= -30)) return;
+                }
+            }
+
             // LOGICA NUOVO FILTRO RATE MENSILI (Corretta per rinnovi 13, 25, 37...)
-            if(fMonthly === 'ANNUAL_ONLY') {
+            if(fMonthly === 'ANNUAL_ONLY' && !['overdue','dueSoon','coverage'].includes(crmOperationalFocus)) {
                 if (Number(p.split) === 12) {
                     const numN = parseInt(t.n);
                     // Controlla se è un numero. Se lo è, verifica che sia 1, 13, 25, 37, ecc.
@@ -4040,6 +4366,7 @@ function getFilteredDeadlines() {
 
         function renderDeadlines(){
             autoCollectSDDTitles();
+            updateCRMFocusBanners();
             const tb = document.getElementById('deadlinesTableBody'); 
             
             const all = getFilteredDeadlines();
@@ -4319,9 +4646,11 @@ function openQuoteModal(id = null) {
             document.getElementById('quoteNumber').value = q.quoteNumber || '';
             document.getElementById('quotePrice').value = q.price || '';
             document.getElementById('quoteNotes').value = q.notes || '';
+            document.getElementById('quoteStatus').value = q.status || 'DA LAVORARE';
         }
     } else {
         document.getElementById('quoteModalTitle').innerText = "Nuovo Preventivo";
+        document.getElementById('quoteStatus').value = 'DA LAVORARE';
         document.getElementById('quoteEffectDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('quoteReminderDate').value = new Date().toISOString().split('T')[0];
     }
@@ -4341,11 +4670,13 @@ function saveQuote(e) {
         const quoteNumber = document.getElementById('quoteNumber').value || '-';
         const price = safeParseFloat(document.getElementById('quotePrice').value) || 0;
         const notes = document.getElementById('quoteNotes').value || '';
+        const status = document.getElementById('quoteStatus')?.value || 'DA LAVORARE';
         const clientName = clients.find(c => String(c.id) === String(clientId))?.name || 'Sconosciuto';
 
         if(!clientId) return alert('Seleziona un cliente.');
 
-        const obj = { id: String(id), clientId: String(clientId), clientName, effectDate, ramo, policyType, company, quoteNumber, price: Number(price), notes };
+        const previousQuote = quotes.find(x => String(x.id) === String(id));
+        const obj = { id: String(id), clientId: String(clientId), clientName, effectDate, ramo, policyType, company, quoteNumber, price: Number(price), notes, status, createdAt: previousQuote?.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
 
         const idx = quotes.findIndex(x => String(x.id) === String(id));
         if(idx >= 0) quotes[idx] = obj; else quotes.push(obj);
@@ -4372,6 +4703,45 @@ function saveQuote(e) {
     } catch(err) { alert('Errore salvataggio preventivo: ' + err.message); }
 }
 
+function updateQuoteStatus(id, status) {
+    const allowed = ['DA LAVORARE','INVIATO','DA RICONTATTARE','ACCETTATO','PERSO'];
+    if (!allowed.includes(status)) return;
+    const q = quotes.find(x => String(x.id) === String(id));
+    if (!q) return;
+    q.status = status; q.updatedAt = new Date().toISOString();
+    if (typeof fbSaveSingleDoc === 'function') fbSaveSingleDoc('quotes', q);
+    if (typeof saveLocalBackup === 'function') saveLocalBackup();
+    renderQuotes();
+}
+
+function showQuoteNotes(id) {
+    const q = quotes.find(x => String(x.id) === String(id));
+    if (q) alert('Dettagli Preventivo:\n\n' + (q.notes || 'Nessuna nota'));
+}
+
+// Prepara la bozza di polizza con i dati del preventivo: l'utente completa e verifica i campi prima di salvare.
+function prepareQuoteConversion(id) {
+    const q = quotes.find(x => String(x.id) === String(id));
+    if (!q) return alert('Preventivo non trovato.');
+    if (!confirm('Preparare una nuova polizza usando i dati di questo preventivo? La polizza non verrà salvata finché non confermi il modulo.')) return;
+    const ramoMap = { 'RCA': 'AUTO', 'RAMI VARI': 'RAMI VARI', 'VITA': 'VITA' };
+    openPolicyModal(q.clientId);
+    const ramoValue = ramoMap[String(q.ramo || '').toUpperCase()] || 'VARI';
+    const ramoRadio = document.querySelector(`input[name="ramo"][value="${ramoValue}"]`);
+    if (ramoRadio) ramoRadio.checked = true;
+    const companySelect = document.getElementById('polCompany');
+    const knownCompanies = ['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'];
+    if (companySelect) {
+        if (knownCompanies.includes(String(q.company || '').toUpperCase())) { companySelect.value = String(q.company).toUpperCase(); }
+        else { companySelect.value = 'ALTRO'; const custom = document.getElementById('polCustomCompany'); if (custom) { custom.value = q.company || ''; custom.classList.remove('hidden'); } }
+    }
+    const eff = document.getElementById('polEffectDate'); if (eff && q.effectDate) eff.value = q.effectDate;
+    const prem = document.getElementById('polAnnualPremium'); if (prem) prem.value = Number(q.price || 0).toFixed(2);
+    const notes = document.getElementById('polNotes'); if (notes) notes.value = `Da preventivo ${q.quoteNumber || ''} · ${q.policyType || ''}${q.notes ? '\n' + q.notes : ''}`;
+    if (typeof updateCommDefaults === 'function') updateCommDefaults();
+    alert('Dati trasferiti nel modulo polizza. Verifica numero di polizza, scadenza, frazionamento e premio prima di salvare. Il preventivo resta in archivio.');
+}
+
 function deleteQuote(id) {
     if(!confirm('Eliminare questo preventivo?')) return;
     
@@ -4392,9 +4762,13 @@ function renderQuotes() {
     if(!tb) return;
     const q = (document.getElementById('searchQuotesInput')?.value || '').trim().toUpperCase();
     let list = quotes.slice();
+    if (crmOperationalFocus === 'quotes') {
+        list = list.filter(x => ['DA LAVORARE','INVIATO','DA RICONTATTARE'].includes(String(x.status || 'DA LAVORARE').toUpperCase()));
+    }
     if(q) {
         list = list.filter(x => String(x.clientName).toUpperCase().includes(q) || String(x.quoteNumber).toUpperCase().includes(q) || String(x.company).toUpperCase().includes(q) || String(x.policyType).toUpperCase().includes(q));
     }
+    updateCRMFocusBanners();
     list.sort((a,b) => String(b.effectDate).localeCompare(String(a.effectDate)));
     
     const countEl = document.getElementById('quotes-count');
@@ -4402,7 +4776,7 @@ function renderQuotes() {
     
     tb.innerHTML = '';
     if(list.length === 0) {
-        tb.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500 font-medium">Nessun preventivo registrato.</td></tr>`;
+        tb.innerHTML = `<tr><td colspan="8" class="px-6 py-8 text-center text-slate-500 font-medium">Nessun preventivo registrato.</td></tr>`;
         return;
     }
     list.forEach(x => {
@@ -4417,10 +4791,16 @@ function renderQuotes() {
                 <td class="px-6 py-4 text-xs text-slate-300">${escapeHtml(x.company)}</td>
                 <td class="px-6 py-4 font-mono text-xs text-slate-400">${x.effectDate ? new Date(x.effectDate).toLocaleDateString('it-IT') : '-'}</td>
                 <td class="px-6 py-4 text-right font-mono text-white font-bold">€ ${Number(x.price).toFixed(2)}</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                    <button onclick="alert('Dettagli Preventivo:\\n\\n' + \`${x.notes ? x.notes.replace(/`/g, '\\`').replace(/'/g, "\\'") : 'Nessuna nota'}\`)" class="text-xs border border-slate-700 text-yellow-500 hover:bg-slate-800 px-2 py-1 rounded" title="Vedi Note"><i class="fa-regular fa-note-sticky"></i></button>
-                    <button class="text-xs border border-slate-700 text-slate-300 hover:bg-slate-800 px-2 py-1 rounded" onclick="openQuoteModal('${escapeHtml(x.id)}')"><i class="fa-solid fa-pen"></i></button>
-                    <button class="text-xs border border-slate-700 text-slate-500 hover:text-red-300 hover:bg-slate-800 px-2 py-1 rounded" onclick="deleteQuote('${escapeHtml(x.id)}')"><i class="fa-solid fa-trash"></i></button>
+                <td class="px-6 py-4">
+                    <select aria-label="Stato preventivo" onchange="updateQuoteStatus('${escapeHtml(x.id)}', this.value)" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white">
+                        ${['DA LAVORARE','INVIATO','DA RICONTATTARE','ACCETTATO','PERSO'].map(st => `<option value="${st}" ${(x.status || 'DA LAVORARE')===st?'selected':''}>${st}</option>`).join('')}
+                    </select>
+                </td>
+                <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                    <button onclick="prepareQuoteConversion('${escapeHtml(x.id)}')" class="text-xs border border-emerald-700 text-emerald-400 hover:bg-slate-800 px-2 py-1 rounded" title="Prepara emissione polizza"><i class="fa-solid fa-file-circle-check"></i></button>
+                    <button onclick="showQuoteNotes('${escapeHtml(x.id)}')" class="text-xs border border-slate-700 text-yellow-500 hover:bg-slate-800 px-2 py-1 rounded" title="Vedi Note"><i class="fa-regular fa-note-sticky"></i></button>
+                    <button class="text-xs border border-slate-700 text-slate-300 hover:bg-slate-800 px-2 py-1 rounded" onclick="openQuoteModal('${escapeHtml(x.id)}')" title="Modifica"><i class="fa-solid fa-pen"></i></button>
+                    <button class="text-xs border border-slate-700 text-slate-500 hover:text-red-300 hover:bg-slate-800 px-2 py-1 rounded" onclick="deleteQuote('${escapeHtml(x.id)}')" title="Elimina"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>`;
     });
@@ -4929,14 +5309,28 @@ function renderClaims(){
 // --- Export/Import/Reset overrides ---
 
 // Export include sinistri
-function downloadBackup(){
-  const data = { clients, policies, appointments, claims, currentUser };
+async function downloadBackup(){
+  let clientActivities = {};
+  try {
+    clientActivities = (typeof window.exportClientActivities === 'function')
+      ? await window.exportClientActivities()
+      : {};
+  } catch (e) {
+    console.error('Esportazione storico attività', e);
+    alert('Non è stato possibile leggere lo storico da Firebase. Il backup conterrà la copia locale disponibile.');
+    clientActivities = (typeof window.getClientActivitiesForBackup === 'function') ? window.getClientActivitiesForBackup() : {};
+  }
+  let crmTasks = [];
+  try { crmTasks = (typeof window.exportCRMTasks === 'function') ? await window.exportCRMTasks() : []; }
+  catch (e) { console.error('Esportazione attività e promemoria', e); crmTasks = (typeof window.getCRMTasksForBackup === 'function') ? window.getCRMTasksForBackup() : []; }
+  const data = { backupVersion: 3, exportedAt: new Date().toISOString(), clients, policies, appointments, quotes: (typeof quotes !== 'undefined' ? quotes : []), claims, clientActivities, crmTasks, currentUser: currentUser ? { uid: currentUser.uid, email: currentUser.email, name: currentUser.name, surname: currentUser.surname } : null };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `backup_evanesse_${new Date().toISOString().split('T')[0]}.json`;
+  a.download = `backup_nexa_${new Date().toISOString().split('T')[0]}.json`;
   a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
 // Import include sinistri e unione intelligente anagrafiche
@@ -5018,6 +5412,12 @@ async function processImport(input){
       appointments = mergeData(appointments, newAppointments);
       claims = mergeData(claims, newClaims);
       if(typeof quotes !== 'undefined') quotes = mergeData(quotes, data.quotes);
+      if (data.clientActivities && typeof window.importClientActivities === 'function') {
+        await window.importClientActivities(data.clientActivities);
+      }
+      if (Array.isArray(data.crmTasks) && typeof window.importCRMTasks === 'function') {
+        await window.importCRMTasks(data.crmTasks);
+      }
 
       // 3. Salva su Firebase
       try{
@@ -5033,7 +5433,7 @@ async function processImport(input){
       }
     } catch(err){
       console.error(err);
-      alert('Il file selezionato non è valido.');
+      alert(err && err.message ? ('Importazione non completata: ' + err.message) : 'Il file selezionato non è valido.');
     }
   };
   reader.readAsText(file);
@@ -5066,7 +5466,7 @@ function switchSection(sectionName){
     document.getElementById('nav-report')?.classList.remove('nav-active');
   } catch(e){}
 
-  ['home','clients','contracts','deadlines','agenda','report','claims','quotes','utility'].forEach(id => {
+  ['home','clients','contracts','deadlines','agenda','report','claims','quotes','tasks','utility'].forEach(id => {
     const el = document.getElementById(`section-${id}`);
     if(el) el.classList.add('hidden');
     const nav = document.getElementById(`nav-${id}`);
@@ -5077,6 +5477,7 @@ function switchSection(sectionName){
     home:      { t:'Dashboard', s:'Panoramica' },
     agenda:    { t:'Agenda', s:'Calendario e appuntamenti' },
     quotes:    { t:'Preventivi', s:'Gestione e promemoria ricontatti' },
+    tasks:     { t:'Le mie attività', s:'Richiami, priorità e promemoria commerciali' },
     clients:   { t:'Clienti', s:'Anagrafica clienti' },
     contracts: { t:'Polizze', s:'Gestione portafoglio' },
     deadlines: { t:'Scadenze', s:'Scadenziario titoli' },
@@ -5095,6 +5496,10 @@ function switchSection(sectionName){
     document.getElementById('section-quotes')?.classList.remove('hidden');
     document.getElementById('nav-quotes')?.classList.add('nav-active');
     renderQuotes();
+  } else if(sectionName === 'tasks'){
+    document.getElementById('section-tasks')?.classList.remove('hidden');
+    document.getElementById('nav-tasks')?.classList.add('nav-active');
+    renderCRMTasks();
   } else if(sectionName === 'clients'){
     document.getElementById('section-clients')?.classList.remove('hidden');
     document.getElementById('nav-clients')?.classList.add('nav-active');
@@ -5107,7 +5512,7 @@ function switchSection(sectionName){
     document.getElementById('section-deadlines')?.classList.remove('hidden');
     document.getElementById('nav-deadlines')?.classList.add('nav-active');
     const fMoD = document.getElementById('filterMonthDeadlines');
-    if(fMoD && !fMoD.value) { 
+    if(fMoD && !fMoD.value && !['overdue','dueSoon','coverage'].includes(crmOperationalFocus)) { 
         const now = new Date(); 
         fMoD.value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`; 
     }
@@ -5695,5 +6100,526 @@ function renderScannerResults(issues, container) {
   }
 </script>
     
+
+<!-- NEXA CRM: scheda cliente unificata -->
+<div id="crmClientProfile" class="fixed inset-0 z-[80] hidden overflow-y-auto bg-slate-950/90 backdrop-blur-sm p-3 md:p-8" role="dialog" aria-modal="true" aria-labelledby="crmProfileName">
+  <div class="max-w-6xl mx-auto rounded-2xl border border-slate-700 bg-[#0b1220] shadow-2xl overflow-hidden">
+    <div class="p-5 md:p-7 border-b border-slate-800 bg-gradient-to-r from-slate-900 to-slate-950">
+      <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div class="flex items-center gap-4 min-w-0">
+          <div id="crmProfileAvatar" class="w-14 h-14 rounded-2xl bg-accent text-slate-950 flex items-center justify-center text-xl font-black shrink-0">N</div>
+          <div class="min-w-0"><div class="text-xs uppercase tracking-[.2em] text-accent font-bold mb-1">Scheda cliente</div><h2 id="crmProfileName" class="text-2xl md:text-3xl font-bold text-white break-words">Cliente</h2><p id="crmProfileMeta" class="text-sm text-slate-400 mt-1"></p></div>
+        </div>
+        <div class="flex flex-wrap gap-2 shrink-0">
+          <button id="crmProfileNewQuote" class="px-3 py-2 rounded-lg bg-accent text-slate-950 text-sm font-bold hover:brightness-110"><i class="fa-solid fa-file-invoice mr-2"></i>Nuovo preventivo</button>
+          <button id="crmProfileNewPolicy" class="px-3 py-2 rounded-lg border border-slate-600 text-white text-sm hover:bg-slate-800"><i class="fa-solid fa-file-circle-plus mr-2"></i>Nuova polizza</button>
+          <button id="crmProfileEdit" class="px-3 py-2 rounded-lg border border-slate-600 text-white text-sm hover:bg-slate-800"><i class="fa-solid fa-pen mr-2"></i>Modifica</button>
+          <button onclick="closeCrmClientProfile()" class="w-10 h-10 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800" aria-label="Chiudi scheda"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="p-4 md:p-7 space-y-6">
+      <div id="crmProfileStats" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-4"><i class="fa-solid fa-address-card text-accent mr-2"></i>Contatti e anagrafica</h3><div id="crmProfileContacts" class="space-y-3 text-sm"></div></section>
+        <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 lg:col-span-2"><div class="flex items-center justify-between gap-3 mb-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300"><i class="fa-solid fa-file-shield text-accent mr-2"></i>Portafoglio polizze</h3><span id="crmProfilePolicyCount" class="text-xs text-slate-500"></span></div><div id="crmProfilePolicies" class="space-y-2"></div></section>
+        <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-4"><i class="fa-solid fa-file-invoice-dollar text-accent mr-2"></i>Preventivi</h3><div id="crmProfileQuotes" class="space-y-2"></div></section>
+        <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-4"><i class="fa-solid fa-car-burst text-accent mr-2"></i>Sinistri</h3><div id="crmProfileClaims" class="space-y-2"></div></section>
+        <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-4"><i class="fa-solid fa-calendar-check text-accent mr-2"></i>Agenda e richiami</h3><div id="crmProfileAgenda" class="space-y-2"></div></section>
+        <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 lg:col-span-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300"><i class="fa-solid fa-clock-rotate-left text-accent mr-2"></i>Storico attività</h3><span id="crmActivitySyncStatus" role="status" aria-live="polite" class="text-[11px] text-amber-300">In attesa di sincronizzazione</span></div>
+          <form id="crmActivityForm" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+            <label class="text-xs text-slate-400">Tipo attività<select id="crmActivityType" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-700 text-slate-100 p-2 text-sm"><option>Telefonata</option><option>Email</option><option>Incontro</option><option>Preventivo</option><option>Rinnovo</option><option>Sinistro</option><option>Nota</option></select></label>
+            <label class="text-xs text-slate-400">Data<input id="crmActivityDate" type="date" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-700 text-slate-100 p-2 text-sm" required></label>
+            <label class="text-xs text-slate-400 md:col-span-2">Attività / esito<textarea id="crmActivityText" rows="2" maxlength="1500" placeholder="Es. contattato il cliente, richiamare venerdì…" class="mt-1 w-full rounded-lg bg-slate-950 border border-slate-700 text-slate-100 p-2 text-sm" required></textarea></label>
+            <div class="md:col-span-4 flex justify-end"><button type="submit" class="px-4 py-2 rounded-lg bg-accent text-slate-950 text-sm font-bold hover:brightness-110"><i class="fa-solid fa-plus mr-2"></i>Registra attività</button></div>
+          </form>
+          <div id="crmActivityList" class="space-y-2"></div>
+        </section>
+        <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 lg:col-span-3"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-3"><i class="fa-solid fa-note-sticky text-accent mr-2"></i>Note cliente</h3><p id="crmProfileNotes" class="text-sm text-slate-300 whitespace-pre-wrap break-words"></p></section>
+      </div>
+      <div class="flex justify-end"><button onclick="closeCrmClientProfile()" class="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Chiudi scheda</button></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const byId = id => document.getElementById(id);
+  const esc = value => (typeof escapeHtml === 'function' ? escapeHtml(String(value ?? '')) : String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])));
+  const money = value => { const n = Number(value); return Number.isFinite(n) ? n.toLocaleString('it-IT',{style:'currency',currency:'EUR'}) : '—'; };
+  const val = (...values) => values.find(v => v !== undefined && v !== null && String(v).trim() !== '') ?? '';
+  const empty = msg => `<p class="text-sm text-slate-500 py-2">${esc(msg)}</p>`;
+  const item = (title, detail, badge='') => `<div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="text-sm font-semibold text-white break-words">${esc(title || 'Senza titolo')}</div><div class="text-xs text-slate-400 mt-1 break-words">${esc(detail || 'Nessun dettaglio')}</div></div>${badge ? `<span class="text-[10px] rounded-full px-2 py-1 border border-slate-700 text-slate-300 whitespace-nowrap">${esc(badge)}</span>` : ''}</div></div>`;
+  const LEGACY_ACTIVITY_KEY = 'nexa_crm_client_activity_v1';
+  const activityCacheKey = uid => `nexa_crm_client_activity_v2_${uid}`;
+  let activeClientId = null;
+  let activityOwnerUid = null;
+  let activityUnsubscribe = null;
+  let activitySnapshotReceived = false;
+  const parseActivityStore = key => { try { const value = JSON.parse(localStorage.getItem(key) || '{}'); return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; } catch (_) { return {}; } };
+  const readActivities = () => parseActivityStore(activityOwnerUid ? activityCacheKey(activityOwnerUid) : LEGACY_ACTIVITY_KEY);
+  const writeActivities = value => {
+    try { localStorage.setItem(activityOwnerUid ? activityCacheKey(activityOwnerUid) : LEGACY_ACTIVITY_KEY, JSON.stringify(value)); return true; }
+    catch (_) { alert('Impossibile salvare lo storico in questo browser. Controlla lo spazio disponibile o le impostazioni di privacy.'); return false; }
+  };
+  const setActivityStatus = (message, tone='amber') => {
+    const el = byId('crmActivitySyncStatus'); if (!el) return;
+    el.textContent = message;
+    el.className = `text-[11px] text-${tone}-300`;
+  };
+  const groupedActivityDocs = snapshot => {
+    const grouped = {};
+    snapshot.forEach(docSnap => {
+      const item = docSnap.data() || {};
+      const cid = String(item.clientId ?? '');
+      if (!cid) return;
+      if (!Array.isArray(grouped[cid])) grouped[cid] = [];
+      grouped[cid].push({ ...item, id: String(item.id || docSnap.id) });
+    });
+    Object.values(grouped).forEach(list => list.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))));
+    return grouped;
+  };
+  const activityDocPath = (uid, activityId) => `users/${uid}/clientActivities/${String(activityId)}`;
+  const syncOneActivity = async activity => {
+    if (!activityOwnerUid || !window.FB || !FB.db) { setActivityStatus('Salvato localmente · accesso Firebase non pronto', 'amber'); return false; }
+    try {
+      await FB.setDoc(FB.doc(FB.db, activityDocPath(activityOwnerUid, activity.id)), { ...activity, clientId: String(activeClientId ?? activity.clientId ?? ''), updatedAt: new Date().toISOString() }, { merge: true });
+      setActivityStatus('Sincronizzato con Firebase', 'emerald');
+      return true;
+    } catch (e) {
+      console.error('Salvataggio attività Firebase', e);
+      setActivityStatus('Non sincronizzato · copia locale conservata', 'amber');
+      return false;
+    }
+  };
+  window.getClientActivitiesForBackup = () => readActivities();
+  window.exportClientActivities = async () => {
+    if (!activityOwnerUid || !window.FB || !FB.db) return readActivities();
+    const snapshot = await FB.getDocs(FB.collection(FB.db, `users/${activityOwnerUid}/clientActivities`));
+    const remote = groupedActivityDocs(snapshot);
+    try { localStorage.setItem(activityCacheKey(activityOwnerUid), JSON.stringify(remote)); } catch (_) {}
+    return remote;
+  };
+  window.importClientActivities = async incoming => {
+    if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) return;
+    const merged = readActivities();
+    const writes = [];
+    Object.entries(incoming).forEach(([clientId, list]) => {
+      if (!Array.isArray(list)) return;
+      if (!Array.isArray(merged[String(clientId)])) merged[String(clientId)] = [];
+      const byId = new Map(merged[String(clientId)].map(a => [String(a.id), a]));
+      list.forEach(raw => {
+        if (!raw || typeof raw !== 'object') return;
+        const item = { ...raw, id: String(raw.id || `${Date.now()}_${Math.random().toString(36).slice(2,8)}`), clientId: String(clientId), type: String(raw.type || 'Nota'), date: String(raw.date || ''), text: String(raw.text || ''), createdAt: String(raw.createdAt || new Date().toISOString()) };
+        byId.set(item.id, item);
+        writes.push(item);
+      });
+      merged[String(clientId)] = Array.from(byId.values());
+    });
+    if (!writeActivities(merged)) throw new Error('Impossibile salvare la copia locale dello storico importato.');
+    if (activityOwnerUid && window.FB && FB.db) {
+      for (const activity of writes) {
+        await FB.setDoc(FB.doc(FB.db, activityDocPath(activityOwnerUid, activity.id)), activity, { merge: true });
+      }
+    }
+    if (activeClientId) renderActivities();
+  };
+  const startActivitySync = async user => {
+    if (activityUnsubscribe) { try { activityUnsubscribe(); } catch (_) {} activityUnsubscribe = null; }
+    activityOwnerUid = user && user.uid ? String(user.uid) : null;
+    activitySnapshotReceived = false;
+    if (!activityOwnerUid) { setActivityStatus('Accedi per sincronizzare lo storico', 'amber'); return; }
+    const uid = activityOwnerUid;
+    const legacy = parseActivityStore(LEGACY_ACTIVITY_KEY);
+    const legacyCount = Object.values(legacy).reduce((n, list) => n + (Array.isArray(list) ? list.length : 0), 0);
+    const marker = `nexa_crm_activity_migrated_${uid}`;
+    if (!localStorage.getItem(marker) && legacyCount > 0) {
+      const ok = confirm(`Sono presenti ${legacyCount} attività salvate nella vecchia versione locale del browser. Vuoi copiarle nell'archivio Firebase dell'account ${user.email || uid}?`);
+      if (ok) {
+        try {
+          const batch = [];
+          Object.entries(legacy).forEach(([clientId, list]) => (Array.isArray(list) ? list : []).forEach(a => batch.push({ ...a, id: String(a.id || `${Date.now()}_${Math.random().toString(36).slice(2,8)}`), clientId: String(clientId) })));
+          for (const activity of batch) await FB.setDoc(FB.doc(FB.db, activityDocPath(uid, activity.id)), activity, { merge: true });
+          localStorage.setItem(marker, 'yes');
+          setActivityStatus('Storico precedente copiato · sincronizzazione attiva', 'emerald');
+        } catch (e) {
+          console.error('Migrazione storico locale', e);
+          setActivityStatus('Migrazione non riuscita · dati locali conservati', 'amber');
+          alert('Non è stato possibile completare la migrazione dello storico. I dati locali originali sono stati conservati; riprova quando la connessione è disponibile.');
+        }
+      } else {
+        setActivityStatus('Vecchio storico locale non migrato', 'amber');
+      }
+    } else if (!localStorage.getItem(marker)) {
+      try { localStorage.setItem(marker, 'yes'); } catch (_) {}
+    }
+    try {
+      activityUnsubscribe = FB.onSnapshot(FB.collection(FB.db, `users/${uid}/clientActivities`), snapshot => {
+        const remote = groupedActivityDocs(snapshot);
+        activitySnapshotReceived = true;
+        try { localStorage.setItem(activityCacheKey(uid), JSON.stringify(remote)); } catch (_) {}
+        setActivityStatus('Sincronizzato con Firebase', 'emerald');
+        if (activeClientId) renderActivities();
+      }, error => {
+        console.error('Lettura storico attività Firebase', error);
+        setActivityStatus('Firebase non raggiungibile · uso copia locale', 'amber');
+      });
+    } catch (e) {
+      console.error('Avvio sincronizzazione attività', e);
+      setActivityStatus('Firebase non disponibile · uso copia locale', 'amber');
+    }
+  };
+  let authAttachAttempts = 0;
+  const attachActivityAuthListener = () => {
+    if (window.FB && FB.auth && typeof FB.onAuthStateChanged === 'function') {
+      FB.onAuthStateChanged(FB.auth, user => { startActivitySync(user).catch(e => { console.error(e); setActivityStatus('Errore sincronizzazione', 'amber'); }); });
+      return;
+    }
+    if (++authAttachAttempts < 300) setTimeout(attachActivityAuthListener, 50);
+    else setActivityStatus('Firebase non pronto · attività in modalità locale', 'amber');
+  };
+  attachActivityAuthListener();
+  const renderActivities = () => {
+    const list = byId('crmActivityList'); if (!list || !activeClientId) return;
+    const all = readActivities(); const entries = Array.isArray(all[activeClientId]) ? all[activeClientId] : [];
+    list.innerHTML = entries.length ? entries.slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).map(a=>`<article class="rounded-lg border border-slate-800 bg-slate-950/50 p-3"><div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2"><div class="min-w-0"><div class="text-sm font-semibold text-white">${esc(a.type || 'Nota')} <span class="text-xs font-normal text-slate-400 ml-2">${esc(a.date || '')}</span></div><p class="text-sm text-slate-300 whitespace-pre-wrap break-words mt-1">${esc(a.text || '')}</p></div><button type="button" data-activity-delete="${esc(a.id)}" class="self-start text-xs text-red-300 border border-red-900/60 rounded px-2 py-1 hover:bg-red-950/50">Elimina</button></div></article>`).join('') : empty('Nessuna attività registrata per questo cliente.');
+    list.querySelectorAll('[data-activity-delete]').forEach(button=>button.addEventListener('click', async ()=>{
+      if(!confirm('Eliminare questa attività dallo storico del cliente?')) return;
+      const id = String(button.getAttribute('data-activity-delete') || '');
+      try {
+        if (activityOwnerUid && window.FB && FB.db) await FB.deleteDoc(FB.doc(FB.db, activityDocPath(activityOwnerUid, id)));
+        const current=readActivities();
+        current[activeClientId]=(Array.isArray(current[activeClientId])?current[activeClientId]:[]).filter(a=>String(a.id)!==id);
+        if(writeActivities(current)) { renderActivities(); setActivityStatus(activityOwnerUid ? 'Sincronizzato con Firebase' : 'Salvato localmente', activityOwnerUid ? 'emerald' : 'amber'); }
+      } catch(e) {
+        console.error('Eliminazione attività', e);
+        alert('Non è stato possibile eliminare l’attività da Firebase. La registrazione è rimasta nello storico.');
+      }
+    }));
+  };
+  byId('crmActivityForm')?.addEventListener('submit', async event=>{
+    event.preventDefault(); if(!activeClientId) return;
+    const type=byId('crmActivityType')?.value || 'Nota'; const date=byId('crmActivityDate')?.value || ''; const field=byId('crmActivityText'); const textValue=(field?.value || '').trim();
+    if(!date || !textValue){ alert('Inserisci una data e una descrizione dell’attività.'); return; }
+    const activity = { id:`${Date.now()}_${Math.random().toString(36).slice(2,8)}`, clientId:String(activeClientId), type, date, text:textValue, createdAt:new Date().toISOString() };
+    const all=readActivities(); if(!Array.isArray(all[activeClientId])) all[activeClientId]=[];
+    all[activeClientId].push(activity);
+    if(writeActivities(all)){
+      field.value=''; renderActivities();
+      if (activityOwnerUid) await syncOneActivity(activity);
+      else setActivityStatus('Salvato localmente · accedi per sincronizzare', 'amber');
+    }
+  });
+  byId('crmActivityDate').value = new Date().toISOString().slice(0,10);
+  window.closeCrmClientProfile = function(){ byId('crmClientProfile')?.classList.add('hidden'); activeClientId=null; };
+  window.openClientDetail = function(id){
+    const client = (Array.isArray(clients)?clients:[]).find(c => String(c.id) === String(id));
+    if(!client) { alert('Cliente non trovato. Aggiorna la lista e riprova.'); return; }
+    const cid = String(client.id);
+    activeClientId = cid;
+    const ps = (Array.isArray(policies)?policies:[]).filter(p => String(p.clientId) === cid);
+    const qs = (typeof quotes !== 'undefined' && Array.isArray(quotes)?quotes:[]).filter(q => String(q.clientId) === cid);
+    const cs = (typeof claims !== 'undefined' && Array.isArray(claims)?claims:[]).filter(c => String(c.clientId) === cid);
+    const as = (Array.isArray(appointments)?appointments:[]).filter(a => String(a.clientId||'') === cid || (a.title && String(a.title).toLowerCase().includes(String(client.name||'').toLowerCase()))).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+    byId('crmProfileName').textContent = client.name || 'Cliente senza nome';
+    byId('crmProfileAvatar').textContent = String(client.name||'N').trim().charAt(0).toUpperCase() || 'N';
+    byId('crmProfileMeta').textContent = [client.cf, client.isDeceased?'Deceduto':(client.isCeased?'Attività cessata':'Cliente')].filter(Boolean).join(' · ');
+    byId('crmProfileStats').innerHTML = [
+      ['Polizze',ps.length,'fa-file-shield'],['Preventivi',qs.length,'fa-file-invoice-dollar'],['Sinistri aperti',cs.filter(c=>!c.closed).length,'fa-car-burst'],['Richiami / eventi',as.length,'fa-calendar-check']
+    ].map(([label,count,ico])=>`<div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4"><div class="flex items-center justify-between text-slate-400 text-xs uppercase tracking-wider"><span>${label}</span><i class="fa-solid ${ico} text-accent"></i></div><div class="text-2xl font-bold text-white mt-2">${count}</div></div>`).join('');
+    const contactRows = [
+      ['Telefono',client.phone ? `<a class="text-accent hover:underline" href="tel:${esc(client.phone)}">${esc(client.phone)}</a>` : '<span class="text-slate-500">Non indicato</span>'],
+      ['Email',client.email ? `<a class="text-accent hover:underline break-all" href="mailto:${esc(client.email)}">${esc(client.email)}</a>` : '<span class="text-slate-500">Non indicata</span>'],
+      ['Data di nascita',esc(client.birthDate||'Non indicata')],['Indirizzo',esc(client.address||'Non indicato')],
+      ['Relazione',esc(client.relation ? `${client.relation.type||'Collegamento'}: ${client.relation.name||''}` : 'Nessuna relazione registrata')]
+    ];
+    byId('crmProfileContacts').innerHTML = contactRows.map(([label,value])=>`<div><div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">${label}</div><div class="text-slate-200 break-words">${value}</div></div>`).join('');
+    byId('crmProfilePolicyCount').textContent = `${ps.length} registrate`;
+    byId('crmProfilePolicies').innerHTML = ps.length ? ps.map(p=>item(val(p.policyNumber,p.number,p.name,'Polizza'),`${val(p.company,'Compagnia non indicata')} · Scadenza: ${val(p.expiryDate,p.endDate,p.expirationDate,p.dueDate,'non disponibile')} · Premio: ${money(val(p.premium,p.annualPremium,p.premiumAmount,p.price))}`,val(p.status,'Stato n/d'))).join('') : empty('Nessuna polizza collegata a questa anagrafica.');
+    byId('crmProfileQuotes').innerHTML = qs.length ? qs.map(q=>item(val(q.quoteNumber,q.number,'Preventivo'),`${val(q.ramo,'Ramo n/d')} · ${val(q.company,'Compagnia n/d')} · ${val(q.effectDate,'Decorrenza n/d')} · ${money(q.price)}`,val(q.status,'In archivio'))).join('') : empty('Nessun preventivo registrato.');
+    byId('crmProfileClaims').innerHTML = cs.length ? cs.map(c=>item(`Sinistro ${val(c.claimNumber,'senza numero')}`,`${val(c.company,'Compagnia n/d')} · Polizza ${val(c.policyNumber,'n/d')} · Apertura ${val(c.openedAt,'n/d')}`,c.closed?'Chiuso':'Aperto')).join('') : empty('Nessun sinistro collegato.');
+    byId('crmProfileAgenda').innerHTML = as.length ? as.slice(0,8).map(a=>item(val(a.title,'Appuntamento'),`${val(a.date,'Data n/d')} ${val(a.time,'')} `,a.date && a.date < new Date().toISOString().slice(0,10) ? 'Da verificare' : 'Agenda')).join('') : empty('Nessun richiamo collegato individuato.');
+    byId('crmProfileNotes').textContent = client.notes || 'Nessuna nota inserita.';
+    byId('crmActivityDate').value = new Date().toISOString().slice(0,10);
+    byId('crmActivityText').value = '';
+    renderActivities();
+    byId('crmProfileEdit').onclick = ()=>{ closeCrmClientProfile(); openModal(client.id); };
+    byId('crmProfileNewQuote').onclick = ()=>{ closeCrmClientProfile(); openQuoteModal(); const sel=byId('quoteClientSelect'); if(sel) sel.value=String(client.id); };
+    byId('crmProfileNewPolicy').onclick = ()=>{ closeCrmClientProfile(); if(typeof openPolicyModal==='function') openPolicyModal(client.id); else if(typeof openPolicyModalWithFilter==='function') openPolicyModalWithFilter(); };
+    byId('crmClientProfile').classList.remove('hidden');
+  };
+  document.addEventListener('keydown', e=>{if(e.key==='Escape') closeCrmClientProfile();});
+  byId('crmClientProfile')?.addEventListener('click', e=>{if(e.target===byId('crmClientProfile')) closeCrmClientProfile();});
+})();
+</script>
+
+
+<script>
+/* NEXA CRM v9.0 — attività e promemoria commerciali */
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = value => (typeof escapeHtml === 'function')
+    ? escapeHtml(String(value ?? ''))
+    : String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const todayISO = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  };
+  const uidKey = uid => `nexa_crm_tasks_v1_${uid || 'local'}`;
+  let ownerUid = null;
+  let tasks = [];
+  let taskUnsubscribe = null;
+  let focus = 'open';
+  const statusOpen = t => !['Completata','Annullata'].includes(String(t.status || 'Da fare'));
+  const dateCmp = (a,b) => String(a || '').localeCompare(String(b || ''));
+  const localRead = () => {
+    try { const x = JSON.parse(localStorage.getItem(uidKey(ownerUid)) || '[]'); return Array.isArray(x) ? x : []; }
+    catch(_) { return []; }
+  };
+  const localWrite = () => {
+    try { localStorage.setItem(uidKey(ownerUid), JSON.stringify(tasks)); return true; }
+    catch(e) { console.error('Cache attività NEXA',e); setSync('Errore archivio locale · esporta un backup', 'rose'); return false; }
+  };
+  const setSync = (msg, tone='slate') => {
+    const el = $('crm-tasks-sync-status');
+    if(el) { el.textContent = msg; el.className = `text-xs text-${tone}-300`; }
+  };
+  const taskDoc = id => `users/${ownerUid}/crmTasks/${String(id)}`;
+  const syncTask = async task => {
+    if(!ownerUid || !window.FB || !FB.db || typeof FB.setDoc !== 'function') {
+      setSync(ownerUid ? 'Salvato localmente · Firebase non pronto' : 'Salvato solo in questo browser', 'amber');
+      return false;
+    }
+    try {
+      await FB.setDoc(FB.doc(FB.db, taskDoc(task.id)), {...task, updatedAt: new Date().toISOString()}, {merge:true});
+      setSync('Sincronizzazione Firebase attiva', 'emerald');
+      return true;
+    } catch(e) {
+      console.error('Sincronizzazione attività NEXA',e);
+      setSync('Non sincronizzato · copia locale conservata', 'amber');
+      return false;
+    }
+  };
+  const pushDelete = async id => {
+    if(!ownerUid || !window.FB || !FB.db || typeof FB.deleteDoc !== 'function') return false;
+    try { await FB.deleteDoc(FB.doc(FB.db, taskDoc(id))); return true; }
+    catch(e) { console.error('Eliminazione attività Firebase',e); setSync('Eliminazione non sincronizzata · verifica Firebase', 'amber'); return false; }
+  };
+  const mergeById = (a,b) => {
+    const map = new Map();
+    [...(Array.isArray(a)?a:[]),...(Array.isArray(b)?b:[])].forEach(t=>{
+      if(!t || t.id == null) return;
+      const id = String(t.id);
+      const prior = map.get(id);
+      if(!prior || String(t.updatedAt || t.createdAt || '') >= String(prior.updatedAt || prior.createdAt || '')) map.set(id,{...t,id});
+    });
+    return Array.from(map.values());
+  };
+  const populateClients = selected => {
+    const sel = $('crm-task-client'); if(!sel) return;
+    const previous = selected ?? sel.value;
+    const list = (typeof clients !== 'undefined' && Array.isArray(clients)) ? clients : [];
+    sel.innerHTML = '<option value="">Nessun cliente collegato</option>' + list
+      .slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'it'))
+      .map(c=>`<option value="${esc(c.id)}">${esc(c.name || 'Cliente senza nome')}${c.cf ? ' · '+esc(c.cf) : ''}</option>`).join('');
+    sel.value = String(previous || '');
+  };
+  const visibleTasks = () => {
+    const today = todayISO();
+    const search = String($('crm-task-search')?.value || '').trim().toLocaleLowerCase('it');
+    return tasks.filter(t=>{
+      const status = String(t.status || 'Da fare');
+      const due = String(t.dueDate || '');
+      if(focus === 'open' && !statusOpen(t)) return false;
+      if(focus === 'overdue' && !(statusOpen(t) && due && due < today)) return false;
+      if(focus === 'today' && !(statusOpen(t) && due === today)) return false;
+      if(focus === 'upcoming' && !(statusOpen(t) && due > today)) return false;
+      if(focus === 'completed' && status !== 'Completata') return false;
+      const client = ((typeof clients !== 'undefined' && Array.isArray(clients)) ? clients : []).find(c=>String(c.id)===String(t.clientId||''));
+      const haystack = [t.title,t.type,t.notes,client?.name,t.status,t.priority].join(' ').toLocaleLowerCase('it');
+      return !search || haystack.includes(search);
+    }).sort((a,b)=>{
+      const ao = statusOpen(a), bo = statusOpen(b);
+      if(ao !== bo) return ao ? -1 : 1;
+      const p = {'Urgente':0,'Alta':1,'Normale':2,'Bassa':3};
+      if((p[a.priority] ?? 2) !== (p[b.priority] ?? 2)) return (p[a.priority] ?? 2)-(p[b.priority] ?? 2);
+      return dateCmp(a.dueDate,b.dueDate) || dateCmp(b.updatedAt || b.createdAt,a.updatedAt || a.createdAt);
+    });
+  };
+  const badge = (text, color) => `<span class="inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-bold ${color}">${esc(text)}</span>`;
+  const taskCard = t => {
+    const client = ((typeof clients !== 'undefined' && Array.isArray(clients)) ? clients : []).find(c=>String(c.id)===String(t.clientId||''));
+    const due = String(t.dueDate || '');
+    const today = todayISO();
+    const late = statusOpen(t) && due && due < today;
+    const dueBadge = late ? badge('SCADUTA','border-rose-500/40 bg-rose-500/10 text-rose-300')
+      : due === today && statusOpen(t) ? badge('OGGI','border-amber-500/40 bg-amber-500/10 text-amber-300')
+      : badge(t.status || 'Da fare', t.status === 'Completata' ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' : 'border-slate-600 bg-slate-800 text-slate-300');
+    const priorityClass = t.priority === 'Urgente' ? 'text-rose-300' : t.priority === 'Alta' ? 'text-amber-300' : 'text-slate-400';
+    return `<article class="rounded-xl border ${late?'border-rose-500/30':'border-slate-800'} bg-slate-950/40 p-4">
+      <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2 mb-2">${dueBadge}${badge(t.type || 'Altro','border-slate-700 bg-slate-900 text-slate-300')}<span class="text-[11px] font-bold ${priorityClass}">Priorità ${esc(t.priority || 'Normale')}</span></div>
+          <h4 class="text-white font-bold break-words">${esc(t.title || 'Attività senza titolo')}</h4>
+          <div class="text-xs text-slate-400 mt-1">${due ? 'Scadenza: '+esc(due) : 'Senza scadenza'}${client ? ' · Cliente: '+esc(client.name || '') : ''}</div>
+          ${t.notes ? `<p class="text-sm text-slate-300 mt-3 whitespace-pre-wrap break-words">${esc(t.notes)}</p>` : ''}
+          ${client ? `<button type="button" onclick="openClientDetail('${esc(client.id)}')" class="mt-3 text-xs text-accent hover:underline"><i class="fa-solid fa-user mr-1"></i>Apri scheda cliente</button>` : ''}
+        </div>
+        <div class="flex flex-wrap gap-2 shrink-0">
+          <select aria-label="Stato attività" onchange="updateCRMTaskStatus('${esc(t.id)}',this.value)" class="bg-deep border border-slate-700 rounded-lg px-2 py-2 text-xs text-white">
+            ${['Da fare','In corso','Completata'].map(s=>`<option ${String(t.status||'Da fare')===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <button type="button" onclick="editCRMTask('${esc(t.id)}')" class="rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 hover:text-white" title="Modifica"><i class="fa-solid fa-pen"></i></button>
+          <button type="button" onclick="deleteCRMTask('${esc(t.id)}')" class="rounded-lg border border-rose-900/50 px-3 py-2 text-xs text-rose-300 hover:bg-rose-950/50" title="Elimina"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    </article>`;
+  };
+  window.renderCRMTasks = function(){
+    const list = $('crm-task-list'); if(!list) return;
+    populateClients();
+    const today = todayISO();
+    const open = tasks.filter(statusOpen);
+    const overdue = open.filter(t=>t.dueDate && t.dueDate < today).length;
+    const dueToday = open.filter(t=>t.dueDate === today).length;
+    const upcoming = open.filter(t=>t.dueDate && t.dueDate > today).length;
+    if($('crm-task-open-count')) $('crm-task-open-count').textContent = String(open.length);
+    if($('crm-task-open-count-dashboard')) $('crm-task-open-count-dashboard').textContent = String(open.length);
+    if($('crm-task-overdue-count')) $('crm-task-overdue-count').textContent = String(overdue);
+    if($('crm-task-today-count')) $('crm-task-today-count').textContent = String(dueToday);
+    if($('crm-task-upcoming-count')) $('crm-task-upcoming-count').textContent = String(upcoming);
+    if($('nav-tasks-count')) $('nav-tasks-count').textContent = String(overdue + dueToday);
+    document.querySelectorAll('[data-crm-task-filter]').forEach(btn=>{
+      const active = btn.getAttribute('data-crm-task-filter') === focus;
+      btn.className = `crm-task-filter rounded-lg px-3 py-2 text-xs font-bold border ${active?'border-slate-600 text-white bg-slate-800':'border-slate-700 text-slate-400'}`;
+    });
+    const focusLabel = {open:'attività aperte',overdue:'attività scadute',today:'attività da fare oggi',upcoming:'attività dei prossimi giorni',completed:'attività completate',all:'tutte le attività'};
+    const filtered = visibleTasks();
+    if(!filtered.length) {
+      list.innerHTML = `<div class="rounded-xl border border-dashed border-slate-700 p-8 text-center"><i class="fa-solid fa-check-circle text-emerald-400 text-2xl"></i><p class="text-white font-semibold mt-3">Nessuna ${esc(focusLabel[focus] || 'attività')} da mostrare</p><p class="text-xs text-slate-500 mt-1">Puoi aggiungere una nuova attività oppure cambiare filtro.</p></div>`;
+    } else {
+      const groups = [
+        ['Scadute', filtered.filter(t=>statusOpen(t)&&t.dueDate&&t.dueDate<today)],
+        ['Oggi', filtered.filter(t=>statusOpen(t)&&t.dueDate===today)],
+        ['Prossimi giorni', filtered.filter(t=>statusOpen(t)&&t.dueDate>today)],
+        ['Senza scadenza / altre', filtered.filter(t=>!t.dueDate || (!statusOpen(t)))],
+      ].filter(g=>g[1].length);
+      list.innerHTML = groups.map(([label,items])=>`<section><h4 class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-3">${esc(label)} <span class="text-slate-600">(${items.length})</span></h4><div class="space-y-3">${items.map(taskCard).join('')}</div></section>`).join('');
+    }
+  };
+  window.openCRMTaskFocus = function(which='open'){
+    focus = ['open','overdue','today','upcoming','completed','all'].includes(which) ? which : 'open';
+    if(typeof switchSection === 'function') switchSection('tasks');
+    renderCRMTasks();
+  };
+  window.openCRMTaskForm = function(task=null){
+    populateClients(task?.clientId || '');
+    $('crm-task-form-title').textContent = task ? 'Modifica attività' : 'Nuova attività';
+    $('crm-task-edit-id').value = task ? String(task.id) : '';
+    $('crm-task-title').value = task?.title || '';
+    $('crm-task-type').value = task?.type || 'Telefonata';
+    $('crm-task-client').value = String(task?.clientId || '');
+    $('crm-task-due').value = task?.dueDate || todayISO();
+    $('crm-task-priority').value = task?.priority || 'Normale';
+    $('crm-task-status').value = task?.status || 'Da fare';
+    $('crm-task-notes').value = task?.notes || '';
+    $('crm-task-form').classList.remove('hidden');
+    $('crm-task-title').focus();
+  };
+  window.closeCRMTaskForm = function(){ $('crm-task-form')?.classList.add('hidden'); };
+  window.saveCRMTask = async function(){
+    const title = String($('crm-task-title')?.value || '').trim();
+    const dueDate = String($('crm-task-due')?.value || '');
+    if(!title) { alert('Inserisci una descrizione per l’attività.'); $('crm-task-title')?.focus(); return; }
+    if(!dueDate) { alert('Inserisci una scadenza per l’attività.'); $('crm-task-due')?.focus(); return; }
+    const id = String($('crm-task-edit-id')?.value || `task_${Date.now()}_${Math.random().toString(36).slice(2,8)}`);
+    const existing = tasks.find(t=>String(t.id)===id);
+    const task = {
+      ...(existing || {}), id, title, type: String($('crm-task-type').value || 'Altro'),
+      clientId: String($('crm-task-client').value || ''),
+      dueDate, priority: String($('crm-task-priority').value || 'Normale'),
+      status: String($('crm-task-status').value || 'Da fare'),
+      notes: String($('crm-task-notes').value || '').trim(),
+      createdAt: existing?.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString()
+    };
+    tasks = mergeById(tasks,[task]);
+    localWrite();
+    closeCRMTaskForm();
+    renderCRMTasks();
+    if(ownerUid) await syncTask(task); else setSync('Salvato solo in questo browser', 'amber');
+  };
+  window.editCRMTask = function(id){ const t=tasks.find(x=>String(x.id)===String(id)); if(t) openCRMTaskForm(t); };
+  window.updateCRMTaskStatus = async function(id,status){
+    const t=tasks.find(x=>String(x.id)===String(id)); if(!t) return;
+    t.status = ['Da fare','In corso','Completata'].includes(status) ? status : 'Da fare';
+    t.updatedAt = new Date().toISOString(); localWrite(); renderCRMTasks();
+    if(ownerUid) await syncTask(t);
+  };
+  window.deleteCRMTask = async function(id){
+    const t=tasks.find(x=>String(x.id)===String(id)); if(!t) return;
+    if(!confirm(`Vuoi eliminare l’attività "${t.title}"?`)) return;
+    tasks = tasks.filter(x=>String(x.id)!==String(id)); localWrite(); renderCRMTasks();
+    if(ownerUid) await pushDelete(id);
+  };
+  window.getCRMTasksForBackup = () => tasks.slice();
+  window.exportCRMTasks = async () => {
+    if(!ownerUid || !window.FB || !FB.db || typeof FB.getDocs !== 'function') return tasks.slice();
+    try {
+      const snap = await FB.getDocs(FB.collection(FB.db,`users/${ownerUid}/crmTasks`));
+      const remote = []; snap.forEach(d=>remote.push({...d.data(),id:String(d.data()?.id || d.id)}));
+      tasks = mergeById(tasks,remote); localWrite(); renderCRMTasks(); return tasks.slice();
+    } catch(e) { console.error('Backup promemoria Firebase',e); return tasks.slice(); }
+  };
+  window.importCRMTasks = async incoming => {
+    if(!Array.isArray(incoming)) return;
+    tasks = mergeById(tasks,incoming.map(t=>({...t,id:String(t.id || `task_${Date.now()}_${Math.random().toString(36).slice(2,8)}`)})));
+    localWrite(); renderCRMTasks();
+    if(ownerUid) for(const t of incoming) await syncTask(t);
+  };
+  const attachAuth = () => {
+    if(taskUnsubscribe) { try { taskUnsubscribe(); } catch(_){} taskUnsubscribe=null; }
+    if(!window.FB || !FB.auth || typeof FB.onAuthStateChanged !== 'function') {
+      setSync('Attività locali · Firebase non pronto', 'amber'); return;
+    }
+    FB.onAuthStateChanged(FB.auth, user => {
+      if(taskUnsubscribe) { try { taskUnsubscribe(); } catch(_){} taskUnsubscribe=null; }
+      ownerUid = user?.uid ? String(user.uid) : null;
+      tasks = localRead();
+      renderCRMTasks();
+      if(!ownerUid) { setSync('Salvato solo in questo browser', 'amber'); return; }
+      try {
+        taskUnsubscribe = FB.onSnapshot(FB.collection(FB.db,`users/${ownerUid}/crmTasks`), snapshot => {
+          const remote=[]; snapshot.forEach(d=>remote.push({...d.data(),id:String(d.data()?.id || d.id)}));
+          const local = localRead();
+          const merged = mergeById(remote,local);
+          const remoteIds = new Set(remote.map(t=>String(t.id)));
+          tasks = merged;
+          localWrite();
+          setSync('Sincronizzazione Firebase attiva','emerald');
+          renderCRMTasks();
+          merged.filter(t=>!remoteIds.has(String(t.id))).forEach(t=>syncTask(t));
+        }, error => {
+          console.error('Lettura attività Firebase',error);
+          setSync('Firebase non raggiungibile · copia locale conservata','amber');
+        });
+      } catch(e) { console.error(e); setSync('Firebase non disponibile · copia locale conservata','amber'); }
+    });
+  };
+  let attempts = 0;
+  const waitForFirebase = () => {
+    if(window.FB && FB.auth && typeof FB.onAuthStateChanged === 'function') attachAuth();
+    else if(++attempts < 300) setTimeout(waitForFirebase,50);
+    else setSync('Firebase non pronto · attività locali disponibili','amber');
+  };
+  window.addEventListener('load', () => {
+    $('crm-task-due').value = todayISO();
+    populateClients();
+    renderCRMTasks();
+    waitForFirebase();
+  });
+})();
+</script>
+
 </body>
 </html>
