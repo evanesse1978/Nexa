@@ -3439,7 +3439,7 @@ function getGenderFluoColor(cf) {
             else{editingPolicyId=null; document.getElementById('polModalTitle').innerText="Nuova Polizza";}
             updatePolicyTitlesEditOption();
         }
-        function closePolicyModal(){document.getElementById('policyModal').classList.add('hidden'); editingPolicyId=null; window.replacementSourcePolicyId=null; window.isReplacingPolicy=false; const opt=document.getElementById('regeneratePolicyTitles'); if(opt) opt.checked=false;}
+        function closePolicyModal(){document.getElementById('policyModal').classList.add('hidden'); editingPolicyId=null; window.replacementSourcePolicyId=null; window.isReplacingPolicy=false; const opt=document.getElementById('regeneratePolicyTitles'); if(opt) opt.checked=false; if(typeof window.nexaRestoreClientProfileAfterPolicyAction==='function') window.setTimeout(()=>window.nexaRestoreClientProfileAfterPolicyAction(),80); }
         function updatePolicyTitlesEditOption(){
             const editing = editingPolicyId != null;
             const regenerate = !!document.getElementById('regeneratePolicyTitles')?.checked;
@@ -4650,7 +4650,7 @@ p.status = 'ATTIVA';
         </tr>`;
     });
 }
-        function closePolicyTitles(){document.getElementById('policyTitlesModal').classList.add('hidden'); currentViewingPolicyId=null;}
+        function closePolicyTitles(){document.getElementById('policyTitlesModal').classList.add('hidden'); currentViewingPolicyId=null; if(typeof window.nexaRestoreClientProfileAfterPolicyAction==='function') window.setTimeout(()=>window.nexaRestoreClientProfileAfterPolicyAction(),80);}
         function calcLivePersonale(tid, val, perc) { const tot = safeParseFloat(val); const pers = (tot * perc / 100).toFixed(2); document.getElementById('pers-'+tid).value = pers; }
         // UPDATE FUNZIONI: ORA CHIAMANO renderDeadlines() invece di renderTitles()
         function updateCommTotal(polId, titId, val) {
@@ -5098,6 +5098,15 @@ function getFilteredDeadlines() {
             }
         }
 
+        // NEXA v27: esponi esplicitamente le funzioni polizza usate anche dalla scheda cliente.
+        // Le funzioni restano le stesse dell'elenco Polizze: nessuna logica duplicata.
+        window.openPolicyModal = openPolicyModal;
+        window.openPolicyTitles = openPolicyTitles;
+        window.suspendPolicy = suspendPolicy;
+        window.reactivatePolicy = reactivatePolicy;
+        window.cancelPolicy = cancelPolicy;
+        window.replacePolicy = replacePolicy;
+        window.renewPolicy = renewPolicy;
 
 
     </script>
@@ -5570,6 +5579,7 @@ function openClaimModal(policyId=null, claimId=null){
 
 function closeClaimModal(){
   document.getElementById('claimModal')?.classList.add('hidden');
+  if(typeof window.nexaRestoreClientProfileAfterPolicyAction==='function') window.setTimeout(()=>window.nexaRestoreClientProfileAfterPolicyAction(),80);
 }
 
 function onClaimClosedToggle(){
@@ -6973,14 +6983,14 @@ function renderScannerResults(issues, container) {
         const branch = typeof branchIconMarkup==='function' ? branchIconMarkup(p.ramo,true) : `<i class="fa-solid fa-file-shield"></i> ${esc(val(p.ramo,'Ramo n/d'))}`;
         const active = st==='ATTIVA' || st==='SOSPESA' || st==='RICHIESTA SOSPENSIONE';
         const actions = [
-          `<button type="button" onclick="nexaOpenPolicyFromProfile(${pidJs})" class="px-2 py-1.5 rounded border border-slate-600 text-xs text-white hover:bg-slate-800" title="Apri/modifica polizza"><i class="fa-solid fa-pen mr-1"></i>Apri</button>`,
-          `<button type="button" onclick="nexaOpenPolicyTitlesFromProfile(${pidJs})" class="px-2 py-1.5 rounded border border-sky-700 text-xs text-sky-300 hover:bg-sky-950/50" title="Rate, incassi e provvigioni"><i class="fa-solid fa-list-ol mr-1"></i>Titoli</button>`,
-          active ? `<button type="button" onclick="nexaProfilePolicyAction('claim',${pidJs})" class="px-2 py-1.5 rounded border border-amber-800 text-xs text-amber-300 hover:bg-amber-950/40" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Sinistro</button>` : '',
-          st==='ATTIVA' ? `<button type="button" onclick="nexaProfilePolicyAction('suspend',${pidJs})" class="px-2 py-1.5 rounded border border-violet-800 text-xs text-violet-300 hover:bg-violet-950/40" title="Sospendi polizza"><i class="fa-solid fa-pause mr-1"></i>Sospendi</button>` : '',
-          (st==='SOSPESA' || (p.suspensionStart && p.suspensionEnd)) ? `<button type="button" onclick="nexaProfilePolicyAction('reactivate',${pidJs})" class="px-2 py-1.5 rounded border border-emerald-800 text-xs text-emerald-300 hover:bg-emerald-950/40" title="Riattiva polizza"><i class="fa-solid fa-play mr-1"></i>Riattiva</button>` : '',
-          st==='ATTIVA' ? `<button type="button" onclick="nexaProfilePolicyAction('cancel',${pidJs})" class="px-2 py-1.5 rounded border border-rose-800 text-xs text-rose-300 hover:bg-rose-950/40" title="Annulla polizza"><i class="fa-solid fa-ban mr-1"></i>Annulla</button>` : '',
-          !['SOSTITUITA','ANNULLATA'].includes(st) ? `<button type="button" onclick="nexaProfilePolicyAction('replace',${pidJs})" class="px-2 py-1.5 rounded border border-blue-800 text-xs text-blue-300 hover:bg-blue-950/40" title="Sostituisci polizza"><i class="fa-solid fa-right-left mr-1"></i>Sostituisci</button>` : '',
-          st==='ATTIVA' ? `<button type="button" onclick="nexaProfilePolicyAction('renew',${pidJs})" class="px-2 py-1.5 rounded border border-accent text-xs text-accent hover:bg-slate-800" title="Genera rinnovo"><i class="fa-solid fa-calendar-plus mr-1"></i>Rinnova</button>` : ''
+          `<button type="button" data-nexa-profile-action="edit" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-slate-600 text-xs text-white hover:bg-slate-800" title="Modifica i dati della polizza"><i class="fa-solid fa-pen mr-1"></i>Modifica</button>`,
+          `<button type="button" data-nexa-profile-action="titles" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-sky-700 text-xs text-sky-300 hover:bg-sky-950/50" title="Rate, incassi e provvigioni"><i class="fa-solid fa-list-ol mr-1"></i>Titoli</button>`,
+          active ? `<button type="button" data-nexa-profile-action="claim" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-amber-800 text-xs text-amber-300 hover:bg-amber-950/40" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Sinistro</button>` : '',
+          st==='ATTIVA' ? `<button type="button" data-nexa-profile-action="suspend" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-violet-800 text-xs text-violet-300 hover:bg-violet-950/40" title="Sospendi polizza"><i class="fa-solid fa-pause mr-1"></i>Sospendi</button>` : '',
+          (st==='SOSPESA' || (p.suspensionStart && p.suspensionEnd)) ? `<button type="button" data-nexa-profile-action="reactivate" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-emerald-800 text-xs text-emerald-300 hover:bg-emerald-950/40" title="Riattiva polizza"><i class="fa-solid fa-play mr-1"></i>Riattiva</button>` : '',
+          st==='ATTIVA' ? `<button type="button" data-nexa-profile-action="cancel" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-rose-800 text-xs text-rose-300 hover:bg-rose-950/40" title="Annulla polizza"><i class="fa-solid fa-ban mr-1"></i>Annulla</button>` : '',
+          !['SOSTITUITA','ANNULLATA'].includes(st) ? `<button type="button" data-nexa-profile-action="replace" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-blue-800 text-xs text-blue-300 hover:bg-blue-950/40" title="Sostituisci polizza"><i class="fa-solid fa-right-left mr-1"></i>Sostituisci</button>` : '',
+          st==='ATTIVA' ? `<button type="button" data-nexa-profile-action="renew" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-accent text-xs text-accent hover:bg-slate-800" title="Genera rinnovo"><i class="fa-solid fa-calendar-plus mr-1"></i>Rinnova</button>` : ''
         ].filter(Boolean).join('');
         return `<div class="rounded-lg border border-slate-700 bg-slate-950/60 p-3"><div class="flex flex-col gap-3"><div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2"><div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><div class="text-sm font-bold text-white break-words">${esc(title)}</div><span class="inline-flex rounded border px-2 py-0.5 text-[10px] font-bold ${statusClass}">${esc(st)}</span></div><div class="text-xs text-slate-300 mt-1">${esc(val(p.company,'Compagnia non indicata'))} · ${branch}</div><div class="text-xs text-slate-400 mt-1">Decorrenza: ${esc(eff)} · Scadenza: ${esc(exp)}</div><div class="text-xs text-slate-300 mt-1">Premio annuo: ${money(premium)}</div>${p.replacementOfPolicyId?`<div class="text-[11px] text-sky-300 mt-1">Sostituisce: <button type="button" class="underline" onclick="nexaOpenPolicyFromProfile(${JSON.stringify(String(p.replacementOfPolicyId))})">polizza precedente</button></div>`:''}${p.replacedByPolicyId?`<div class="text-[11px] text-amber-300 mt-1">Sostituita da: <button type="button" class="underline" onclick="nexaOpenPolicyFromProfile(${JSON.stringify(String(p.replacedByPolicyId))})">polizza successiva</button></div>`:''}</div></div><div class="flex flex-wrap gap-2">${actions}</div></div></div>`;
       }).join('') : empty(filter==='ACTIVE_SUSPENDED' ? 'Nessuna polizza attiva o sospesa. Per vedere anche lo storico, modifica il filtro.' : 'Nessuna polizza corrisponde al filtro selezionato.');
@@ -7285,7 +7295,7 @@ function renderScannerResults(issues, container) {
 
 
 <script>
-/* NEXA CRM v23 — ricerca universale e polizze consultabili dalla scheda cliente */
+/* NEXA CRM v26 — correzione comandi polizza nella scheda cliente */
 (function(){
   const $ = id => document.getElementById(id);
   const esc = v => typeof escapeHtml === 'function' ? escapeHtml(String(v ?? '')) : String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7293,28 +7303,91 @@ function renderScannerResults(issues, container) {
   const show = el => { if(el){el.classList.remove('hidden'); $('nexaUniversalSearch')?.setAttribute('aria-expanded','true');} };
   const hide = () => { const el=$('nexaUniversalSearchResults'); if(el) el.classList.add('hidden'); $('nexaUniversalSearch')?.setAttribute('aria-expanded','false'); };
   const fmtDate = v => { if(!v) return 'scadenza n/d'; const d=new Date(String(v).slice(0,10)+'T00:00:00'); return Number.isNaN(d.getTime())?String(v):d.toLocaleDateString('it-IT'); };
-  window.nexaOpenPolicyFromProfile = id => {
+  // Azioni della polizza dalla scheda cliente: chiusura della scheda prima di aprire le altre finestre,
+  // controllo delle funzioni disponibili e messaggio esplicito in caso di errore.
+  window.nexaOpenPolicyFromProfile = function(id){
     const p=(Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(id));
     if(!p){alert('Polizza non trovata. Aggiorna l’archivio e riprova.');return;}
-    if(typeof closeCrmClientProfile==='function') closeCrmClientProfile();
-    if(typeof openPolicyModal==='function') openPolicyModal(null,p.id);
+    if(typeof window.openPolicyModal!=='function'){alert('La funzione di modifica polizza non è disponibile. Ricarica il file NEXA CRM.');return;}
+    window.nexaPendingClientProfileReturnId = String(p.clientId);
+    if(typeof window.closeCrmClientProfile==='function') window.closeCrmClientProfile();
+    window.setTimeout(()=>{
+      try {
+        window.openPolicyModal(null,p.id);
+        const modal=document.getElementById('policyModal');
+        if(modal) modal.classList.remove('hidden');
+      } catch(e) { console.error('Apertura/modifica polizza dalla scheda cliente',e); alert('Non riesco ad aprire la polizza. Dettaglio: '+(e?.message||e)); window.nexaRestoreClientProfileAfterPolicyAction?.(); }
+    }, 40);
   };
-  window.nexaOpenPolicyTitlesFromProfile = id => {
+  window.nexaOpenPolicyTitlesFromProfile = function(id){
     const p=(Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(id));
     if(!p){alert('Polizza non trovata. Aggiorna l’archivio e riprova.');return;}
-    if(typeof closeCrmClientProfile==='function') closeCrmClientProfile();
-    if(typeof openPolicyTitles==='function') openPolicyTitles(p.id);
+    if(typeof window.openPolicyTitles!=='function'){alert('La funzione Titoli non è disponibile. Ricarica il file NEXA CRM.');return;}
+    window.nexaPendingClientProfileReturnId = String(p.clientId);
+    if(typeof window.closeCrmClientProfile==='function') window.closeCrmClientProfile();
+    window.setTimeout(()=>{
+      try { window.openPolicyTitles(p.id); const modal=document.getElementById('policyTitlesModal'); if(modal) modal.classList.remove('hidden'); }
+      catch(e) { console.error('Apertura titoli dalla scheda cliente',e); alert('Non riesco ad aprire i titoli. Dettaglio: '+(e?.message||e)); window.nexaRestoreClientProfileAfterPolicyAction?.(); }
+    }, 40);
+  };
+  // Ritorno automatico alla scheda cliente dopo le operazioni avviate dal profilo.
+  window.nexaPendingClientProfileReturnId = null;
+  window.nexaRestoreClientProfileAfterPolicyAction = function(){
+    const id = window.nexaPendingClientProfileReturnId;
+    if(id == null || id === '') return;
+    const policyModal = document.getElementById('policyModal');
+    const titlesModal = document.getElementById('policyTitlesModal');
+    const claimModal = document.getElementById('claimModal');
+    if([policyModal,titlesModal,claimModal].some(m => m && !m.classList.contains('hidden'))) return;
+    window.nexaPendingClientProfileReturnId = null;
+    window.setTimeout(()=>{
+      if(typeof window.openClientDetail === 'function') window.openClientDetail(id);
+    }, 50);
   };
   window.nexaProfilePolicyAction = function(action, id){
     const p=(Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(id));
     if(!p){alert('Polizza non trovata.');return;}
-    const closeProfile = () => { if(typeof closeCrmClientProfile==='function') closeCrmClientProfile(); };
-    if(action==='suspend'){ if(typeof suspendPolicy==='function') suspendPolicy(p.id); if(typeof nexaRefreshOpenClientProfile==='function') setTimeout(nexaRefreshOpenClientProfile,250); return; }
-    if(action==='reactivate'){ if(typeof reactivatePolicy==='function') reactivatePolicy(p.id); if(typeof nexaRefreshOpenClientProfile==='function') setTimeout(nexaRefreshOpenClientProfile,250); return; }
-    if(action==='cancel'){ if(typeof cancelPolicy==='function') cancelPolicy(p.id); if(typeof nexaRefreshOpenClientProfile==='function') setTimeout(nexaRefreshOpenClientProfile,250); return; }
-    if(action==='replace'){ if(typeof replacePolicy==='function'){ closeProfile(); replacePolicy(p.id); } return; }
-    if(action==='renew'){ if(typeof renewPolicy==='function'){ closeProfile(); renewPolicy(p.id); } return; }
-    if(action==='claim'){ if(typeof openClaimModal==='function'){ closeProfile(); openClaimModal(p.id,null); } return; }
+    const closeProfile = () => { if(typeof window.closeCrmClientProfile==='function') window.closeCrmClientProfile(); };
+    const run = (fnName, ...args) => {
+      const fn=window[fnName];
+      if(typeof fn!=='function'){alert('Comando "'+action+'" non disponibile ('+fnName+'). Ricarica il file NEXA CRM.');return false;}
+      try { fn(...args); return true; }
+      catch(e) { console.error('Azione polizza '+action,e); alert('Errore durante l’azione "'+action+'": '+(e?.message||e)); return false; }
+    };
+    if(action==='suspend'){ if(run('suspendPolicy',p.id)) window.setTimeout(()=>window.nexaRefreshOpenClientProfile?.(),350); return; }
+    if(action==='reactivate'){ if(run('reactivatePolicy',p.id)) window.setTimeout(()=>window.nexaRefreshOpenClientProfile?.(),350); return; }
+    if(action==='cancel'){ if(run('cancelPolicy',p.id)) window.setTimeout(()=>window.nexaRefreshOpenClientProfile?.(),350); return; }
+    if(action==='replace'){
+      window.nexaPendingClientProfileReturnId = String(p.clientId);
+      closeProfile();
+      window.setTimeout(()=>{
+        const started = run('replacePolicy',p.id);
+        const modal = document.getElementById('policyModal');
+        if(!started || !modal || modal.classList.contains('hidden')) window.nexaRestoreClientProfileAfterPolicyAction?.();
+      },40);
+      return;
+    }
+    if(action==='renew'){
+      window.nexaPendingClientProfileReturnId = String(p.clientId);
+      closeProfile();
+      window.setTimeout(()=>{
+        run('renewPolicy',p.id);
+        // Il rinnovo usa conferme e aggiorna i titoli senza una modale dedicata.
+        window.nexaRestoreClientProfileAfterPolicyAction?.();
+      },40);
+      return;
+    }
+    if(action==='claim'){
+      window.nexaPendingClientProfileReturnId = String(p.clientId);
+      closeProfile();
+      window.setTimeout(()=>{
+        const started = run('openClaimModal',p.id,null);
+        const modal = document.getElementById('claimModal');
+        if(!started || !modal || modal.classList.contains('hidden')) window.nexaRestoreClientProfileAfterPolicyAction?.();
+      },40);
+      return;
+    }
+    alert('Azione non riconosciuta: '+action);
   };
   function result(type, id, title, detail, badge){
     return `<button type="button" role="option" onclick="nexaUniversalSearchOpen('${type}','${esc(id).replace(/'/g,'&#39;')}')" class="w-full text-left px-4 py-3 border-b border-slate-800 last:border-0 hover:bg-slate-800/80 focus:bg-slate-800 focus:outline-none"><div class="flex items-start gap-3"><span class="mt-0.5 w-8 h-8 rounded-lg bg-slate-800 text-accent flex items-center justify-center shrink-0"><i class="fa-solid ${type==='cliente'?'fa-user':type==='polizza'?'fa-file-shield':type==='preventivo'?'fa-file-invoice':'fa-car-burst'}"></i></span><span class="min-w-0 flex-1"><span class="block text-sm font-semibold text-white break-words">${esc(title)}</span><span class="block text-xs text-slate-400 mt-1 break-words">${esc(detail)}</span></span><span class="text-[10px] text-slate-400 uppercase shrink-0">${esc(badge)}</span></div></button>`;
@@ -7363,6 +7436,31 @@ function renderScannerResults(issues, container) {
       if(typeof switchSection==='function') switchSection('claims'); const search=$('searchClaims'); if(search){const c=(typeof claims!=='undefined'&&Array.isArray(claims)?claims:[]).find(x=>String(x.id)===String(id)); search.value=c?(c.claimNumber||c.policyNumber||''):''; if(typeof renderClaims==='function')renderClaims();} return;
     }
   };
+  // NEXA v27: delega i clic della scheda cliente in fase capture, senza dipendere dagli onclick inline.
+  document.addEventListener('click', function(e){
+    const btn = e.target && e.target.closest ? e.target.closest('[data-nexa-profile-action][data-policy-id]') : null;
+    if(!btn) return;
+    e.preventDefault(); e.stopPropagation();
+    const action = btn.getAttribute('data-nexa-profile-action');
+    const id = btn.getAttribute('data-policy-id');
+    const p = (Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(id));
+    if(!p){ alert('Polizza non trovata nell’archivio.'); return; }
+    const closeProfile = () => { if(typeof window.closeCrmClientProfile==='function') window.closeCrmClientProfile(); };
+    const invoke = (name, ...args) => {
+      const fn = window[name];
+      if(typeof fn !== 'function'){ alert('Funzione non disponibile: '+name+'. Chiudi e riapri NEXA CRM.'); return false; }
+      try { fn(...args); return true; } catch(err){ console.error('NEXA v27 azione scheda cliente', action, err); alert('Errore nell’azione '+action+': '+(err?.message||err)); return false; }
+    };
+    if(action==='edit'){ closeProfile(); window.setTimeout(()=>invoke('openPolicyModal', null, p.id), 40); return; }
+    if(action==='titles'){ closeProfile(); window.setTimeout(()=>invoke('openPolicyTitles', p.id), 40); return; }
+    if(action==='replace'){ closeProfile(); window.setTimeout(()=>invoke('replacePolicy', p.id), 40); return; }
+    if(action==='renew'){ closeProfile(); window.setTimeout(()=>invoke('renewPolicy', p.id), 40); return; }
+    if(action==='claim'){ closeProfile(); window.setTimeout(()=>invoke('openClaimModal', p.id, null), 40); return; }
+    if(action==='suspend' || action==='reactivate' || action==='cancel'){
+      if(invoke(action==='suspend'?'suspendPolicy':action==='reactivate'?'reactivatePolicy':'cancelPolicy', p.id)) window.setTimeout(()=>window.nexaRefreshOpenClientProfile?.(), 500);
+      return;
+    }
+  }, true);
   document.addEventListener('click',e=>{const wrap=$('nexa-universal-search-wrap'); if(wrap&&!wrap.contains(e.target))hide();});
 })();
 </script>
