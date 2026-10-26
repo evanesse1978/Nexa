@@ -6725,7 +6725,7 @@ function renderScannerResults(issues, container) {
       <div id="crmProfileStats" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-4"><i class="fa-solid fa-address-card text-accent mr-2"></i>Contatti e anagrafica</h3><div id="crmProfileContacts" class="space-y-3 text-sm"></div></section>
-        <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 lg:col-span-2"><div class="flex items-center justify-between gap-3 mb-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300"><i class="fa-solid fa-file-shield text-accent mr-2"></i>Portafoglio polizze</h3><span id="crmProfilePolicyCount" class="text-xs text-slate-500"></span></div><div id="crmProfilePolicies" class="space-y-2"></div></section>
+        <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 lg:col-span-2"><div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300"><i class="fa-solid fa-file-shield text-accent mr-2"></i>Portafoglio polizze</h3><div class="flex items-center gap-2"><label for="crmProfilePolicyStatusFilter" class="text-xs text-slate-400">Mostra</label><select id="crmProfilePolicyStatusFilter" class="rounded-lg bg-slate-950 border border-slate-700 text-slate-100 text-xs p-2" onchange="nexaRenderProfilePolicies()"><option value="ACTIVE_SUSPENDED" selected>Attive e sospese</option><option value="ALL">Tutte le polizze</option><option value="ATTIVA">Solo attive</option><option value="SOSPESA">Solo sospese</option><option value="ANNULLATA">Solo annullate</option><option value="SOSTITUITA">Solo sostituite</option></select><span id="crmProfilePolicyCount" class="text-xs text-slate-500 whitespace-nowrap"></span></div></div><div id="crmProfilePolicies" class="space-y-2"></div></section>
         <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-4"><i class="fa-solid fa-file-invoice-dollar text-accent mr-2"></i>Preventivi</h3><div id="crmProfileQuotes" class="space-y-2"></div></section>
         <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-4"><i class="fa-solid fa-car-burst text-accent mr-2"></i>Sinistri</h3><div id="crmProfileClaims" class="space-y-2"></div></section>
         <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-4"><i class="fa-solid fa-calendar-check text-accent mr-2"></i>Agenda e richiami</h3><div id="crmProfileAgenda" class="space-y-2"></div></section>
@@ -6915,6 +6915,7 @@ function renderScannerResults(issues, container) {
   });
   byId('crmActivityDate').value = new Date().toISOString().slice(0,10);
   window.closeCrmClientProfile = function(){ byId('crmClientProfile')?.classList.add('hidden'); activeClientId=null; };
+  window.nexaRefreshOpenClientProfile = function(){ if(activeClientId && byId('crmClientProfile') && !byId('crmClientProfile').classList.contains('hidden')) window.openClientDetail(activeClientId); };
   window.openClientDetail = function(id){
     const client = (Array.isArray(clients)?clients:[]).find(c => String(c.id) === String(id));
     if(!client) { alert('Cliente non trovato. Aggiorna la lista e riprova.'); return; }
@@ -6937,15 +6938,53 @@ function renderScannerResults(issues, container) {
       ['Relazione',esc(client.relation ? `${client.relation.type||'Collegamento'}: ${client.relation.name||''}` : 'Nessuna relazione registrata')]
     ];
     byId('crmProfileContacts').innerHTML = contactRows.map(([label,value])=>`<div><div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">${label}</div><div class="text-slate-200 break-words">${value}</div></div>`).join('');
-    byId('crmProfilePolicyCount').textContent = `${ps.length} registrate`;
-    byId('crmProfilePolicies').innerHTML = ps.length ? ps.map(p=>{
-      const pid = esc(p.id);
-      const eff = val(p.effect, p.effectDate, p.startDate, 'n/d');
-      const exp = val(p.expiry, p.expiryDate, p.endDate, p.expirationDate, p.dueDate, 'n/d');
-      const premium = val(p.annualPremium, p.premium, p.premiumAmount, p.price);
-      const title = val(p.policyNumber,p.number,p.name,'Polizza senza numero');
-      return `<div class="rounded-lg border border-slate-700 bg-slate-950/60 p-3"><div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3"><div class="min-w-0"><div class="text-sm font-bold text-white break-words">${esc(title)}</div><div class="text-xs text-slate-300 mt-1">${esc(val(p.company,'Compagnia non indicata'))} · ${esc(val(p.ramo,'Ramo n/d'))}</div><div class="text-xs text-slate-400 mt-1">Decorrenza: ${esc(eff)} · Scadenza: ${esc(exp)}</div><div class="text-xs text-slate-300 mt-1">Premio annuo: ${money(premium)} · Stato: ${esc(val(p.status,'n/d'))}</div>${p.replacementOfPolicyId?`<div class="text-[11px] text-sky-300 mt-1">Sostituisce una polizza precedente</div>`:''}${p.replacedByPolicyId?`<div class="text-[11px] text-amber-300 mt-1">Sostituita da una polizza successiva</div>`:''}</div><div class="flex flex-wrap gap-2 shrink-0"><button type="button" onclick="nexaOpenPolicyFromProfile('${pid}')" class="px-3 py-2 rounded-lg border border-slate-600 text-xs text-white hover:bg-slate-800" title="Apri e consulta la polizza"><i class="fa-solid fa-eye mr-1"></i>Apri polizza</button><button type="button" onclick="nexaOpenPolicyTitlesFromProfile('${pid}')" class="px-3 py-2 rounded-lg border border-sky-700 text-xs text-sky-300 hover:bg-sky-950/50" title="Consulta rate, incassi e provvigioni"><i class="fa-solid fa-list-ol mr-1"></i>Titoli</button></div></div></div>`;
-    }).join('') : empty('Nessuna polizza collegata a questa anagrafica.');
+    const profilePolicyFilter = byId('crmProfilePolicyStatusFilter');
+    if (profilePolicyFilter) profilePolicyFilter.value = 'ACTIVE_SUSPENDED';
+    window.nexaRenderProfilePolicies = function(){
+      const filter = byId('crmProfilePolicyStatusFilter')?.value || 'ACTIVE_SUSPENDED';
+      const allPolicies = (Array.isArray(policies)?policies:[]).filter(p=>String(p.clientId)===cid);
+      const effectiveStatus = p => {
+        let st=String(p.status||'ATTIVA').toUpperCase();
+        if(p.suspensionStart && p.suspensionEnd && st==='ATTIVA') {
+          const today = new Date(); today.setHours(0,0,0,0);
+          const todayISO = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+          if(todayISO < String(p.suspensionStart).slice(0,10)) st='RICHIESTA SOSPENSIONE';
+          else if(todayISO <= String(p.suspensionEnd).slice(0,10)) st='SOSPESA';
+        }
+        return st;
+      };
+      const visiblePolicies = allPolicies.filter(p=>{
+        const st=effectiveStatus(p);
+        if(filter==='ALL') return true;
+        if(filter==='ACTIVE_SUSPENDED') return ['ATTIVA','SOSPESA','RICHIESTA SOSPENSIONE'].includes(st);
+        return st===filter;
+      });
+      byId('crmProfilePolicyCount').textContent = `${visiblePolicies.length} visibili · ${allPolicies.length} totali`;
+      byId('crmProfilePolicies').innerHTML = visiblePolicies.length ? visiblePolicies.map(p=>{
+        const pid = esc(p.id);
+        const pidJs = JSON.stringify(String(p.id));
+        const eff = val(p.effect, p.effectDate, p.startDate, 'n/d');
+        const exp = val(p.expiry, p.expiryDate, p.endDate, p.expirationDate, p.dueDate, 'n/d');
+        const premium = val(p.annualPremium, p.premium, p.premiumAmount, p.price);
+        const title = val(p.policyNumber,p.number,p.name,'Polizza senza numero');
+        const st = effectiveStatus(p);
+        const statusClass = st==='ANNULLATA' ? 'text-rose-300 bg-rose-950/40 border-rose-900' : st==='SOSTITUITA' ? 'text-amber-300 bg-amber-950/40 border-amber-900' : st==='SOSPESA' ? 'text-violet-300 bg-violet-950/40 border-violet-900' : 'text-emerald-300 bg-emerald-950/40 border-emerald-900';
+        const branch = typeof branchIconMarkup==='function' ? branchIconMarkup(p.ramo,true) : `<i class="fa-solid fa-file-shield"></i> ${esc(val(p.ramo,'Ramo n/d'))}`;
+        const active = st==='ATTIVA' || st==='SOSPESA' || st==='RICHIESTA SOSPENSIONE';
+        const actions = [
+          `<button type="button" onclick="nexaOpenPolicyFromProfile(${pidJs})" class="px-2 py-1.5 rounded border border-slate-600 text-xs text-white hover:bg-slate-800" title="Apri/modifica polizza"><i class="fa-solid fa-pen mr-1"></i>Apri</button>`,
+          `<button type="button" onclick="nexaOpenPolicyTitlesFromProfile(${pidJs})" class="px-2 py-1.5 rounded border border-sky-700 text-xs text-sky-300 hover:bg-sky-950/50" title="Rate, incassi e provvigioni"><i class="fa-solid fa-list-ol mr-1"></i>Titoli</button>`,
+          active ? `<button type="button" onclick="nexaProfilePolicyAction('claim',${pidJs})" class="px-2 py-1.5 rounded border border-amber-800 text-xs text-amber-300 hover:bg-amber-950/40" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Sinistro</button>` : '',
+          st==='ATTIVA' ? `<button type="button" onclick="nexaProfilePolicyAction('suspend',${pidJs})" class="px-2 py-1.5 rounded border border-violet-800 text-xs text-violet-300 hover:bg-violet-950/40" title="Sospendi polizza"><i class="fa-solid fa-pause mr-1"></i>Sospendi</button>` : '',
+          (st==='SOSPESA' || (p.suspensionStart && p.suspensionEnd)) ? `<button type="button" onclick="nexaProfilePolicyAction('reactivate',${pidJs})" class="px-2 py-1.5 rounded border border-emerald-800 text-xs text-emerald-300 hover:bg-emerald-950/40" title="Riattiva polizza"><i class="fa-solid fa-play mr-1"></i>Riattiva</button>` : '',
+          st==='ATTIVA' ? `<button type="button" onclick="nexaProfilePolicyAction('cancel',${pidJs})" class="px-2 py-1.5 rounded border border-rose-800 text-xs text-rose-300 hover:bg-rose-950/40" title="Annulla polizza"><i class="fa-solid fa-ban mr-1"></i>Annulla</button>` : '',
+          !['SOSTITUITA','ANNULLATA'].includes(st) ? `<button type="button" onclick="nexaProfilePolicyAction('replace',${pidJs})" class="px-2 py-1.5 rounded border border-blue-800 text-xs text-blue-300 hover:bg-blue-950/40" title="Sostituisci polizza"><i class="fa-solid fa-right-left mr-1"></i>Sostituisci</button>` : '',
+          st==='ATTIVA' ? `<button type="button" onclick="nexaProfilePolicyAction('renew',${pidJs})" class="px-2 py-1.5 rounded border border-accent text-xs text-accent hover:bg-slate-800" title="Genera rinnovo"><i class="fa-solid fa-calendar-plus mr-1"></i>Rinnova</button>` : ''
+        ].filter(Boolean).join('');
+        return `<div class="rounded-lg border border-slate-700 bg-slate-950/60 p-3"><div class="flex flex-col gap-3"><div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2"><div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><div class="text-sm font-bold text-white break-words">${esc(title)}</div><span class="inline-flex rounded border px-2 py-0.5 text-[10px] font-bold ${statusClass}">${esc(st)}</span></div><div class="text-xs text-slate-300 mt-1">${esc(val(p.company,'Compagnia non indicata'))} · ${branch}</div><div class="text-xs text-slate-400 mt-1">Decorrenza: ${esc(eff)} · Scadenza: ${esc(exp)}</div><div class="text-xs text-slate-300 mt-1">Premio annuo: ${money(premium)}</div>${p.replacementOfPolicyId?`<div class="text-[11px] text-sky-300 mt-1">Sostituisce: <button type="button" class="underline" onclick="nexaOpenPolicyFromProfile(${JSON.stringify(String(p.replacementOfPolicyId))})">polizza precedente</button></div>`:''}${p.replacedByPolicyId?`<div class="text-[11px] text-amber-300 mt-1">Sostituita da: <button type="button" class="underline" onclick="nexaOpenPolicyFromProfile(${JSON.stringify(String(p.replacedByPolicyId))})">polizza successiva</button></div>`:''}</div></div><div class="flex flex-wrap gap-2">${actions}</div></div></div>`;
+      }).join('') : empty(filter==='ACTIVE_SUSPENDED' ? 'Nessuna polizza attiva o sospesa. Per vedere anche lo storico, modifica il filtro.' : 'Nessuna polizza corrisponde al filtro selezionato.');
+    };
+    window.nexaRenderProfilePolicies();
     byId('crmProfileQuotes').innerHTML = qs.length ? qs.map(q=>item(val(q.quoteNumber,q.number,'Preventivo'),`${val(q.ramo,'Ramo n/d')} · ${val(q.company,'Compagnia n/d')} · ${val(q.effectDate,'Decorrenza n/d')} · ${money(q.price)}`,val(q.status,'In archivio'))).join('') : empty('Nessun preventivo registrato.');
     byId('crmProfileClaims').innerHTML = cs.length ? cs.map(c=>item(`Sinistro ${val(c.claimNumber,'senza numero')}`,`${val(c.company,'Compagnia n/d')} · Polizza ${val(c.policyNumber,'n/d')} · Apertura ${val(c.openedAt,'n/d')}`,c.closed?'Chiuso':'Aperto')).join('') : empty('Nessun sinistro collegato.');
     byId('crmProfileAgenda').innerHTML = as.length ? as.slice(0,8).map(a=>item(val(a.title,'Appuntamento'),`${val(a.date,'Data n/d')} ${val(a.time,'')} `,a.date && a.date < new Date().toISOString().slice(0,10) ? 'Da verificare' : 'Agenda')).join('') : empty('Nessun richiamo collegato individuato.');
@@ -7252,6 +7291,17 @@ function renderScannerResults(issues, container) {
     if(!p){alert('Polizza non trovata. Aggiorna l’archivio e riprova.');return;}
     if(typeof closeCrmClientProfile==='function') closeCrmClientProfile();
     if(typeof openPolicyTitles==='function') openPolicyTitles(p.id);
+  };
+  window.nexaProfilePolicyAction = function(action, id){
+    const p=(Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(id));
+    if(!p){alert('Polizza non trovata.');return;}
+    const closeProfile = () => { if(typeof closeCrmClientProfile==='function') closeCrmClientProfile(); };
+    if(action==='suspend'){ if(typeof suspendPolicy==='function') suspendPolicy(p.id); if(typeof nexaRefreshOpenClientProfile==='function') setTimeout(nexaRefreshOpenClientProfile,250); return; }
+    if(action==='reactivate'){ if(typeof reactivatePolicy==='function') reactivatePolicy(p.id); if(typeof nexaRefreshOpenClientProfile==='function') setTimeout(nexaRefreshOpenClientProfile,250); return; }
+    if(action==='cancel'){ if(typeof cancelPolicy==='function') cancelPolicy(p.id); if(typeof nexaRefreshOpenClientProfile==='function') setTimeout(nexaRefreshOpenClientProfile,250); return; }
+    if(action==='replace'){ if(typeof replacePolicy==='function'){ closeProfile(); replacePolicy(p.id); } return; }
+    if(action==='renew'){ if(typeof renewPolicy==='function'){ closeProfile(); renewPolicy(p.id); } return; }
+    if(action==='claim'){ if(typeof openClaimModal==='function'){ closeProfile(); openClaimModal(p.id,null); } return; }
   };
   function result(type, id, title, detail, badge){
     return `<button type="button" role="option" onclick="nexaUniversalSearchOpen('${type}','${esc(id).replace(/'/g,'&#39;')}')" class="w-full text-left px-4 py-3 border-b border-slate-800 last:border-0 hover:bg-slate-800/80 focus:bg-slate-800 focus:outline-none"><div class="flex items-start gap-3"><span class="mt-0.5 w-8 h-8 rounded-lg bg-slate-800 text-accent flex items-center justify-center shrink-0"><i class="fa-solid ${type==='cliente'?'fa-user':type==='polizza'?'fa-file-shield':type==='preventivo'?'fa-file-invoice':'fa-car-burst'}"></i></span><span class="min-w-0 flex-1"><span class="block text-sm font-semibold text-white break-words">${esc(title)}</span><span class="block text-xs text-slate-400 mt-1 break-words">${esc(detail)}</span></span><span class="text-[10px] text-slate-400 uppercase shrink-0">${esc(badge)}</span></div></button>`;
