@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale v7.0 | Storico Firebase e backup</title>
+    <title>NEXA CRM Professionale v13 | Restyling completo</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -520,7 +520,273 @@
           table td:last-child button { width: 24px !important; height: 24px !important; font-size: 11px !important; padding: 0 !important; display: inline-flex !important; justify-content: center !important; align-items: center !important; margin: 1px !important; border-radius: 6px !important; }
           table td:last-child button.bg-success, table td:last-child button.bg-slate-700 { width: auto !important; height: 24px !important; padding-left: 8px !important; padding-right: 8px !important; font-size: 9px !important; font-weight: bold !important; }
         }
-    </style>
+        /* NEXA CENTRO OPERATIVO — gerarchia cromatica dedicata, senza alterare il resto del CRM */
+        section[aria-labelledby="crm-operativo-title"] {
+            background: linear-gradient(135deg, rgba(17, 29, 52, .96), rgba(12, 20, 37, .94)) !important;
+            border-color: rgba(148, 163, 184, .30) !important;
+            box-shadow: 0 14px 34px rgba(2, 6, 23, .18);
+        }
+        section[aria-labelledby="crm-operativo-title"] > div:first-child {
+            padding: 0 0 1rem;
+            border-bottom: 1px solid rgba(148,163,184,.22);
+        }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button {
+            min-height: 142px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(2,6,23,.22);
+        }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(1) { background: linear-gradient(145deg,rgba(16,185,129,.17),rgba(15,23,42,.78)) !important; border-color: rgba(52,211,153,.48) !important; }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(2) { background: linear-gradient(145deg,rgba(14,165,233,.18),rgba(15,23,42,.78)) !important; border-color: rgba(56,189,248,.48) !important; }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(3) { background: linear-gradient(145deg,rgba(139,92,246,.18),rgba(15,23,42,.78)) !important; border-color: rgba(167,139,250,.48) !important; }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(4) { background: linear-gradient(145deg,rgba(244,63,94,.16),rgba(15,23,42,.78)) !important; border-color: rgba(251,113,133,.48) !important; }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button { min-height: 88px; background: rgba(15,23,42,.62) !important; }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button:nth-child(1) { border-color: rgba(251,113,133,.60) !important; box-shadow: inset 4px 0 #fb7185; }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button:nth-child(2) { border-color: rgba(251,191,36,.60) !important; box-shadow: inset 4px 0 #fbbf24; }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button:nth-child(3) { border-color: rgba(56,189,248,.60) !important; box-shadow: inset 4px 0 #38bdf8; }
+        section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button:nth-child(4) { border-color: rgba(52,211,153,.60) !important; box-shadow: inset 4px 0 #34d399; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] {
+            background: linear-gradient(135deg,#ffffff 0%,#eff6ff 55%,#f5f3ff 100%) !important;
+            border-color: #bfdbfe !important;
+            box-shadow: 0 12px 30px rgba(30,64,175,.09);
+        }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:first-child { border-bottom-color: #cbdcf4 !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button { box-shadow: 0 4px 12px rgba(15,23,42,.045) !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(1) { background: linear-gradient(145deg,#ecfdf5,#d1fae5) !important; border-color: #6ee7b7 !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(2) { background: linear-gradient(145deg,#f0f9ff,#dbeafe) !important; border-color: #7dd3fc !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(3) { background: linear-gradient(145deg,#f5f3ff,#ede9fe) !important; border-color: #c4b5fd !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(4) { background: linear-gradient(145deg,#fff1f2,#ffe4e6) !important; border-color: #fda4af !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(1) .text-slate-400 { color: #166534 !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(2) .text-slate-400 { color: #075985 !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(3) .text-slate-400 { color: #5b21b6 !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(4) .text-slate-400 { color: #9f1239 !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button { background: #ffffff !important; box-shadow: 0 3px 10px rgba(15,23,42,.045) !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button:nth-child(1) { border-color: #fda4af !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button:nth-child(2) { border-color: #fcd34d !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button:nth-child(3) { border-color: #7dd3fc !important; }
+        .theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button:nth-child(4) { border-color: #6ee7b7 !important; }
+        .theme-light #section-home #dash-agenda-list { border-top: 3px solid #60a5fa; padding-top: .5rem; }
+        .theme-light #section-home #dash-birthdays-list { border-top: 3px solid #f472b6; padding-top: .5rem; }
+
+    
+/* ==========================================================
+   NEXA v13 — DESIGN SYSTEM GLOBALE
+   Solo presentazione: nessuna logica applicativa modificata.
+   ========================================================== */
+:root {
+  --nexa-navy: #14243a;
+  --nexa-navy-deep: #0b1525;
+  --nexa-blue: #2563eb;
+  --nexa-blue-light: #38bdf8;
+  --nexa-lime: #e2ff00;
+  --nexa-canvas-dark: #0b1121;
+  --nexa-panel-dark: #111d30;
+  --nexa-border-dark: rgba(148,163,184,.20);
+  --nexa-text-dark: #dbe5f2;
+  --nexa-muted-dark: #9aaac0;
+  --nexa-canvas-light: #f3f6fb;
+  --nexa-panel-light: #ffffff;
+  --nexa-panel-soft-light: #f7faff;
+  --nexa-border-light: #d8e1ed;
+  --nexa-text-light: #17263c;
+  --nexa-muted-light: #5c6b80;
+  --nexa-radius: 14px;
+}
+
+html, body { scrollbar-color: #718096 transparent; }
+body {
+  background-color: var(--nexa-canvas-dark) !important;
+  color: var(--nexa-text-dark);
+  letter-spacing: .005em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Navigazione e intestazione: stessa identità su tutte le pagine */
+#app-container > aside {
+  background: linear-gradient(180deg, #101d30 0%, #0b1525 100%) !important;
+  border-right: 1px solid var(--nexa-border-dark) !important;
+}
+#app-container > aside > * { flex-shrink: 0; }
+main > header {
+  background: rgba(12,22,38,.94) !important;
+  border-bottom: 1px solid var(--nexa-border-dark) !important;
+  box-shadow: 0 5px 20px rgba(0,0,0,.08);
+}
+main > header h1, main > header h2 { letter-spacing: -.025em; }
+.nav-active { border-radius: 10px !important; }
+#app-container aside button { transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s ease; }
+
+/* Superfici, riquadri e gerarchia */
+main > div.flex-1 { background-color: var(--nexa-canvas-dark); }
+#section-home, #section-clients, #section-quotes, #section-contracts,
+#section-claims, #section-deadlines, #section-agenda, #section-tasks,
+#section-report, #section-utility, #section-placeholder {
+  color: var(--nexa-text-dark);
+}
+#app-container .rounded-xl.border, #app-container .rounded-2xl.border {
+  border-color: var(--nexa-border-dark);
+}
+#app-container .rounded-xl, #app-container .rounded-2xl { background-clip: padding-box; }
+#app-container h1, #app-container h2, #app-container h3, #app-container h4 {
+  letter-spacing: -.018em;
+}
+#app-container button, #app-container input, #app-container select, #app-container textarea {
+  transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+#app-container input:focus, #app-container select:focus, #app-container textarea:focus {
+  outline: none;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+#app-container button:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+
+/* Tabelle: intestazioni, righe e leggibilità uniformi */
+#app-container table { border-collapse: separate; border-spacing: 0; }
+#app-container table thead th {
+  font-weight: 700;
+  letter-spacing: .025em;
+  font-size: .72rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--nexa-border-dark);
+}
+#app-container table tbody tr { transition: background-color .14s ease; }
+#app-container table tbody tr:hover { background-color: rgba(96,165,250,.065); }
+#app-container table td { border-bottom-color: rgba(148,163,184,.12); }
+
+/* Badge e indicatori: mantengono i colori semantici già presenti */
+#app-container [class*="rounded-full"][class*="text-xs"] { font-weight: 650; letter-spacing: .01em; }
+
+/* Modal e pannelli flottanti */
+#settingsModal, .fixed.inset-0 { backdrop-filter: blur(3px); }
+#settingsModal > div, .fixed.inset-0 > div.absolute.top-12 > div {
+  box-shadow: 0 24px 70px rgba(2,6,23,.28);
+}
+
+/* ---------------- MODALITÀ CHIARA ---------------- */
+html.theme-light body {
+  background: var(--nexa-canvas-light) !important;
+  color: var(--nexa-text-light) !important;
+}
+html.theme-light #app-container > aside {
+  background: linear-gradient(180deg, #f8fbff 0%, #edf3fa 100%) !important;
+  border-right: 1px solid #d5dfec !important;
+  box-shadow: 5px 0 22px rgba(30,64,120,.035);
+}
+html.theme-light main > header {
+  background: rgba(255,255,255,.96) !important;
+  border-bottom: 1px solid #dbe3ee !important;
+  box-shadow: 0 4px 18px rgba(30,50,80,.045);
+}
+html.theme-light main > div.flex-1 { background: var(--nexa-canvas-light) !important; }
+html.theme-light #section-home, html.theme-light #section-clients,
+html.theme-light #section-quotes, html.theme-light #section-contracts,
+html.theme-light #section-claims, html.theme-light #section-deadlines,
+html.theme-light #section-agenda, html.theme-light #section-tasks,
+html.theme-light #section-report, html.theme-light #section-utility,
+html.theme-light #section-placeholder { color: var(--nexa-text-light); }
+
+/* Sostituisce l'effetto grigio-blu uniforme con superfici pulite e neutre */
+html.theme-light .bg-deep { background-color: var(--nexa-canvas-light) !important; }
+html.theme-light .bg-deep\/50, html.theme-light .bg-deep50 { background-color: rgba(255,255,255,.90) !important; }
+html.theme-light .bg-deep\/30, html.theme-light .bg-deep30 { background-color: rgba(255,255,255,.70) !important; }
+html.theme-light .bg-deep\/20, html.theme-light .bg-deep20 { background-color: rgba(248,250,252,.78) !important; }
+html.theme-light .bg-surface { background-color: #ffffff !important; }
+html.theme-light .bg-slate-900, html.theme-light .bg-slate-900\/50,
+html.theme-light .bg-slate-900\/30, html.theme-light .bg-slate-90050 {
+  background-color: #f8fafc !important;
+}
+html.theme-light .bg-slate-800, html.theme-light .bg-slate-800\/50,
+html.theme-light .bg-slate-800\/40, html.theme-light .bg-slate-800\/30,
+html.theme-light .bg-slate-800\/20, html.theme-light .bg-slate-80050 {
+  background-color: #f1f5f9 !important;
+}
+html.theme-light .bg-slate-700, html.theme-light .bg-slate-600 { background-color: #e8eef6 !important; }
+html.theme-light .border-slate-900, html.theme-light .border-slate-800,
+html.theme-light .border-slate-700, html.theme-light .border-slate-600,
+html.theme-light .border-slate-500, html.theme-light .border-slate-800\/50,
+html.theme-light .border-slate-700\/50, html.theme-light .border-slate-700\/80,
+html.theme-light .border-slate-80050 { border-color: var(--nexa-border-light) !important; }
+html.theme-light #app-container .rounded-xl.border,
+html.theme-light #app-container .rounded-2xl.border { border-color: var(--nexa-border-light); }
+html.theme-light .glass-effect {
+  background: rgba(255,255,255,.94) !important;
+  border-color: #dbe3ee !important;
+  box-shadow: 0 8px 24px rgba(30,50,80,.045);
+}
+html.theme-light .text-white, html.theme-light .text-slate-100,
+html.theme-light .text-slate-200, html.theme-light .text-slate-300,
+html.theme-light .text-slate-50, html.theme-light .text-darktext {
+  color: var(--nexa-text-light) !important;
+}
+html.theme-light .text-slate-400 { color: #526176 !important; }
+html.theme-light .text-slate-500 { color: #66758a !important; }
+html.theme-light input, html.theme-light textarea, html.theme-light select {
+  background-color: #ffffff !important;
+  color: var(--nexa-text-light) !important;
+  border-color: #cbd5e1 !important;
+}
+html.theme-light input::placeholder, html.theme-light textarea::placeholder { color: #7b8798 !important; opacity: 1; }
+html.theme-light select option { background: #ffffff !important; color: var(--nexa-text-light) !important; }
+html.theme-light table thead, html.theme-light table thead th,
+html.theme-light thead.bg-slate-900\/50, html.theme-light thead.bg-slate-90050 {
+  background: #eaf1fa !important;
+  color: #1c3555 !important;
+}
+html.theme-light table thead * { color: #1c3555 !important; }
+html.theme-light #app-container table td { border-bottom-color: #e7edf5; }
+html.theme-light #app-container table tbody tr:hover { background-color: #eff6ff !important; }
+html.theme-light .nav-active {
+  background: #dbeafe !important;
+  color: #173d73 !important;
+  border: 1px solid #93c5fd !important;
+  box-shadow: inset 3px 0 #2563eb !important;
+}
+html.theme-light .nav-active i { color: #2563eb !important; }
+html.theme-light .hover\:bg-slate-800:hover,
+html.theme-light .hover\:bg-slate-700:hover,
+html.theme-light .hover\:bg-slate-600:hover,
+html.theme-light .hover\:bg-slate-800\/50:hover,
+html.theme-light .hover\:bg-slate-800\/30:hover,
+html.theme-light .hover\:bg-slate-900\/50:hover { background-color: #e7eef8 !important; }
+html.theme-light .hover\:text-white:hover,
+html.theme-light .hover\:text-slate-300:hover,
+html.theme-light .hover\:text-slate-400:hover,
+html.theme-light .hover\:text-slate-500:hover { color: #14243a !important; }
+html.theme-light .text-accent { color: #1d4ed8 !important; }
+html.theme-light .bg-accent { background-color: #2563eb !important; color: #ffffff !important; }
+html.theme-light .border-accent { border-color: #2563eb !important; }
+html.theme-light .accent-accent { accent-color: #2563eb !important; }
+html.theme-light .calendar-cell { background: #ffffff !important; border-color: #dbe3ee !important; }
+html.theme-light .calendar-cell:hover { background: #eff6ff !important; }
+html.theme-light .calendar-cell.today { background: #eff6ff !important; border-color: #60a5fa !important; }
+html.theme-light .calendar-cell.inactive { background: #f1f5f9 !important; opacity: .72 !important; }
+html.theme-light .calendar-day-header { color: #526176 !important; }
+html.theme-light #section-claims table, html.theme-light #section-claims th,
+html.theme-light #section-claims td { color: var(--nexa-text-light) !important; }
+
+/* Il Centro operativo conserva i suoi accenti distintivi ma si integra nel sistema */
+section[aria-labelledby="crm-operativo-title"] { border-radius: 18px !important; }
+section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button,
+section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(3) > button { border-radius: 13px !important; }
+html.theme-light section[aria-labelledby="crm-operativo-title"] {
+  background: linear-gradient(135deg,#ffffff 0%,#f2f7ff 58%,#f8f7ff 100%) !important;
+  border-color: #d5e2f2 !important;
+}
+html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(1) { background: linear-gradient(145deg,#f0fdf7,#dcfce9) !important; }
+html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(2) { background: linear-gradient(145deg,#f0f9ff,#e0f2fe) !important; }
+html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(3) { background: linear-gradient(145deg,#f7f5ff,#ede9fe) !important; }
+html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-type(2) > button:nth-child(4) { background: linear-gradient(145deg,#fff5f5,#ffe4e6) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  #app-container *, #app-container *::before, #app-container *::after {
+    animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important;
+  }
+}
+
+</style>
 </head>
 <body class="bg-deep text-slate-300 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
 <div id="nexaV41Notice" role="status" class="fixed top-3 right-3 z-[120] max-w-md rounded-xl border border-lime-400/50 bg-slate-950/95 text-slate-100 shadow-2xl px-4 py-3 flex items-start gap-3">
@@ -722,21 +988,17 @@
                             </button>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3" aria-live="polite">
-                            <button type="button" onclick="openCRMOperationalFocus('overdue')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-rose-500/50 transition-colors">
-                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Titoli scaduti da incassare</span><span class="block text-xs text-slate-500 mt-1">Richiedono verifica</span></span>
+                            <button type="button" onclick="openCRMOperationalFocus('overdueCoverage')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-rose-500/50 transition-colors">
+                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Titoli scaduti da incassare · Allerta copertura</span></span>
                                 <strong id="crm-overdue-count" class="text-2xl font-black text-rose-400">—</strong>
                             </button>
                             <button type="button" onclick="openCRMOperationalFocus('dueSoon')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-amber-500/50 transition-colors">
-                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Titoli in scadenza 7 giorni</span><span class="block text-xs text-slate-500 mt-1">Preparare il contatto</span></span>
+                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Titoli in scadenza 7 giorni</span></span>
                                 <strong id="crm-due-soon-count" class="text-2xl font-black text-amber-400">—</strong>
                             </button>
                             <button type="button" onclick="openCRMOperationalFocus('quotes')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-sky-500/50 transition-colors">
-                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Preventivi da seguire</span><span class="block text-xs text-slate-500 mt-1">Da lavorare, inviati o da ricontattare</span></span>
+                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Preventivi da seguire</span></span>
                                 <strong id="crm-quotes-count" class="text-2xl font-black text-sky-400">—</strong>
-                            </button>
-                            <button type="button" onclick="openCRMOperationalFocus('policyExpiry')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-violet-500/50 transition-colors">
-                                <span><span class="block text-xs uppercase tracking-wider text-slate-400">Polizze in scadenza 30 giorni</span><span class="block text-xs text-slate-500 mt-1">Attive o sospese · verificare rinnovo</span></span>
-                                <strong id="crm-policy-expiry-count" class="text-2xl font-black text-violet-400">—</strong>
                             </button>
                             <button type="button" onclick="openCRMTaskFocus('open')" class="flex items-center justify-between gap-3 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-left hover:border-emerald-500/50 transition-colors">
                                 <span><span class="block text-xs uppercase tracking-wider text-slate-400">Attività aperte</span><strong id="crm-task-open-count-dashboard" class="block text-2xl text-white mt-1">0</strong><span class="block text-[11px] text-slate-500 mt-1">Richiami e cose da fare</span></span>
@@ -745,7 +1007,7 @@
                         </div>
                         <p class="text-[11px] text-slate-500">I contatori sono calcolati sui dati già presenti nel gestionale; non sostituiscono la verifica delle singole posizioni.</p>
                     </section>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="glass-effect rounded-2xl p-6 relative overflow-hidden flex flex-col h-[400px]">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-lg font-bold text-white"><i class="fa-regular fa-calendar-check text-accent mr-2"></i>Prossimi Appuntamenti</h3>
@@ -756,13 +1018,6 @@
                         <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col">
                             <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-cake-candles text-pink-500 mr-2"></i>Compleanni in Arrivo</h3>
                             <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-birthdays-list"><p class="text-slate-500 text-xs text-center mt-10">Nessun compleanno nei prossimi 30 giorni.</p></div>
-                        </div>
-                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden h-[400px] flex flex-col border-t-4 border-red-500/80">
-                            <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-shield-halved text-red-500 mr-2"></i>Allerta Copertura</h3>
-                            <p class="text-[10px] text-slate-500 mb-3 leading-tight">Titoli che perdono i 15gg di mora nei prossimi 5gg o già fuori copertura (da max 30gg).</p>
-                            <div class="overflow-y-auto flex-1 pr-2 space-y-2" id="dash-out-of-coverage-list">
-                                <p class="text-slate-500 text-xs text-center mt-10">Nessun titolo in allerta.</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -2279,6 +2534,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
         let crmOperationalFocus = null;
         const crmFocusLabels = {
             overdue: 'Solo titoli scaduti da incassare',
+            overdueCoverage: 'Titoli scaduti da incassare e in allerta copertura',
             dueSoon: 'Solo titoli in scadenza nei prossimi 7 giorni',
             coverage: 'Solo titoli in allerta copertura',
             quotes: 'Solo preventivi da seguire',
@@ -2287,7 +2543,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
 
         function updateCRMFocusBanners(){
             const mappings = [
-                ['deadlines', ['overdue','dueSoon','coverage']],
+                ['deadlines', ['overdue','overdueCoverage','dueSoon','coverage']],
                 ['quotes', ['quotes']],
                 ['contracts', ['policyExpiry']]
             ];
@@ -2370,35 +2626,31 @@ function sendBirthdayWishes(name, phone, email, channel) {
             const inSevenDays = new Date(today);
             inSevenDays.setDate(inSevenDays.getDate() + 7);
             const sevenIso = `${inSevenDays.getFullYear()}-${String(inSevenDays.getMonth()+1).padStart(2,'0')}-${String(inSevenDays.getDate()).padStart(2,'0')}`;
-            let overdue = 0;
+            let overdueCoverage = 0;
             let dueSoon = 0;
-            let policyExpirySoon = 0;
-            const inThirtyDays = new Date(today);
-            inThirtyDays.setDate(inThirtyDays.getDate() + 30);
-            const thirtyIso = `${inThirtyDays.getFullYear()}-${String(inThirtyDays.getMonth()+1).padStart(2,'0')}-${String(inThirtyDays.getDate()).padStart(2,'0')}`;
             (Array.isArray(policies) ? policies : []).forEach(p => {
                 if(p.status !== 'ATTIVA' && p.status !== 'SOSPESA') return;
-                if(p.expiry) {
-                    const expiry = String(p.expiry).slice(0,10);
-                    if(expiry >= todayIso && expiry <= thirtyIso) policyExpirySoon++;
-                }
                 (Array.isArray(p.titles) ? p.titles : []).forEach(t => {
                     if(t.status !== 'DA INCASSARE' || !t.dueDate) return;
                     const due = String(t.dueDate).slice(0,10);
-                    if(due < todayIso) overdue++;
-                    else if(due <= sevenIso) dueSoon++;
+                    const dueDate = new Date(due + 'T00:00:00');
+                    const endCoverage = new Date(dueDate);
+                    endCoverage.setDate(endCoverage.getDate() + 15);
+                    endCoverage.setHours(0,0,0,0);
+                    const diffDays = Math.ceil((endCoverage - today) / (1000 * 60 * 60 * 24));
+                    // Un solo conteggio per titolo: arretrato oppure in allerta copertura.
+                    if (due < todayIso || (diffDays <= 5 && diffDays >= -30)) overdueCoverage++;
+                    else if (due <= sevenIso) dueSoon++;
                 });
             });
             const overdueEl = document.getElementById('crm-overdue-count');
             const dueSoonEl = document.getElementById('crm-due-soon-count');
             const quotesEl = document.getElementById('crm-quotes-count');
-            const expiryEl = document.getElementById('crm-policy-expiry-count');
             const dateEl = document.getElementById('crm-today-label');
             const quotesToFollow = (Array.isArray(quotes) ? quotes : []).filter(q => ['DA LAVORARE','INVIATO','DA RICONTATTARE'].includes(String(q.status || 'DA LAVORARE').toUpperCase())).length;
-            if(overdueEl) overdueEl.textContent = String(overdue);
+            if(overdueEl) overdueEl.textContent = String(overdueCoverage);
             if(dueSoonEl) dueSoonEl.textContent = String(dueSoon);
             if(quotesEl) quotesEl.textContent = String(quotesToFollow);
-            if(expiryEl) expiryEl.textContent = String(policyExpirySoon);
             if(dateEl) dateEl.textContent = today.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
         }
 
@@ -2528,98 +2780,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     </div>`;
                 });
             }
-// ==========================================
-    // WIDGET: TITOLI FUORI COPERTURA (15GG MORA)
-    // ==========================================
-    const outListContainer = document.getElementById('dash-out-of-coverage-list');
-    if (outListContainer) {
-        outListContainer.innerHTML = '';
-        const todayZero = new Date();
-        todayZero.setHours(0,0,0,0);
 
-        let outTitles = [];
-
-        policies.forEach(p => {
-            // Analizziamo solo le polizze attive o sospese
-            if (p.status !== 'ATTIVA' && p.status !== 'SOSPESA') return; 
-            
-            const client = clients.find(c => c.id == p.clientId);
-            const cname = client ? client.name : 'Sconosciuto';
-
-            (p.titles || []).forEach(t => {
-                if (t.status === 'DA INCASSARE' && t.dueDate) {
-                    const d = new Date(t.dueDate);
-                    
-                    // Aggiungiamo i 15 giorni di extracopertura
-                    const endCoverage = new Date(d);
-                    endCoverage.setDate(endCoverage.getDate() + 15);
-                    endCoverage.setHours(0,0,0,0);
-
-                    // Calcoliamo i giorni rimanenti (o passati) rispetto ad oggi
-                    const diffDays = Math.ceil((endCoverage - todayZero) / (1000 * 60 * 60 * 24));
-
-                    // Includi se scade nei prossimi 5 giorni (diffDays <= 5) 
-                    // e se è scaduto da massimo 30 giorni (diffDays >= -30)
-                    if (diffDays <= 5 && diffDays >= -30) {
-                        outTitles.push({
-                            pid: p.id,
-                            tid: t.id,
-                            cname: cname,
-                            company: p.company,
-                            ramo: p.ramo,
-                            policyNumber: p.policyNumber,
-                            dueDate: d,
-                            endCoverage: endCoverage,
-                            diffDays: diffDays,
-                            amount: t.amount
-                        });
-                    }
-                }
-            });
-        });
-
-        // Ordiniamo mettendo in cima quelli già fuori copertura da più tempo (numeri più bassi/negativi)
-        outTitles.sort((a,b) => a.diffDays - b.diffDays);
-
-        if (outTitles.length === 0) {
-            outListContainer.innerHTML = '<p class="text-slate-500 text-xs text-center mt-10"><i class="fa-solid fa-check-circle text-2xl mb-2 text-slate-600 block"></i>Nessun titolo in allerta copertura.</p>';
-        } else {
-            outTitles.forEach(t => {
-                let statusText = '';
-                let colorClass = '';
-                let borderClass = '';
-                
-                if (t.diffDays < 0) {
-                    statusText = `Fuori copertura da ${Math.abs(t.diffDays)} gg`;
-                    colorClass = 'text-red-500 font-bold';
-                    borderClass = 'border-red-900/50 bg-red-900/10';
-                } else if (t.diffDays === 0) {
-                    statusText = 'Ultimo giorno di copertura!';
-                    colorClass = 'text-red-500 font-bold';
-                    borderClass = 'border-red-900/50 bg-red-900/10';
-                } else {
-                    statusText = `Copertura scade tra ${t.diffDays} gg`;
-                    colorClass = 'text-warning font-bold';
-                    borderClass = 'border-yellow-900/30 bg-yellow-900/10';
-                }
-
-                outListContainer.innerHTML += `
-                <div class="p-3 rounded-lg border ${borderClass} hover:bg-slate-800 transition-all mb-2 cursor-pointer" onclick="openCRMOperationalFocus('coverage');">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="text-sm font-bold text-white leading-none truncate pr-2">${t.cname}</div>
-                        <div class="text-xs ${colorClass} whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${statusText}</div>
-                    </div>
-                    <div class="flex justify-between items-end mt-2">
-                        <div>
-                            <div class="text-[10px] text-slate-400 uppercase">${t.company} <span class="text-slate-600 px-1">•</span> ${t.ramo}</div>
-                            <div class="text-[10px] text-slate-500">Rata del: <span class="text-white">${t.dueDate.toLocaleDateString('it-IT')}</span></div>
-                        </div>
-                        <div class="text-sm font-mono text-white font-bold">€ ${t.amount.toFixed(2)}</div>
-                    </div>
-                </div>`;
-            });
-        }
-    }
         }
 
         // ==========================================
@@ -4321,12 +4482,17 @@ function getFilteredDeadlines() {
             }
 
             // Filtri di dettaglio provenienti dal Centro operativo.
-            if (crmOperationalFocus === 'overdue' || crmOperationalFocus === 'dueSoon' || crmOperationalFocus === 'coverage') {
+            if (crmOperationalFocus === 'overdue' || crmOperationalFocus === 'overdueCoverage' || crmOperationalFocus === 'dueSoon' || crmOperationalFocus === 'coverage') {
                 if (t.status !== 'DA INCASSARE' || !t.dueDate) return;
                 const due = new Date(String(t.dueDate).slice(0,10) + 'T00:00:00');
                 const today = new Date(); today.setHours(0,0,0,0);
                 const sevenDays = new Date(today); sevenDays.setDate(sevenDays.getDate() + 7);
                 if (crmOperationalFocus === 'overdue' && !(due < today)) return;
+                if (crmOperationalFocus === 'overdueCoverage') {
+                    const endCoverage = new Date(due); endCoverage.setDate(endCoverage.getDate() + 15);
+                    const diffDays = Math.ceil((endCoverage - today) / (1000 * 60 * 60 * 24));
+                    if (!(due < today || (diffDays <= 5 && diffDays >= -30))) return;
+                }
                 if (crmOperationalFocus === 'dueSoon' && !(due >= today && due <= sevenDays)) return;
                 if (crmOperationalFocus === 'coverage') {
                     const policy = policies.find(x => String(x.id) === String(p.id));
