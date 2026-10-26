@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale v19 | Provvigioni personali effettive</title>
+    <title>NEXA CRM Professionale v20 | Le mie provvigioni</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -812,7 +812,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 <body class="bg-deep text-slate-300 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
 <div id="nexaV41Notice" role="status" class="fixed top-3 right-3 z-[120] max-w-md rounded-xl border border-lime-400/50 bg-slate-950/95 text-slate-100 shadow-2xl px-4 py-3 flex items-start gap-3">
   <span class="mt-0.5 text-lime-300"><i class="fa-solid fa-circle-check"></i></span>
-  <div class="text-xs leading-relaxed"><strong class="text-lime-300">NEXA CRM v7.0 caricato</strong><br>Storico attività sincronizzato con Firebase e incluso nei backup. Dashboard, filtro polizze e flusso preventivi mantenuti.</div>
+  <div class="text-xs leading-relaxed"><strong class="text-lime-300">NEXA CRM v21.0 caricato</strong><br>Storico attività sincronizzato con Firebase e incluso nei backup. Dashboard, filtro polizze e flusso preventivi mantenuti.</div>
   <button type="button" aria-label="Chiudi avviso versione" onclick="document.getElementById('nexaV41Notice').remove()" class="ml-1 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
 </div>
 
@@ -926,6 +926,9 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
         <span class="font-medium">Le mie attività</span>
         <span id="nav-tasks-count" class="ml-auto text-[10px] font-black rounded-full bg-rose-500/15 text-rose-300 px-2 py-1">0</span>
     </a>
+    <a href="#" onclick="switchSection('commissions')" id="nav-commissions" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
+        <i class="fa-solid fa-euro-sign w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Le mie provvigioni</span>
+    </a>
     <a href="#" onclick="switchSection('report')" id="nav-report" class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 hover:bg-slate-800/50 hover:text-white group">
         <i class="fa-solid fa-chart-pie w-7 text-xl text-center group-hover:text-accent transition-colors"></i> <span class="font-medium">Report</span>
     </a>
@@ -955,7 +958,12 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
             <!-- HEADER -->
             <header class="h-20 flex items-center justify-between px-8 border-b border-slate-800/50 bg-deep/50 backdrop-blur-sm z-10 flex-shrink-0">
                 <div><h2 class="text-xl font-bold text-white" id="page-title">Dashboard</h2><p class="text-xs text-slate-500" id="page-subtitle">Panoramica</p></div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 md:gap-4 min-w-0">
+                    <div class="relative w-44 sm:w-64 lg:w-80" id="nexa-universal-search-wrap">
+                        <label for="nexaUniversalSearch" class="sr-only">Ricerca universale</label>
+                        <div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i><input id="nexaUniversalSearch" type="search" autocomplete="off" oninput="nexaUniversalSearchRun()" onkeydown="nexaUniversalSearchKeydown(event)" placeholder="Cerca clienti, polizze, targhe…" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" aria-controls="nexaUniversalSearchResults" aria-expanded="false"></div>
+                        <div id="nexaUniversalSearchResults" class="hidden absolute top-full right-0 mt-2 w-[min(90vw,34rem)] max-h-[70vh] overflow-y-auto rounded-xl border border-slate-700 bg-slate-950 shadow-2xl z-[100]" role="listbox"></div>
+                    </div>
                     <div class="text-right hidden md:block"><p class="text-sm font-bold text-white" id="user-display-name">User</p></div>
                     <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center border border-accent/30 shadow-lg shadow-accent/10 text-accent font-bold text-lg hover:scale-105 active:scale-95 transition-transform" id="user-avatar" onclick="openAvatarPicker()" title="Cambia avatar" role="button" style="cursor:pointer;">U</div>
                     <button onclick="openSettingsModal()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:bg-slate-700 active:scale-95 transition-all duration-200 text-slate-400" title="Impostazioni"><i class="fa-solid fa-gear"></i></button>
@@ -1251,6 +1259,26 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                 </div>
 
                 <!-- CLAIMS -->
+                <div id="section-commissions" class="hidden fade-in space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div><h2 class="text-2xl font-bold text-white">Le mie provvigioni</h2><p class="text-sm text-slate-400 mt-1">Importi personali inseriti manualmente. Lo stato della provvigione è indipendente dall'incasso del cliente.</p></div>
+                        <div class="flex gap-2 items-center"><label for="commissionYear" class="text-xs text-slate-400">Anno</label><select id="commissionYear" onchange="renderPersonalCommissions()" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select><button onclick="renderPersonalCommissions()" class="border border-slate-700 rounded-lg px-3 py-2 text-sm text-white hover:border-accent"><i class="fa-solid fa-rotate mr-1"></i>Aggiorna</button></div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-slate-500"><div class="text-xs text-slate-400 font-bold uppercase">Provvigioni inserite</div><div id="commTotalEntered" class="text-2xl font-bold text-white mt-2">€ 0,00</div></div>
+                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-amber-500"><div class="text-xs text-slate-400 font-bold uppercase">Da verificare</div><div id="commTotalPending" class="text-2xl font-bold text-amber-300 mt-2">€ 0,00</div></div>
+                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-sky-500"><div class="text-xs text-slate-400 font-bold uppercase">Maturate</div><div id="commTotalMatured" class="text-2xl font-bold text-sky-300 mt-2">€ 0,00</div></div>
+                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-emerald-500"><div class="text-xs text-slate-400 font-bold uppercase">Effettivamente incassate</div><div id="commTotalPaid" class="text-2xl font-bold text-emerald-300 mt-2">€ 0,00</div></div>
+                    </div>
+                    <div class="glass-effect rounded-2xl p-4 flex flex-col md:flex-row gap-3 md:items-center">
+                        <input id="commissionSearch" oninput="renderPersonalCommissions()" placeholder="Cerca cliente, polizza, compagnia..." class="flex-1 bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                        <select id="commissionStatusFilter" onchange="renderPersonalCommissions()" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"><option value="TUTTI">Tutti gli stati</option><option value="DA_VERIFICARE">Da verificare</option><option value="MATURATA">Maturata</option><option value="INCASSATA">Incassata</option></select>
+                        <span id="commissionRowsCount" class="text-xs text-slate-400"></span>
+                    </div>
+                    <div class="glass-effect rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-900/70 text-slate-400 text-xs uppercase"><tr><th class="px-4 py-3">Cliente / Polizza</th><th class="px-4 py-3">Compagnia</th><th class="px-4 py-3">Scadenza titolo</th><th class="px-4 py-3 text-right">Tua provvigione (€)</th><th class="px-4 py-3">Stato provvigione</th><th class="px-4 py-3">Data maturazione</th><th class="px-4 py-3">Data incasso</th><th class="px-4 py-3">Azioni</th></tr></thead><tbody id="personalCommissionsBody" class="divide-y divide-slate-800/50"></tbody></table></div></div>
+                    <p class="text-xs text-slate-500">Le provvigioni già presenti nell'archivio vengono inizialmente considerate “Da verificare”: lo stato non viene dedotto dall'incasso del titolo. Imposta manualmente “Maturata” o “Incassata” quando hai conferma.</p>
+                </div>
+
                 <div id="section-claims" class="hidden fade-in">
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
                         <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
@@ -1613,7 +1641,13 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                             <div id="titlesPreview" class="space-y-2 max-h-48 overflow-y-auto text-xs"><p class="text-slate-500 italic">Inserisci dati...</p></div>
                         </div>
                     </div>
-                    <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onclick="closePolicyModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 transition-colors">Annulla</button><button type="submit" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400 active:scale-95 transition-all duration-200">Salva e Genera</button></div>
+                    <div id="editTitlesOptions" class="hidden mt-4 rounded-xl border border-amber-700/60 bg-amber-950/20 p-4">
+                        <label class="flex items-start gap-3 text-sm text-amber-100 cursor-pointer">
+                            <input type="checkbox" id="regeneratePolicyTitles" class="mt-1 accent-amber-500" onchange="updatePolicyTitlesEditOption()">
+                            <span><strong>Rigenera i titoli esistenti</strong><span class="block text-xs text-amber-200/80 mt-1">Solo se selezionato, i titoli attuali saranno sostituiti con quelli generati dai dati modificati. Gli stati d'incasso, le date e le provvigioni dei titoli attuali non saranno conservati nella rigenerazione.</span></span>
+                        </label>
+                    </div>
+                    <div class="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onclick="closePolicyModal()" class="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 transition-colors">Annulla</button><button type="submit" id="savePolicySubmit" class="flex-1 px-4 py-3 rounded-xl bg-accent text-darktext font-bold hover:bg-yellow-400 active:scale-95 transition-all duration-200">Salva polizza</button></div>
                 </form>
             </div>
         </div>
@@ -1883,6 +1917,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
         let clients = [], policies = [], appointments = [];
         let currentActiveClientId = null; 
         let editingClientId=null, editingPolicyId=null, currentViewingPolicyId=null;
+        window.replacementSourcePolicyId = null;
 
         // AGENDA STATE
         let agendaView = 'month'; // 'month', 'week', 'day'
@@ -3393,11 +3428,32 @@ function getGenderFluoColor(cf) {
         function openPolicyModalWithFilter() { openPolicyModal(currentActiveClientId); }
         function openPolicyModal(pre=null, edit=null) { 
             document.getElementById('policyModal').classList.remove('hidden'); document.getElementById('policyForm').reset(); document.getElementById('titlesPreview').innerHTML='<p class="text-slate-500 italic">Inserisci premio...</p>';
+            const editTitlesOptions = document.getElementById('editTitlesOptions');
+            const regenerateTitles = document.getElementById('regeneratePolicyTitles');
+            if (editTitlesOptions) editTitlesOptions.classList.add('hidden');
+            if (regenerateTitles) regenerateTitles.checked = false;
+            const savePolicySubmit = document.getElementById('savePolicySubmit');
+            if (savePolicySubmit) savePolicySubmit.textContent = 'Salva polizza';
             const sel=document.getElementById('polClientSelect'); sel.innerHTML='<option value="">Seleziona...</option>'; clients.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c=>{const o=document.createElement('option'); o.value=c.id; o.text=c.name; if(pre&&c.id==pre)o.selected=true; sel.appendChild(o);});
-            if(edit){editingPolicyId=edit; const p=policies.find(x=>x.id===edit); if(p){document.getElementById('polModalTitle').innerText="Modifica"; sel.value=p.clientId; document.querySelector(`input[name="ramo"][value="${p.ramo}"]`).checked=true; document.getElementById('polCommPerc').value=p.commPerc||35; if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(p.company))document.getElementById('polCompany').value=p.company; else {document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=p.company;document.getElementById('polCustomCompany').classList.remove('hidden');} document.getElementById('polNotes').value=p.notes; document.getElementById('polNumber').value=p.policyNumber || ''; document.getElementById('polEffectDate').value=p.effect; document.getElementById('polExpiryDate').value=p.expiry; document.getElementById('polSplit').value=p.split; document.getElementById('polAnnualPremium').value=p.annualPremium; document.getElementById('titlesPreview').innerHTML='<p class="text-warning text-xs">Attenzione: modificando, i titoli verranno rigenerati.</p>';}}
+            if(edit){editingPolicyId=edit; const p=policies.find(x=>x.id===edit); if(p){document.getElementById('polModalTitle').innerText="Modifica"; sel.value=p.clientId; document.querySelector(`input[name="ramo"][value="${p.ramo}"]`).checked=true; document.getElementById('polCommPerc').value=p.commPerc||35; if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(p.company))document.getElementById('polCompany').value=p.company; else {document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=p.company;document.getElementById('polCustomCompany').classList.remove('hidden');} document.getElementById('polNotes').value=p.notes; document.getElementById('polNumber').value=p.policyNumber || ''; document.getElementById('polEffectDate').value=p.effect; document.getElementById('polExpiryDate').value=p.expiry; document.getElementById('polSplit').value=p.split; document.getElementById('polAnnualPremium').value=p.annualPremium; document.getElementById('titlesPreview').innerHTML='<p class="text-emerald-300 text-xs"><i class="fa-solid fa-shield-halved mr-1"></i>I titoli esistenti saranno mantenuti, inclusi stati, date, importi e provvigioni. Per sostituirli seleziona l’opzione qui sotto.</p>'; if(editTitlesOptions) editTitlesOptions.classList.remove('hidden');}}
             else{editingPolicyId=null; document.getElementById('polModalTitle').innerText="Nuova Polizza";}
+            updatePolicyTitlesEditOption();
         }
-        function closePolicyModal(){document.getElementById('policyModal').classList.add('hidden'); editingPolicyId=null;}
+        function closePolicyModal(){document.getElementById('policyModal').classList.add('hidden'); editingPolicyId=null; window.replacementSourcePolicyId=null; window.isReplacingPolicy=false; const opt=document.getElementById('regeneratePolicyTitles'); if(opt) opt.checked=false;}
+        function updatePolicyTitlesEditOption(){
+            const editing = editingPolicyId != null;
+            const regenerate = !!document.getElementById('regeneratePolicyTitles')?.checked;
+            const preview = document.getElementById('titlesPreview');
+            const submit = document.getElementById('savePolicySubmit');
+            if(!editing) { if(submit) submit.textContent='Salva polizza'; return; }
+            if(regenerate){
+                if(preview) preview.innerHTML='<p class="text-amber-300 text-xs"><i class="fa-solid fa-triangle-exclamation mr-1"></i>I titoli attuali saranno sostituiti dai nuovi titoli generati. Gli stati, le date, gli incassi e le provvigioni dei titoli attuali non saranno conservati.</p>';
+                if(submit) submit.textContent='Salva e rigenera titoli';
+            } else {
+                if(preview) preview.innerHTML='<p class="text-emerald-300 text-xs"><i class="fa-solid fa-shield-halved mr-1"></i>I titoli esistenti saranno mantenuti, inclusi stati, date, importi e provvigioni.</p>';
+                if(submit) submit.textContent='Salva polizza';
+            }
+        }
         function checkCustomCompany(){const v=document.getElementById('polCompany').value; const i=document.getElementById('polCustomCompany'); if(v==='ALTRO')i.classList.remove('hidden'); else i.classList.add('hidden');}
         
         function safeParseFloat(val) { if(!val) return 0; if(typeof val === 'number') return val; return parseFloat(val.replace(',', '.')); }
@@ -3841,11 +3897,38 @@ function editTitle(pid, tid){
                     const cPers = (split===12 && i>0) ? 0 : cPersBase;
                     titles.push({id:Date.now()+i, n:i+1, dueDate:toISODateLocal(dd), amount:amt, status:'DA INCASSARE', commTotal:cTot, commPers:cPers});
                 }
-                const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, company:comp, notes, policyNumber:polNum, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:'ATTIVA', titles, isReplacement: window.isReplacingPolicy || false};
+                const replacementSourceId = !editingPolicyId ? window.replacementSourcePolicyId : null;
+                const replacementSource = replacementSourceId != null ? policies.find(p => String(p.id) === String(replacementSourceId)) : null;
+                const editingExisting = editingPolicyId != null ? policies.find(p => String(p.id) === String(editingPolicyId)) : null;
+                if (replacementSourceId != null && !replacementSource) throw new Error('La polizza da sostituire non è più disponibile. Riapri la procedura.');
+                if (editingPolicyId != null && !editingExisting) throw new Error('Polizza da modificare non trovata.');
+                const regenerateExistingTitles = !!(editingExisting && document.getElementById('regeneratePolicyTitles')?.checked);
+                if (editingExisting && !regenerateExistingTitles) {
+                    // Editing policy details must not mutate existing accounting/payment records.
+                    titles = Array.isArray(editingExisting.titles) ? editingExisting.titles : [];
+                }
+                if (editingExisting && regenerateExistingTitles) {
+                    const existingCount = (editingExisting.titles || []).length;
+                    const hasPaid = (editingExisting.titles || []).some(t => ['INCASSATO','PAGATO'].includes(String(t.status || '').toUpperCase()));
+                    const warning = `Stai per sostituire ${existingCount} titoli esistenti${hasPaid ? ', inclusi titoli già incassati' : ''}. Date, stati, importi e provvigioni dei titoli attuali non saranno conservati. Vuoi continuare?`;
+                    if (!confirm(warning)) return;
+                }
+                const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, company:comp, notes, policyNumber:polNum, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:editingExisting ? editingExisting.status : 'ATTIVA', titles, isReplacement: !!replacementSource || !!(editingExisting && editingExisting.isReplacement), replacementOfPolicyId: replacementSource ? replacementSource.id : (editingExisting ? editingExisting.replacementOfPolicyId || null : null), replacedByPolicyId: editingExisting ? editingExisting.replacedByPolicyId || null : null};
+                if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); if(idx<0) throw new Error('Polizza da modificare non trovata.'); policies[idx]=pData;} else {policies.push(pData);}
+                if (replacementSource) {
+                    replacementSource.status = 'SOSTITUITA';
+                    replacementSource.replacedByPolicyId = pData.id;
+                    const replacementDate = String(eff).slice(0,10);
+                    (replacementSource.titles || []).forEach(t => {
+                        if (String(t.dueDate || '').slice(0,10) >= replacementDate && ['DA INCASSARE','IN SOSPESO'].includes(String(t.status || '').toUpperCase())) t.status = 'ANNULLATO';
+                    });
+                    fbSaveSingleDoc('policies', replacementSource);
+                }
+                window.replacementSourcePolicyId = null;
                 window.isReplacingPolicy = false;
-if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); policies[idx]=pData;} else {policies.push(pData);}
                 fbSaveSingleDoc('policies', pData);
                 saveLocalBackup();
+                saveAllData();
                 closePolicyModal(); renderPolicies(); updateDashboard();
             } catch(err) {
                 alert("Errore salvataggio: " + err.message);
@@ -3951,7 +4034,8 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                     status: 'DA INCASSARE',
                     commTotal: 0,
                     commPers: 0,
-                    isRenewal: true
+                    isRenewal: true,
+                    renewalSourcePolicyId: oldP.id
                 }));
                 planned.push({ policy: oldP, newTitles });
             });
@@ -4005,9 +4089,9 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
         function renewPolicy(id) {
             const p = policies.find(x => x.id === id);
             if(!p) return;
-            if(!confirm("Creare i titoli di rinnovo per la polizza " + (p.policyNumber || '') + "?\nImporti e provvigioni verranno azzerati e potranno essere inseriti con la matita.")) return;
-
             let count = (p.split === 1 ? 1 : (p.split === 0 ? 1 : p.split));
+            if(!Number.isFinite(Number(count)) || count < 1 || count > 12) count=1;
+            if(!confirm("Preparare l'anteprima del rinnovo per la polizza " + (p.policyNumber || '') + "?\nNessun dato sarà salvato finché non confermi le date.")) return;
             let newTitles = [];
             let fallbackNeeded = true;
             
@@ -4067,10 +4151,13 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                 }
             }
 
-            const effIso = newTitles[0].dueDate;
-            const already = (p.titles || []).some(t => (t.isRenewal === true) && t.dueDate === effIso);
-            if(already) return alert('Rinnovo già presente (titoli già creati per questa data).');
+            const renewalDates = newTitles.map(t => String(t.dueDate || '').slice(0,10));
+            const collision = renewalDates.find(d => (p.titles || []).some(t => String(t.dueDate || '').slice(0,10) === d));
+            if(collision) return alert('Rinnovo non creato: esiste già un titolo con la data ' + collision + '. Controlla lo scadenziario prima di riprovare.');
+            const preview = newTitles.map(t => t.dueDate).join('\n');
+            if(!confirm(`ANTEPRIMA RINNOVO — ${p.policyNumber || 'senza numero'}\n\nTitoli da creare: ${newTitles.length}\nDate previste:\n${preview}\n\nImporti e provvigioni iniziali saranno pari a zero. Confermi il salvataggio?`)) return;
 
+            newTitles.forEach(t => { t.renewalSourcePolicyId = p.id; });
             p.titles = (p.titles || []).concat(newTitles);
             p.titles.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
             p.titles.forEach((t, idx) => { 
@@ -4180,7 +4267,7 @@ if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); pol
                     btnRenew = `<button onclick="renewPolicy(${p.id})" class="text-xs border border-accent text-accent hover:bg-slate-800 px-2 py-1 rounded" title="Genera Rinnovo Annuale"><i class="fa-solid fa-calendar-plus"></i></button>`; 
                 }
                 
-                const row=`<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${rc} ${displayStatus!=='ATTIVA' && displayStatus!=='SOSPESA' && displayStatus!=='RICHIESTA SOSPENSIONE'?'opacity-60':''}"><td class="px-6 py-4">${sb}</td><td class="px-6 py-4 text-white font-medium">${escapeHtml(c)}</td><td class="px-6 py-4"><div class="text-sm font-bold text-white">${escapeHtml(p.company||'')}</div><div class="text-xs text-slate-400 mt-1">${escapeHtml(p.policyNumber||'')}</div><div class="text-[10px] uppercase border border-slate-700 rounded px-1 w-fit mt-1">${branchIconMarkup(p.ramo, true)}</div></td><td class="px-6 py-4 font-mono text-xs text-slate-300">${new Date(p.expiry).toLocaleDateString('it-IT')}</td><td class="px-6 py-4 text-right font-mono text-white">€ ${p.annualPremium.toFixed(2)}</td><td class="px-6 py-4 text-center space-x-1">
+                const row=`<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${rc} ${displayStatus!=='ATTIVA' && displayStatus!=='SOSPESA' && displayStatus!=='RICHIESTA SOSPENSIONE'?'opacity-60':''}"><td class="px-6 py-4">${sb}</td><td class="px-6 py-4 text-white font-medium">${escapeHtml(c)}</td><td class="px-6 py-4"><div class="text-sm font-bold text-white">${escapeHtml(p.company||'')}</div><div class="text-xs text-slate-400 mt-1">${escapeHtml(p.policyNumber||'')}</div>${p.replacementOfPolicyId ? `<button onclick="openRelatedPolicy(${JSON.stringify(p.replacementOfPolicyId)})" class="block text-[10px] text-blue-300 hover:text-blue-100 mt-1 text-left" title="Apri la polizza sostituita"><i class="fa-solid fa-arrow-turn-up mr-1"></i>Sostituisce: ${escapeHtml((policies.find(x=>String(x.id)===String(p.replacementOfPolicyId))||{}).policyNumber || 'polizza precedente')}</button>` : ''}${p.replacedByPolicyId ? `<button onclick="openRelatedPolicy(${JSON.stringify(p.replacedByPolicyId)})" class="block text-[10px] text-amber-300 hover:text-amber-100 mt-1 text-left" title="Apri la polizza sostitutiva"><i class="fa-solid fa-arrow-right-arrow-left mr-1"></i>Sostituita da: ${escapeHtml((policies.find(x=>String(x.id)===String(p.replacedByPolicyId))||{}).policyNumber || 'nuova polizza')}</button>` : ''}<div class="text-[10px] uppercase border border-slate-700 rounded px-1 w-fit mt-1">${branchIconMarkup(p.ramo, true)}</div></td><td class="px-6 py-4 font-mono text-xs text-slate-300">${new Date(p.expiry).toLocaleDateString('it-IT')}</td><td class="px-6 py-4 text-right font-mono text-white">€ ${p.annualPremium.toFixed(2)}</td><td class="px-6 py-4 text-center space-x-1">
                     ${btnRenew}
                     <button onclick="openClaimModal(${p.id}, null)" class="text-xs border border-slate-700 text-warning hover:bg-slate-800 px-2 py-1 rounded" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation"></i></button>
                     <button onclick="openPolicyTitles(${p.id})" class="text-xs border border-slate-700 text-info hover:bg-slate-800 px-2 py-1 rounded" title="Rate e Provvigioni"><i class="fa-solid fa-list-ol"></i></button>
@@ -4286,7 +4373,42 @@ function addManualTitle(pid) {
     renderDeadlines();
     updateDashboard();
 }
-        function replacePolicy(id){const old=policies.find(x=>x.id===id); if(!old)return; if(!confirm("Sostituire?"))return; const d=new Date().toISOString().split('T')[0]; old.status='SOSTITUITA'; old.titles.forEach(t=>{if(t.dueDate>=d && t.status==='DA INCASSARE')t.status='ANNULLATO';}); openPolicyModal(null,null); window.isReplacingPolicy = true; document.getElementById('polClientSelect').value=old.clientId; document.querySelector(`input[name="ramo"][value="${old.ramo}"]`).checked=true; if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(old.company))document.getElementById('polCompany').value=old.company; else{document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=old.company;document.getElementById('polCustomCompany').classList.remove('hidden');} document.getElementById('polNotes').value="Sostituzione"; document.getElementById('polEffectDate').value=d; document.getElementById('polExpiryDate').value=old.expiry; document.getElementById('polSplit').value=old.split; document.getElementById('polAnnualPremium').value=old.annualPremium; saveAllData(); renderPolicies();}
+        function replacePolicy(id){
+            const old=policies.find(x=>String(x.id)===String(id));
+            if(!old) return alert('Polizza da sostituire non trovata.');
+            if(old.status==='SOSTITUITA') return alert('Questa polizza risulta già sostituita. Controlla il collegamento alla nuova polizza.');
+            if(!confirm(`Avviare la sostituzione della polizza ${old.policyNumber || '(senza numero)'}?\n\nLa vecchia polizza resterà invariata finché non salverai la nuova. Se annulli la compilazione, non verrà modificato nulla.`)) return;
+            const d=new Date(); const localDate=new Date(d.getTime()-(d.getTimezoneOffset()*60000)).toISOString().slice(0,10);
+            window.replacementSourcePolicyId=old.id;
+            window.isReplacingPolicy=true;
+            openPolicyModal(null,null);
+            document.getElementById('polClientSelect').value=old.clientId;
+            const ramoInput=document.querySelector(`input[name="ramo"][value="${old.ramo}"]`); if(ramoInput) ramoInput.checked=true;
+            if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(old.company)) document.getElementById('polCompany').value=old.company;
+            else {document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=old.company || '';document.getElementById('polCustomCompany').classList.remove('hidden');}
+            document.getElementById('polNotes').value=`Sostituzione della polizza ${old.policyNumber || old.id}`;
+            document.getElementById('polEffectDate').value=localDate;
+            document.getElementById('polExpiryDate').value=old.expiry || '';
+            document.getElementById('polSplit').value=old.split || 1;
+            document.getElementById('polAnnualPremium').value=old.annualPremium || 0;
+            if(typeof generateInstallmentPreview==='function') generateInstallmentPreview();
+            document.getElementById('polModalTitle').innerText='Nuova polizza in sostituzione';
+        }
+
+        function openRelatedPolicy(id){
+            const target=policies.find(p=>String(p.id)===String(id));
+            if(!target) return alert('La polizza collegata non è presente nell’archivio.');
+            currentActiveClientId=target.clientId;
+            const status=document.getElementById('policyStatusFilter'); if(status) status.value='ALL';
+            const search=document.getElementById('searchPolicyNumber'); if(search) search.value='';
+            switchSection('contracts');
+            renderPolicies(target.clientId, false);
+            setTimeout(()=>{
+                const rows=[...document.querySelectorAll('#policiesTableBody tr')];
+                const row=rows.find(r=>r.innerHTML.includes(`openPolicyModal(null, ${target.id})`));
+                if(row){row.scrollIntoView({behavior:'smooth',block:'center'});row.classList.add('ring-2','ring-accent');setTimeout(()=>row.classList.remove('ring-2','ring-accent'),2500);}
+            },50);
+        }
 function deletePolicy(id){
     if(confirm("Eliminare?")){
         policies=policies.filter(p=>p.id!==id); 
@@ -5837,7 +5959,7 @@ function switchSection(sectionName){
     document.getElementById('nav-report')?.classList.remove('nav-active');
   } catch(e){}
 
-  ['home','clients','contracts','deadlines','agenda','report','claims','quotes','tasks','utility'].forEach(id => {
+  ['home','clients','contracts','deadlines','agenda','report','claims','quotes','tasks','utility','commissions'].forEach(id => {
     const el = document.getElementById(`section-${id}`);
     if(el) el.classList.add('hidden');
     const nav = document.getElementById(`nav-${id}`);
@@ -5853,6 +5975,7 @@ function switchSection(sectionName){
     contracts: { t:'Polizze', s:'Gestione portafoglio' },
     deadlines: { t:'Scadenze', s:'Scadenziario titoli' },
     report:    { t:'Report', s:'Analisi Produzione, Portafoglio e Polizze Perse' },
+    commissions:{ t:'Le mie provvigioni', s:'Provvigioni personali: da verificare, maturate e incassate' },
     claims:    { t:'Sinistri', s:'Gestione sinistri' },
     utility:   { t:'Utility', s:'Strumenti avanzati di manutenzione database' }
   };
@@ -5890,6 +6013,11 @@ function switchSection(sectionName){
     const fMonthly = document.getElementById('filterMonthlyDeadlines');
     if(fMonthly && !fMonthly.value) { fMonthly.value = 'ANNUAL_ONLY'; }
     renderDeadlines();
+  } else if(sectionName === 'commissions'){
+    document.getElementById('section-commissions')?.classList.remove('hidden');
+    document.getElementById('nav-commissions')?.classList.add('nav-active');
+    initPersonalCommissions();
+    renderPersonalCommissions();
   } else if(sectionName === 'report'){
     document.getElementById('section-report')?.classList.remove('hidden');
     document.getElementById('nav-report')?.classList.add('nav-active');
@@ -5909,6 +6037,110 @@ function switchSection(sectionName){
     populateGdprClientSelect();
     populateDisdettaClientSelect(); // <--- NUOVA RIGA AGGIUNTA QUI
   }
+}
+
+// PROVVIGIONI PERSONALI: lo stato è indipendente dallo stato di incasso del titolo.
+function commissionTodayISO(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function commissionMoney(v){ return (Number(v)||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'}); }
+function getAllPersonalCommissionRows(){
+  const out=[];
+  (Array.isArray(policies)?policies:[]).forEach(p=>{
+    (Array.isArray(p.titles)?p.titles:[]).forEach(t=>{
+      const amount=Number(safeParseFloat(t.commPers)||0);
+      if(amount===0 && !t.commStatus && !t.commMaturedDate && !t.commPaidDate) return;
+      const c=(Array.isArray(clients)?clients:[]).find(x=>String(x.id)===String(p.clientId));
+      out.push({p,t,c,amount,status:t.commStatus||'DA_VERIFICARE'});
+    });
+  });
+  return out;
+}
+function initPersonalCommissions(){
+  const sel=document.getElementById('commissionYear'); if(!sel) return;
+  if(sel.options.length) return;
+  const now=new Date().getFullYear();
+  for(let y=now-5;y<=now+1;y++){ const o=document.createElement('option'); o.value=String(y); o.textContent=String(y); if(y===now)o.selected=true; sel.appendChild(o); }
+}
+function renderPersonalCommissions(){
+  const body=document.getElementById('personalCommissionsBody'); if(!body) return;
+  const year=Number(document.getElementById('commissionYear')?.value||new Date().getFullYear());
+  const query=String(document.getElementById('commissionSearch')?.value||'').trim().toLocaleLowerCase('it');
+  const statusFilter=document.getElementById('commissionStatusFilter')?.value||'TUTTI';
+  const all=getAllPersonalCommissionRows();
+  const yearRows=all.filter(r=>{
+    const d=r.status==='INCASSATA' ? r.t.commPaidDate : (r.status==='MATURATA' ? r.t.commMaturedDate : r.t.dueDate);
+    return d && Number(String(d).slice(0,4))===year;
+  });
+  const sumStatus=(st)=>yearRows.filter(r=>r.status===st).reduce((s,r)=>s+r.amount,0);
+  document.getElementById('commTotalEntered').textContent=commissionMoney(yearRows.reduce((s,r)=>s+r.amount,0));
+  document.getElementById('commTotalPending').textContent=commissionMoney(sumStatus('DA_VERIFICARE'));
+  document.getElementById('commTotalMatured').textContent=commissionMoney(sumStatus('MATURATA'));
+  document.getElementById('commTotalPaid').textContent=commissionMoney(sumStatus('INCASSATA'));
+  let rows=all.filter(r=>{
+    const d=r.status==='INCASSATA' ? r.t.commPaidDate : (r.status==='MATURATA' ? r.t.commMaturedDate : r.t.dueDate);
+    if(!d || Number(String(d).slice(0,4))!==year) return false;
+    if(statusFilter!=='TUTTI' && r.status!==statusFilter) return false;
+    const hay=[r.c?.name,r.c?.cf,r.p.policyNumber,r.p.company,r.p.ramo,r.t.n].join(' ').toLocaleLowerCase('it');
+    return !query || hay.includes(query);
+  });
+  document.getElementById('commissionRowsCount').textContent=`${rows.length} voci`;
+  if(!rows.length){body.innerHTML='<tr><td colspan="8" class="px-4 py-8 text-center text-slate-500">Nessuna provvigione per i filtri selezionati.</td></tr>';return;}
+  body.innerHTML=rows.map((r)=>{
+    const pid=String(r.p.id).replace(/[^\w-]/g,''); const tid=String(r.t.id).replace(/[^\w-]/g,'');
+    const cname=escapeHtml(r.c?.name||'Cliente non trovato');
+    const policy=escapeHtml(r.p.policyNumber||'Polizza senza numero');
+    const status=r.status;
+    const badge=status==='INCASSATA'?'text-emerald-300':status==='MATURATA'?'text-sky-300':'text-amber-300';
+    return `<tr class="hover:bg-slate-800/30"><td class="px-4 py-3"><div class="font-semibold text-white">${cname}</div><div class="text-xs text-slate-400">${policy} · ${escapeHtml(r.t.n||'Titolo')}</div></td><td class="px-4 py-3">${escapeHtml(r.p.company||'')}</td><td class="px-4 py-3 text-xs">${escapeHtml(r.t.dueDate||'')}</td><td class="px-4 py-3 text-right font-bold text-white">${commissionMoney(r.amount)}</td><td class="px-4 py-3"><select aria-label="Stato provvigione" onchange="updatePersonalCommission('${pid}','${tid}',this.value)" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs ${badge}"><option value="DA_VERIFICARE" ${status==='DA_VERIFICARE'?'selected':''}>Da verificare</option><option value="MATURATA" ${status==='MATURATA'?'selected':''}>Maturata</option><option value="INCASSATA" ${status==='INCASSATA'?'selected':''}>Incassata</option></select></td><td class="px-4 py-3 text-xs">${escapeHtml(r.t.commMaturedDate||'—')}</td><td class="px-4 py-3 text-xs">${escapeHtml(r.t.commPaidDate||'—')}</td><td class="px-4 py-3 whitespace-nowrap"><button onclick="editPersonalCommission('${pid}','${tid}')" class="border border-slate-700 rounded px-2 py-1 text-xs text-accent hover:border-accent" title="Modifica importo"><i class="fa-solid fa-pen"></i></button> <button onclick="editPersonalCommissionDates('${pid}','${tid}')" class="border border-slate-700 rounded px-2 py-1 text-xs text-sky-300 hover:border-sky-400" title="Modifica date"><i class="fa-regular fa-calendar"></i></button> <button onclick="openPolicyTitles(${JSON.stringify(r.p.id)})" class="border border-slate-700 rounded px-2 py-1 text-xs text-slate-300 hover:border-accent" title="Apri titoli"><i class="fa-solid fa-list-ol"></i></button></td></tr>`;
+  }).join('');
+}
+function findPersonalCommission(pid,tid){
+  const p=(Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(pid));
+  const t=(p?.titles||[]).find(x=>String(x.id)===String(tid));
+  return p&&t?{p,t}:null;
+}
+function savePersonalCommissionRecord(p){
+  if(typeof fbSaveSingleDoc==='function') fbSaveSingleDoc('policies',p);
+  if(typeof saveLocalBackup==='function') saveLocalBackup();
+  if(typeof saveAllData==='function') saveAllData();
+  renderPersonalCommissions();
+  if(typeof renderReport==='function' && !document.getElementById('section-report')?.classList.contains('hidden')) renderReport();
+  if(typeof updateDashboard==='function') updateDashboard();
+}
+function updatePersonalCommission(pid,tid,status){
+  const found=findPersonalCommission(pid,tid); if(!found)return;
+  const {p,t}=found; const today=commissionTodayISO();
+  t.commStatus=status;
+  if(status==='MATURATA' && !t.commMaturedDate) t.commMaturedDate=today;
+  if(status==='INCASSATA'){
+    if(!t.commMaturedDate) t.commMaturedDate=today;
+    if(!t.commPaidDate) t.commPaidDate=today;
+  } else { t.commPaidDate=''; }
+  if(status==='DA_VERIFICARE') t.commMaturedDate='';
+  savePersonalCommissionRecord(p);
+}
+function editPersonalCommission(pid,tid){
+  const found=findPersonalCommission(pid,tid); if(!found)return;
+  const {p,t}=found; const val=prompt('Inserisci la TUA provvigione personale effettiva per questo titolo (€):',String(Number(t.commPers||0).toFixed(2)));
+  if(val===null)return; const amount=safeParseFloat(val);
+  if(!Number.isFinite(amount)) return alert('Importo non valido.');
+  t.commPers=amount; savePersonalCommissionRecord(p);
+}
+
+function editPersonalCommissionDates(pid,tid){
+  const found=findPersonalCommission(pid,tid); if(!found)return;
+  const {p,t}=found;
+  const matured=prompt('Data maturazione provvigione (AAAA-MM-GG, lascia vuoto se non nota):',t.commMaturedDate||'');
+  if(matured===null)return;
+  if(matured && !/^\d{4}-\d{2}-\d{2}$/.test(matured)) return alert('Formato data non valido. Usa AAAA-MM-GG.');
+  const paid=prompt('Data effettivo incasso della tua provvigione (AAAA-MM-GG, lascia vuoto se non incassata):',t.commPaidDate||'');
+  if(paid===null)return;
+  if(paid && !/^\d{4}-\d{2}-\d{2}$/.test(paid)) return alert('Formato data non valido. Usa AAAA-MM-GG.');
+  t.commMaturedDate=matured;
+  t.commPaidDate=paid;
+  if(paid) t.commStatus='INCASSATA';
+  else if(matured) t.commStatus='MATURATA';
+  else t.commStatus='DA_VERIFICARE';
+  savePersonalCommissionRecord(p);
 }
 
 // LOGICA SCANSIONE E UNIONE DUPLICATI
@@ -6706,7 +6938,14 @@ function renderScannerResults(issues, container) {
     ];
     byId('crmProfileContacts').innerHTML = contactRows.map(([label,value])=>`<div><div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">${label}</div><div class="text-slate-200 break-words">${value}</div></div>`).join('');
     byId('crmProfilePolicyCount').textContent = `${ps.length} registrate`;
-    byId('crmProfilePolicies').innerHTML = ps.length ? ps.map(p=>item(val(p.policyNumber,p.number,p.name,'Polizza'),`${val(p.company,'Compagnia non indicata')} · Scadenza: ${val(p.expiryDate,p.endDate,p.expirationDate,p.dueDate,'non disponibile')} · Premio: ${money(val(p.premium,p.annualPremium,p.premiumAmount,p.price))}`,val(p.status,'Stato n/d'))).join('') : empty('Nessuna polizza collegata a questa anagrafica.');
+    byId('crmProfilePolicies').innerHTML = ps.length ? ps.map(p=>{
+      const pid = esc(p.id);
+      const eff = val(p.effect, p.effectDate, p.startDate, 'n/d');
+      const exp = val(p.expiry, p.expiryDate, p.endDate, p.expirationDate, p.dueDate, 'n/d');
+      const premium = val(p.annualPremium, p.premium, p.premiumAmount, p.price);
+      const title = val(p.policyNumber,p.number,p.name,'Polizza senza numero');
+      return `<div class="rounded-lg border border-slate-700 bg-slate-950/60 p-3"><div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3"><div class="min-w-0"><div class="text-sm font-bold text-white break-words">${esc(title)}</div><div class="text-xs text-slate-300 mt-1">${esc(val(p.company,'Compagnia non indicata'))} · ${esc(val(p.ramo,'Ramo n/d'))}</div><div class="text-xs text-slate-400 mt-1">Decorrenza: ${esc(eff)} · Scadenza: ${esc(exp)}</div><div class="text-xs text-slate-300 mt-1">Premio annuo: ${money(premium)} · Stato: ${esc(val(p.status,'n/d'))}</div>${p.replacementOfPolicyId?`<div class="text-[11px] text-sky-300 mt-1">Sostituisce una polizza precedente</div>`:''}${p.replacedByPolicyId?`<div class="text-[11px] text-amber-300 mt-1">Sostituita da una polizza successiva</div>`:''}</div><div class="flex flex-wrap gap-2 shrink-0"><button type="button" onclick="nexaOpenPolicyFromProfile('${pid}')" class="px-3 py-2 rounded-lg border border-slate-600 text-xs text-white hover:bg-slate-800" title="Apri e consulta la polizza"><i class="fa-solid fa-eye mr-1"></i>Apri polizza</button><button type="button" onclick="nexaOpenPolicyTitlesFromProfile('${pid}')" class="px-3 py-2 rounded-lg border border-sky-700 text-xs text-sky-300 hover:bg-sky-950/50" title="Consulta rate, incassi e provvigioni"><i class="fa-solid fa-list-ol mr-1"></i>Titoli</button></div></div></div>`;
+    }).join('') : empty('Nessuna polizza collegata a questa anagrafica.');
     byId('crmProfileQuotes').innerHTML = qs.length ? qs.map(q=>item(val(q.quoteNumber,q.number,'Preventivo'),`${val(q.ramo,'Ramo n/d')} · ${val(q.company,'Compagnia n/d')} · ${val(q.effectDate,'Decorrenza n/d')} · ${money(q.price)}`,val(q.status,'In archivio'))).join('') : empty('Nessun preventivo registrato.');
     byId('crmProfileClaims').innerHTML = cs.length ? cs.map(c=>item(`Sinistro ${val(c.claimNumber,'senza numero')}`,`${val(c.company,'Compagnia n/d')} · Polizza ${val(c.policyNumber,'n/d')} · Apertura ${val(c.openedAt,'n/d')}`,c.closed?'Chiuso':'Aperto')).join('') : empty('Nessun sinistro collegato.');
     byId('crmProfileAgenda').innerHTML = as.length ? as.slice(0,8).map(a=>item(val(a.title,'Appuntamento'),`${val(a.date,'Data n/d')} ${val(a.time,'')} `,a.date && a.date < new Date().toISOString().slice(0,10) ? 'Da verificare' : 'Agenda')).join('') : empty('Nessun richiamo collegato individuato.');
@@ -6992,5 +7231,77 @@ function renderScannerResults(issues, container) {
 })();
 </script>
 
+
+<script>
+/* NEXA CRM v23 — ricerca universale e polizze consultabili dalla scheda cliente */
+(function(){
+  const $ = id => document.getElementById(id);
+  const esc = v => typeof escapeHtml === 'function' ? escapeHtml(String(v ?? '')) : String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const norm = v => String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  const show = el => { if(el){el.classList.remove('hidden'); $('nexaUniversalSearch')?.setAttribute('aria-expanded','true');} };
+  const hide = () => { const el=$('nexaUniversalSearchResults'); if(el) el.classList.add('hidden'); $('nexaUniversalSearch')?.setAttribute('aria-expanded','false'); };
+  const fmtDate = v => { if(!v) return 'scadenza n/d'; const d=new Date(String(v).slice(0,10)+'T00:00:00'); return Number.isNaN(d.getTime())?String(v):d.toLocaleDateString('it-IT'); };
+  window.nexaOpenPolicyFromProfile = id => {
+    const p=(Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(id));
+    if(!p){alert('Polizza non trovata. Aggiorna l’archivio e riprova.');return;}
+    if(typeof closeCrmClientProfile==='function') closeCrmClientProfile();
+    if(typeof openPolicyModal==='function') openPolicyModal(null,p.id);
+  };
+  window.nexaOpenPolicyTitlesFromProfile = id => {
+    const p=(Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(id));
+    if(!p){alert('Polizza non trovata. Aggiorna l’archivio e riprova.');return;}
+    if(typeof closeCrmClientProfile==='function') closeCrmClientProfile();
+    if(typeof openPolicyTitles==='function') openPolicyTitles(p.id);
+  };
+  function result(type, id, title, detail, badge){
+    return `<button type="button" role="option" onclick="nexaUniversalSearchOpen('${type}','${esc(id).replace(/'/g,'&#39;')}')" class="w-full text-left px-4 py-3 border-b border-slate-800 last:border-0 hover:bg-slate-800/80 focus:bg-slate-800 focus:outline-none"><div class="flex items-start gap-3"><span class="mt-0.5 w-8 h-8 rounded-lg bg-slate-800 text-accent flex items-center justify-center shrink-0"><i class="fa-solid ${type==='cliente'?'fa-user':type==='polizza'?'fa-file-shield':type==='preventivo'?'fa-file-invoice':'fa-car-burst'}"></i></span><span class="min-w-0 flex-1"><span class="block text-sm font-semibold text-white break-words">${esc(title)}</span><span class="block text-xs text-slate-400 mt-1 break-words">${esc(detail)}</span></span><span class="text-[10px] text-slate-400 uppercase shrink-0">${esc(badge)}</span></div></button>`;
+  }
+  window.nexaUniversalSearchRun = function(){
+    const input=$('nexaUniversalSearch'), box=$('nexaUniversalSearchResults'); if(!input||!box)return;
+    const q=norm(input.value); if(q.length<2){box.innerHTML='';hide();return;}
+    const found=[];
+    (Array.isArray(clients)?clients:[]).forEach(c=>{
+      const fields=[c.name,c.cf,c.phone,c.email,c.address,c.vat,c.partitaIva,c.companyName];
+      if(fields.some(v=>norm(v).includes(q))) found.push({type:'cliente',id:c.id,title:c.name||'Cliente senza nome',detail:[c.cf,c.phone,c.email].filter(Boolean).join(' · ')||'Anagrafica cliente',badge:'Cliente',rank:0});
+    });
+    (Array.isArray(policies)?policies:[]).forEach(p=>{
+      const c=(Array.isArray(clients)?clients:[]).find(x=>String(x.id)===String(p.clientId));
+      const fields=[p.policyNumber,p.number,p.company,p.ramo,p.notes,p.plate,p.targa,p.effect,p.expiry,c?.name,c?.cf];
+      if(fields.some(v=>norm(v).includes(q))) found.push({type:'polizza',id:p.id,title:`Polizza ${p.policyNumber||p.number||'(senza numero)'}`,detail:[c?.name,p.company,p.ramo,`Scadenza ${fmtDate(p.expiry)}`].filter(Boolean).join(' · '),badge:p.status||'Polizza',rank:1});
+    });
+    (typeof quotes!=='undefined'&&Array.isArray(quotes)?quotes:[]).forEach(x=>{
+      const c=(Array.isArray(clients)?clients:[]).find(y=>String(y.id)===String(x.clientId));
+      if([x.quoteNumber,x.number,x.company,x.policyType,x.ramo,x.notes,x.clientName,c?.name,c?.cf].some(v=>norm(v).includes(q))) found.push({type:'preventivo',id:x.id,title:`Preventivo ${x.quoteNumber||x.number||'(senza numero)'}`,detail:[x.clientName||c?.name,x.company,x.policyType||x.ramo].filter(Boolean).join(' · '),badge:x.status||'Preventivo',rank:2});
+    });
+    (typeof claims!=='undefined'&&Array.isArray(claims)?claims:[]).forEach(x=>{
+      const c=(Array.isArray(clients)?clients:[]).find(y=>String(y.id)===String(x.clientId));
+      if([x.claimNumber,x.policyNumber,x.company,x.notes,x.description,c?.name,c?.cf].some(v=>norm(v).includes(q))) found.push({type:'sinistro',id:x.id,title:`Sinistro ${x.claimNumber||'(senza numero)'}`,detail:[c?.name,x.company,x.policyNumber?'Polizza '+x.policyNumber:''].filter(Boolean).join(' · '),badge:x.closed?'Chiuso':'Aperto',rank:3});
+    });
+    found.sort((a,b)=>a.rank-b.rank||String(a.title).localeCompare(String(b.title),'it'));
+    const limited=found.slice(0,30);
+    box.innerHTML=limited.length?`<div class="px-4 py-2 bg-slate-900 text-[10px] uppercase tracking-widest text-slate-500">${found.length} risultati${found.length>30?' · mostrati i primi 30':''}</div>`+limited.map(x=>result(x.type,x.id,x.title,x.detail,x.badge)).join(''):`<div class="px-4 py-5 text-sm text-slate-400">Nessun risultato per “${esc(input.value)}”. Prova con nome, codice fiscale, numero polizza o targa.</div>`;
+    show(box);
+  };
+  window.nexaUniversalSearchKeydown = function(e){
+    if(e.key==='Escape'){hide();return;}
+    if(e.key==='Enter'){
+      const first=$('nexaUniversalSearchResults')?.querySelector('button[role="option"]');
+      if(first){e.preventDefault();first.click();}
+    }
+  };
+  window.nexaUniversalSearchOpen = function(type,id){
+    hide(); const input=$('nexaUniversalSearch'); if(input) input.value='';
+    if(type==='cliente'){ if(typeof openClientDetail==='function') openClientDetail(id); return; }
+    if(type==='polizza'){ const p=(Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(id)); if(!p){alert('Polizza non trovata.');return;} if(typeof openPolicyModal==='function') openPolicyModal(null,p.id); return; }
+    if(type==='preventivo'){
+      if(typeof switchSection==='function') switchSection('quotes'); const search=$('searchQuotesInput'); if(search){const q=(typeof quotes!=='undefined'&&Array.isArray(quotes)?quotes:[]).find(x=>String(x.id)===String(id)); search.value=q?(q.quoteNumber||q.number||''):''; if(typeof renderQuotes==='function')renderQuotes();} return;
+    }
+    if(type==='sinistro'){
+      if(typeof switchSection==='function') switchSection('claims'); const search=$('searchClaims'); if(search){const c=(typeof claims!=='undefined'&&Array.isArray(claims)?claims:[]).find(x=>String(x.id)===String(id)); search.value=c?(c.claimNumber||c.policyNumber||''):''; if(typeof renderClaims==='function')renderClaims();} return;
+    }
+  };
+  document.addEventListener('click',e=>{const wrap=$('nexa-universal-search-wrap'); if(wrap&&!wrap.contains(e.target))hide();});
+})();
+</script>
 </body>
 </html>
