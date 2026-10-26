@@ -6928,8 +6928,9 @@ function renderScannerResults(issues, container) {
     byId('crmProfileName').textContent = client.name || 'Cliente senza nome';
     byId('crmProfileAvatar').textContent = String(client.name||'N').trim().charAt(0).toUpperCase() || 'N';
     byId('crmProfileMeta').textContent = [client.cf, client.isDeceased?'Deceduto':(client.isCeased?'Attività cessata':'Cliente')].filter(Boolean).join(' · ');
+    const linkedTasks = (typeof window.getCRMTasksForClient === 'function') ? window.getCRMTasksForClient(cid) : [];
     byId('crmProfileStats').innerHTML = [
-      ['Polizze',ps.length,'fa-file-shield'],['Preventivi',qs.length,'fa-file-invoice-dollar'],['Sinistri aperti',cs.filter(c=>!c.closed).length,'fa-car-burst'],['Richiami / eventi',as.length,'fa-calendar-check']
+      ['Polizze',ps.length,'fa-file-shield'],['Preventivi',qs.length,'fa-file-invoice-dollar'],['Sinistri aperti',cs.filter(c=>!c.closed).length,'fa-car-burst'],['Richiami / eventi',as.length + linkedTasks.length,'fa-calendar-check']
     ].map(([label,count,ico])=>`<div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4"><div class="flex items-center justify-between text-slate-400 text-xs uppercase tracking-wider"><span>${label}</span><i class="fa-solid ${ico} text-accent"></i></div><div class="text-2xl font-bold text-white mt-2">${count}</div></div>`).join('');
     const contactRows = [
       ['Telefono',client.phone ? `<a class="text-accent hover:underline" href="tel:${esc(client.phone)}">${esc(client.phone)}</a>` : '<span class="text-slate-500">Non indicato</span>'],
@@ -6987,7 +6988,17 @@ function renderScannerResults(issues, container) {
     window.nexaRenderProfilePolicies();
     byId('crmProfileQuotes').innerHTML = qs.length ? qs.map(q=>item(val(q.quoteNumber,q.number,'Preventivo'),`${val(q.ramo,'Ramo n/d')} · ${val(q.company,'Compagnia n/d')} · ${val(q.effectDate,'Decorrenza n/d')} · ${money(q.price)}`,val(q.status,'In archivio'))).join('') : empty('Nessun preventivo registrato.');
     byId('crmProfileClaims').innerHTML = cs.length ? cs.map(c=>item(`Sinistro ${val(c.claimNumber,'senza numero')}`,`${val(c.company,'Compagnia n/d')} · Polizza ${val(c.policyNumber,'n/d')} · Apertura ${val(c.openedAt,'n/d')}`,c.closed?'Chiuso':'Aperto')).join('') : empty('Nessun sinistro collegato.');
-    byId('crmProfileAgenda').innerHTML = as.length ? as.slice(0,8).map(a=>item(val(a.title,'Appuntamento'),`${val(a.date,'Data n/d')} ${val(a.time,'')} `,a.date && a.date < new Date().toISOString().slice(0,10) ? 'Da verificare' : 'Agenda')).join('') : empty('Nessun richiamo collegato individuato.');
+    const agendaItems = as.slice(0,8).map(a=>item(val(a.title,'Appuntamento'),`${val(a.date,'Data n/d')} ${val(a.time,'')} `,a.date && a.date < new Date().toISOString().slice(0,10) ? 'Da verificare' : 'Agenda'));
+    if (linkedTasks.length) {
+      agendaItems.push(`<div class="pt-2"><h4 class="text-xs uppercase tracking-wider font-bold text-accent mb-2">Attività collegate</h4><div class="space-y-2">${linkedTasks.slice().sort((a,b)=>String(a.dueDate||'').localeCompare(String(b.dueDate||''))).map(t=>{
+        const tid = JSON.stringify(String(t.id));
+        const status = String(t.status || 'Da fare');
+        const statusClass = status==='Completata' ? 'border-emerald-700 text-emerald-300 bg-emerald-950/30' : status==='In corso' ? 'border-amber-700 text-amber-300 bg-amber-950/30' : 'border-slate-700 text-slate-300 bg-slate-900';
+        const due = val(t.dueDate,'Senza scadenza');
+        return `<article class="rounded-lg border border-slate-700 bg-slate-950/60 p-3"><div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2"><div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><span class="text-sm font-semibold text-white break-words">${esc(val(t.title,'Attività senza titolo'))}</span><span class="rounded border px-2 py-0.5 text-[10px] ${statusClass}">${esc(status)}</span></div><div class="text-xs text-slate-400 mt-1">${esc(val(t.type,'Attività'))} · Scadenza: ${esc(due)} · Priorità: ${esc(val(t.priority,'Normale'))}</div>${t.notes?`<p class="text-sm text-slate-300 mt-2 whitespace-pre-wrap break-words">${esc(t.notes)}</p>`:''}</div><div class="flex flex-wrap gap-2 shrink-0"><select aria-label="Stato attività" onchange="updateCRMTaskStatus(${tid},this.value)" class="bg-deep border border-slate-700 rounded px-2 py-1.5 text-xs text-white">${['Da fare','In corso','Completata'].map(x=>`<option ${status===x?'selected':''}>${x}</option>`).join('')}</select><button type="button" onclick="editCRMTask(${tid})" class="rounded border border-slate-700 px-2 py-1.5 text-xs text-slate-300 hover:text-white" title="Modifica attività"><i class="fa-solid fa-pen"></i></button></div></div></article>`;
+      }).join('')}</div></div>`);
+    }
+    byId('crmProfileAgenda').innerHTML = agendaItems.length ? agendaItems.join('') : empty('Nessun richiamo o attività collegata individuata.');
     byId('crmProfileNotes').textContent = client.notes || 'Nessuna nota inserita.';
     byId('crmActivityDate').value = new Date().toISOString().slice(0,10);
     byId('crmActivityText').value = '';
@@ -7138,7 +7149,7 @@ function renderScannerResults(issues, container) {
     if($('crm-task-overdue-count')) $('crm-task-overdue-count').textContent = String(overdue);
     if($('crm-task-today-count')) $('crm-task-today-count').textContent = String(dueToday);
     if($('crm-task-upcoming-count')) $('crm-task-upcoming-count').textContent = String(upcoming);
-    if($('nav-tasks-count')) $('nav-tasks-count').textContent = String(overdue + dueToday);
+    if($('nav-tasks-count')) $('nav-tasks-count').textContent = String(open.length);
     document.querySelectorAll('[data-crm-task-filter]').forEach(btn=>{
       const active = btn.getAttribute('data-crm-task-filter') === focus;
       btn.className = `crm-task-filter rounded-lg px-3 py-2 text-xs font-bold border ${active?'border-slate-600 text-white bg-slate-800':'border-slate-700 text-slate-400'}`;
@@ -7156,6 +7167,7 @@ function renderScannerResults(issues, container) {
       ].filter(g=>g[1].length);
       list.innerHTML = groups.map(([label,items])=>`<section><h4 class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-3">${esc(label)} <span class="text-slate-600">(${items.length})</span></h4><div class="space-y-3">${items.map(taskCard).join('')}</div></section>`).join('');
     }
+    if (typeof window.nexaRefreshOpenClientProfile === 'function') window.nexaRefreshOpenClientProfile();
   };
   window.openCRMTaskFocus = function(which='open'){
     focus = ['open','overdue','today','upcoming','completed','all'].includes(which) ? which : 'open';
@@ -7212,6 +7224,7 @@ function renderScannerResults(issues, container) {
     if(ownerUid) await pushDelete(id);
   };
   window.getCRMTasksForBackup = () => tasks.slice();
+  window.getCRMTasksForClient = clientId => tasks.filter(t => String(t.clientId || '') === String(clientId || '')).map(t => ({...t}));
   window.exportCRMTasks = async () => {
     if(!ownerUid || !window.FB || !FB.db || typeof FB.getDocs !== 'function') return tasks.slice();
     try {
