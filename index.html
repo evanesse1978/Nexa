@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale v20 | Le mie provvigioni</title>
+    <title>NEXA CRM Professionale v31 | Avvisi scadenza e dossier cliente</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -1262,21 +1262,18 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                 <div id="section-commissions" class="hidden fade-in space-y-6">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div><h2 class="text-2xl font-bold text-white">Le mie provvigioni</h2><p class="text-sm text-slate-400 mt-1">Importi personali inseriti manualmente. Lo stato della provvigione è indipendente dall'incasso del cliente.</p></div>
-                        <div class="flex gap-2 items-center"><label for="commissionYear" class="text-xs text-slate-400">Anno</label><select id="commissionYear" onchange="renderPersonalCommissions()" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select><button onclick="renderPersonalCommissions()" class="border border-slate-700 rounded-lg px-3 py-2 text-sm text-white hover:border-accent"><i class="fa-solid fa-rotate mr-1"></i>Aggiorna</button></div>
+                        <div class="flex flex-wrap gap-2 items-center"><label for="commissionYear" class="text-xs text-slate-400">Anno</label><select id="commissionYear" onchange="renderPersonalCommissions()" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select><label for="commissionMonth" class="text-xs text-slate-400">Mese</label><select id="commissionMonth" onchange="renderPersonalCommissions()" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"><option value="TUTTI">Tutti i mesi</option><option value="01">Gennaio</option><option value="02">Febbraio</option><option value="03">Marzo</option><option value="04">Aprile</option><option value="05">Maggio</option><option value="06">Giugno</option><option value="07">Luglio</option><option value="08">Agosto</option><option value="09">Settembre</option><option value="10">Ottobre</option><option value="11">Novembre</option><option value="12">Dicembre</option></select><button onclick="renderPersonalCommissions()" class="border border-slate-700 rounded-lg px-3 py-2 text-sm text-white hover:border-accent"><i class="fa-solid fa-rotate mr-1"></i>Aggiorna</button><button onclick="exportPersonalCommissionsPDF()" class="border border-emerald-700 text-emerald-300 rounded-lg px-3 py-2 text-sm hover:bg-emerald-950/40"><i class="fa-solid fa-file-pdf mr-1"></i>Esporta PDF A4</button></div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-slate-500"><div class="text-xs text-slate-400 font-bold uppercase">Provvigioni inserite</div><div id="commTotalEntered" class="text-2xl font-bold text-white mt-2">€ 0,00</div></div>
-                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-amber-500"><div class="text-xs text-slate-400 font-bold uppercase">Da verificare</div><div id="commTotalPending" class="text-2xl font-bold text-amber-300 mt-2">€ 0,00</div></div>
-                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-sky-500"><div class="text-xs text-slate-400 font-bold uppercase">Maturate</div><div id="commTotalMatured" class="text-2xl font-bold text-sky-300 mt-2">€ 0,00</div></div>
-                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-emerald-500"><div class="text-xs text-slate-400 font-bold uppercase">Effettivamente incassate</div><div id="commTotalPaid" class="text-2xl font-bold text-emerald-300 mt-2">€ 0,00</div></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-slate-500"><div class="text-xs text-slate-400 font-bold uppercase">Totale provvigioni personali</div><div id="commTotalEntered" class="text-2xl font-bold text-white mt-2">€ 0,00</div></div>
+                        <div class="glass-effect p-4 rounded-2xl border-l-4 border-emerald-500"><div class="text-xs text-slate-400 font-bold uppercase">Provvigioni su titoli incassati</div><div id="commTotalPaid" class="text-2xl font-bold text-emerald-300 mt-2">€ 0,00</div></div>
                     </div>
                     <div class="glass-effect rounded-2xl p-4 flex flex-col md:flex-row gap-3 md:items-center">
                         <input id="commissionSearch" oninput="renderPersonalCommissions()" placeholder="Cerca cliente, polizza, compagnia..." class="flex-1 bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-                        <select id="commissionStatusFilter" onchange="renderPersonalCommissions()" class="bg-deep border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"><option value="TUTTI">Tutti gli stati</option><option value="DA_VERIFICARE">Da verificare</option><option value="MATURATA">Maturata</option><option value="INCASSATA">Incassata</option></select>
                         <span id="commissionRowsCount" class="text-xs text-slate-400"></span>
                     </div>
-                    <div class="glass-effect rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-900/70 text-slate-400 text-xs uppercase"><tr><th class="px-4 py-3">Cliente / Polizza</th><th class="px-4 py-3">Compagnia</th><th class="px-4 py-3">Scadenza titolo</th><th class="px-4 py-3 text-right">Tua provvigione (€)</th><th class="px-4 py-3">Stato provvigione</th><th class="px-4 py-3">Data maturazione</th><th class="px-4 py-3">Data incasso</th><th class="px-4 py-3">Azioni</th></tr></thead><tbody id="personalCommissionsBody" class="divide-y divide-slate-800/50"></tbody></table></div></div>
-                    <p class="text-xs text-slate-500">Le provvigioni già presenti nell'archivio vengono inizialmente considerate “Da verificare”: lo stato non viene dedotto dall'incasso del titolo. Imposta manualmente “Maturata” o “Incassata” quando hai conferma.</p>
+                    <div class="glass-effect rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-900/70 text-slate-400 text-xs uppercase"><tr><th class="px-4 py-3">Cliente / Polizza</th><th class="px-4 py-3">Compagnia</th><th class="px-4 py-3">Scadenza titolo</th><th class="px-4 py-3 text-right">Tua provvigione (€)</th><th class="px-4 py-3">Incasso titolo</th><th class="px-4 py-3">Azioni</th></tr></thead><tbody id="personalCommissionsBody" class="divide-y divide-slate-800/50"></tbody></table></div></div>
+                    <p class="text-xs text-slate-500">La data visualizzata è quella dell’incasso del titolo. Per i titoli non ancora incassati, il filtro anno/mese usa la scadenza del titolo così da non nascondere le provvigioni ancora da incassare.</p>
                 </div>
 
                 <div id="section-claims" class="hidden fade-in">
@@ -1415,59 +1412,9 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
                             <div>
                                 <h3 class="text-lg font-bold text-white uppercase tracking-wide">Utility <span class="text-accent text-xs font-bold">(V1)</span></h3>
-                                <p class="text-sm text-slate-400 mt-1">Strumenti avanzati di manutenzione del database.</p>
+                                <p class="text-sm text-slate-400 mt-1">Strumenti di controllo e manutenzione del database.</p>
                             </div>
                         </div>
-<!-- ESPORTAZIONE DATI CLIENTE (GDPR) -->
-<div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700 mb-6">
-    <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
-        <h4 class="text-white font-bold text-lg">
-            <i class="fa-solid fa-file-pdf text-danger mr-2"></i>Esportazione Dati Cliente (GDPR)
-        </h4>
-    </div>
-    <p class="text-xs text-slate-400 mb-4">Genera un dossier completo in formato PDF contenente l'anagrafica, le polizze, i sinistri e i preventivi associati a un singolo cliente. Ideale per le richieste di accesso ai dati o per fornire un riepilogo al cliente.</p>
-    
-    <div class="flex flex-col md:flex-row gap-4 items-end">
-        <div class="flex-1 w-full">
-            <label class="block text-xs text-slate-500 font-bold mb-1">Seleziona Cliente</label>
-            <select id="utilityGdprClientSelect" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow">
-                <option value="">Caricamento clienti...</option>
-            </select>
-        </div>
-        <button onclick="exportClientDataPDF()" class="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-600 active:scale-95 transition-all shadow-lg flex gap-2 items-center border border-slate-600">
-            <i class="fa-solid fa-download text-danger"></i> Esporta Dossier
-        </button>
-    </div>
-</div>
-
-<!-- GENERATORE DI DISDETTE PDF -->
-<div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700 mb-6">
-    <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
-        <h4 class="text-white font-bold text-lg">
-            <i class="fa-solid fa-file-signature text-warning mr-2"></i>Generatore Lettera di Disdetta
-        </h4>
-    </div>
-    <p class="text-xs text-slate-400 mb-4">Crea rapidamente una lettera di disdetta formale da far firmare al cliente. Seleziona prima l'anagrafica, poi la polizza da disdettare.</p>
-    
-    <div class="flex flex-col md:flex-row gap-4 items-end">
-        <div class="flex-1 w-full">
-            <label class="block text-xs text-slate-500 font-bold mb-1">1. Seleziona Cliente</label>
-            <select id="utilityDisdettaClientSelect" onchange="populateDisdettaPolicySelect()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-accent">
-                <option value="">Caricamento clienti...</option>
-            </select>
-        </div>
-        <div class="flex-1 w-full">
-            <label class="block text-xs text-slate-500 font-bold mb-1">2. Seleziona Polizza</label>
-            <select id="utilityDisdettaPolicySelect" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-accent disabled:opacity-50">
-                <option value="">Prima seleziona un cliente...</option>
-            </select>
-        </div>
-        <button onclick="exportDisdettaPDF()" class="bg-warning text-darktext px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-500 active:scale-95 transition-all shadow-lg flex gap-2 items-center border border-yellow-600">
-            <i class="fa-solid fa-file-pdf"></i> Genera Lettera
-        </button>
-    </div>
-</div>
-
 <!-- SCANNER DATI INCOMPLETI -->
 <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700 mb-6">
     <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
@@ -4276,6 +4223,7 @@ function editTitle(pid, tid){
                     <button onclick="reactivatePolicy(${p.id})" class="text-xs border border-slate-700 text-emerald-400 hover:bg-slate-800 px-2 py-1 rounded" title="Riattiva Anticipatamente"><i class="fa-solid fa-play"></i></button>
                     <button onclick="cancelPolicy(${p.id})" class="text-xs border border-slate-700 text-red-400 hover:bg-slate-800 px-2 py-1 rounded" title="Annulla"><i class="fa-solid fa-ban"></i></button>
                     <button onclick="replacePolicy(${p.id})" class="text-xs border border-slate-700 text-blue-400 hover:bg-slate-800 px-2 py-1 rounded" title="Sostituisci"><i class="fa-solid fa-right-left"></i></button>
+                    <button onclick="exportDisdettaForPolicy(${JSON.stringify(String(p.id))})" class="text-xs border border-amber-800 text-amber-300 hover:bg-slate-800 px-2 py-1 rounded" title="Genera lettera di disdetta PDF"><i class="fa-solid fa-file-signature"></i></button>
                     <button onclick="deletePolicy(${p.id})" class="text-xs border border-slate-700 text-slate-500 hover:text-red-600 px-2 py-1 rounded" title="Elimina"><i class="fa-solid fa-trash"></i></button>
                 </td></tr>`; 
                 
@@ -5985,7 +5933,7 @@ function switchSection(sectionName){
     contracts: { t:'Polizze', s:'Gestione portafoglio' },
     deadlines: { t:'Scadenze', s:'Scadenziario titoli' },
     report:    { t:'Report', s:'Analisi Produzione, Portafoglio e Polizze Perse' },
-    commissions:{ t:'Le mie provvigioni', s:'Provvigioni personali: da verificare, maturate e incassate' },
+    commissions:{ t:'Le mie provvigioni', s:'Provvigioni personali per anno e mese, con esportazione PDF' },
     claims:    { t:'Sinistri', s:'Gestione sinistri' },
     utility:   { t:'Utility', s:'Strumenti avanzati di manutenzione database' }
   };
@@ -6044,12 +5992,10 @@ function switchSection(sectionName){
   } else if(sectionName === 'utility'){
     document.getElementById('section-utility')?.classList.remove('hidden');
     document.getElementById('nav-utility')?.classList.add('nav-active');
-    populateGdprClientSelect();
-    populateDisdettaClientSelect(); // <--- NUOVA RIGA AGGIUNTA QUI
   }
 }
 
-// PROVVIGIONI PERSONALI: lo stato è indipendente dallo stato di incasso del titolo.
+// PROVVIGIONI PERSONALI: filtro per anno/mese e data di incasso del titolo.
 function commissionTodayISO(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function commissionMoney(v){ return (Number(v)||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'}); }
 function getAllPersonalCommissionRows(){
@@ -6057,52 +6003,86 @@ function getAllPersonalCommissionRows(){
   (Array.isArray(policies)?policies:[]).forEach(p=>{
     (Array.isArray(p.titles)?p.titles:[]).forEach(t=>{
       const amount=Number(safeParseFloat(t.commPers)||0);
-      if(amount===0 && !t.commStatus && !t.commMaturedDate && !t.commPaidDate) return;
+      if(amount===0) return;
       const c=(Array.isArray(clients)?clients:[]).find(x=>String(x.id)===String(p.clientId));
-      out.push({p,t,c,amount,status:t.commStatus||'DA_VERIFICARE'});
+      out.push({p,t,c,amount});
     });
   });
   return out;
 }
 function initPersonalCommissions(){
   const sel=document.getElementById('commissionYear'); if(!sel) return;
-  if(sel.options.length) return;
-  const now=new Date().getFullYear();
-  for(let y=now-5;y<=now+1;y++){ const o=document.createElement('option'); o.value=String(y); o.textContent=String(y); if(y===now)o.selected=true; sel.appendChild(o); }
+  if(!sel.options.length){
+    const now=new Date().getFullYear();
+    for(let y=now-5;y<=now+1;y++){ const o=document.createElement('option'); o.value=String(y); o.textContent=String(y); if(y===now)o.selected=true; sel.appendChild(o); }
+  }
+  const month=document.getElementById('commissionMonth'); if(month && !month.dataset.initialized){ month.value=String(new Date().getMonth()+1).padStart(2,'0'); month.dataset.initialized='1'; }
+}
+function commissionReferenceDate(r){
+  // Per i titoli incassati si usa esclusivamente la data effettiva di incasso; per gli altri la scadenza mantiene visibili le provvigioni pendenti.
+  return (String(r.t.status||'').toUpperCase()==='INCASSATO' && r.t.paymentDate) ? String(r.t.paymentDate).slice(0,10) : String(r.t.dueDate||'').slice(0,10);
 }
 function renderPersonalCommissions(){
   const body=document.getElementById('personalCommissionsBody'); if(!body) return;
   const year=Number(document.getElementById('commissionYear')?.value||new Date().getFullYear());
+  const month=String(document.getElementById('commissionMonth')?.value||'TUTTI');
   const query=String(document.getElementById('commissionSearch')?.value||'').trim().toLocaleLowerCase('it');
-  const statusFilter=document.getElementById('commissionStatusFilter')?.value||'TUTTI';
   const all=getAllPersonalCommissionRows();
-  const yearRows=all.filter(r=>{
-    const d=r.status==='INCASSATA' ? r.t.commPaidDate : (r.status==='MATURATA' ? r.t.commMaturedDate : r.t.dueDate);
-    return d && Number(String(d).slice(0,4))===year;
-  });
-  const sumStatus=(st)=>yearRows.filter(r=>r.status===st).reduce((s,r)=>s+r.amount,0);
-  document.getElementById('commTotalEntered').textContent=commissionMoney(yearRows.reduce((s,r)=>s+r.amount,0));
-  document.getElementById('commTotalPending').textContent=commissionMoney(sumStatus('DA_VERIFICARE'));
-  document.getElementById('commTotalMatured').textContent=commissionMoney(sumStatus('MATURATA'));
-  document.getElementById('commTotalPaid').textContent=commissionMoney(sumStatus('INCASSATA'));
   let rows=all.filter(r=>{
-    const d=r.status==='INCASSATA' ? r.t.commPaidDate : (r.status==='MATURATA' ? r.t.commMaturedDate : r.t.dueDate);
-    if(!d || Number(String(d).slice(0,4))!==year) return false;
-    if(statusFilter!=='TUTTI' && r.status!==statusFilter) return false;
+    const d=commissionReferenceDate(r);
+    if(!d || Number(d.slice(0,4))!==year) return false;
+    if(month!=='TUTTI' && d.slice(5,7)!==month) return false;
     const hay=[r.c?.name,r.c?.cf,r.p.policyNumber,r.p.company,r.p.ramo,r.t.n].join(' ').toLocaleLowerCase('it');
     return !query || hay.includes(query);
   });
+  document.getElementById('commTotalEntered').textContent=commissionMoney(rows.reduce((s,r)=>s+r.amount,0));
+  document.getElementById('commTotalPaid').textContent=commissionMoney(rows.filter(r=>String(r.t.status||'').toUpperCase()==='INCASSATO').reduce((s,r)=>s+r.amount,0));
   document.getElementById('commissionRowsCount').textContent=`${rows.length} voci`;
-  if(!rows.length){body.innerHTML='<tr><td colspan="8" class="px-4 py-8 text-center text-slate-500">Nessuna provvigione per i filtri selezionati.</td></tr>';return;}
-  body.innerHTML=rows.map((r)=>{
+  if(!rows.length){body.innerHTML='<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Nessuna provvigione per i filtri selezionati.</td></tr>';return;}
+  body.innerHTML=rows.map(r=>{
     const pid=String(r.p.id).replace(/[^\w-]/g,''); const tid=String(r.t.id).replace(/[^\w-]/g,'');
     const cname=escapeHtml(r.c?.name||'Cliente non trovato');
     const policy=escapeHtml(r.p.policyNumber||'Polizza senza numero');
-    const status=r.status;
-    const badge=status==='INCASSATA'?'text-emerald-300':status==='MATURATA'?'text-sky-300':'text-amber-300';
-    return `<tr class="hover:bg-slate-800/30"><td class="px-4 py-3"><div class="font-semibold text-white">${cname}</div><div class="text-xs text-slate-400">${policy} · ${escapeHtml(r.t.n||'Titolo')}</div></td><td class="px-4 py-3">${escapeHtml(r.p.company||'')}</td><td class="px-4 py-3 text-xs">${escapeHtml(r.t.dueDate||'')}</td><td class="px-4 py-3 text-right font-bold text-white">${commissionMoney(r.amount)}</td><td class="px-4 py-3"><select aria-label="Stato provvigione" onchange="updatePersonalCommission('${pid}','${tid}',this.value)" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs ${badge}"><option value="DA_VERIFICARE" ${status==='DA_VERIFICARE'?'selected':''}>Da verificare</option><option value="MATURATA" ${status==='MATURATA'?'selected':''}>Maturata</option><option value="INCASSATA" ${status==='INCASSATA'?'selected':''}>Incassata</option></select></td><td class="px-4 py-3 text-xs">${escapeHtml(r.t.commMaturedDate||'—')}</td><td class="px-4 py-3 text-xs">${escapeHtml(r.t.commPaidDate||'—')}</td><td class="px-4 py-3 whitespace-nowrap"><button onclick="editPersonalCommission('${pid}','${tid}')" class="border border-slate-700 rounded px-2 py-1 text-xs text-accent hover:border-accent" title="Modifica importo"><i class="fa-solid fa-pen"></i></button> <button onclick="editPersonalCommissionDates('${pid}','${tid}')" class="border border-slate-700 rounded px-2 py-1 text-xs text-sky-300 hover:border-sky-400" title="Modifica date"><i class="fa-regular fa-calendar"></i></button> <button onclick="openPolicyTitles(${JSON.stringify(r.p.id)})" class="border border-slate-700 rounded px-2 py-1 text-xs text-slate-300 hover:border-accent" title="Apri titoli"><i class="fa-solid fa-list-ol"></i></button></td></tr>`;
+    const paymentDate=String(r.t.status||'').toUpperCase()==='INCASSATO' ? (r.t.paymentDate||'—') : '—';
+    return `<tr class="hover:bg-slate-800/30"><td class="px-4 py-3"><div class="font-semibold text-white">${cname}</div><div class="text-xs text-slate-400">${policy} · ${escapeHtml(r.t.n||'Titolo')}</div></td><td class="px-4 py-3">${escapeHtml(r.p.company||'')}</td><td class="px-4 py-3 text-xs">${escapeHtml(r.t.dueDate||'')}</td><td class="px-4 py-3 text-right font-bold text-white">${commissionMoney(r.amount)}</td><td class="px-4 py-3 text-xs">${escapeHtml(paymentDate)}</td><td class="px-4 py-3 whitespace-nowrap"><button onclick="editPersonalCommission('${pid}','${tid}')" class="border border-slate-700 rounded px-2 py-1 text-xs text-accent hover:border-accent" title="Modifica importo provvigione"><i class="fa-solid fa-pen"></i></button> <button onclick="openPolicyTitles(${JSON.stringify(r.p.id)})" class="border border-slate-700 rounded px-2 py-1 text-xs text-slate-300 hover:border-accent" title="Apri titoli"><i class="fa-solid fa-list-ol"></i></button></td></tr>`;
   }).join('');
 }
+function exportPersonalCommissionsPDF(){
+  const year=Number(document.getElementById('commissionYear')?.value||new Date().getFullYear());
+  const month=String(document.getElementById('commissionMonth')?.value||'TUTTI');
+  const query=String(document.getElementById('commissionSearch')?.value||'').trim().toLocaleLowerCase('it');
+  const monthNames={'01':'Gennaio','02':'Febbraio','03':'Marzo','04':'Aprile','05':'Maggio','06':'Giugno','07':'Luglio','08':'Agosto','09':'Settembre','10':'Ottobre','11':'Novembre','12':'Dicembre'};
+  const rows=getAllPersonalCommissionRows().filter(r=>{
+    const d=commissionReferenceDate(r);
+    if(!d || Number(d.slice(0,4))!==year) return false;
+    if(month!=='TUTTI' && d.slice(5,7)!==month) return false;
+    const hay=[r.c?.name,r.c?.cf,r.p.policyNumber,r.p.company,r.p.ramo,r.t.n].join(' ').toLocaleLowerCase('it');
+    return !query || hay.includes(query);
+  }).sort((a,b)=>String(commissionReferenceDate(a)).localeCompare(String(commissionReferenceDate(b))) || String(a.c?.name||'').localeCompare(String(b.c?.name||''),'it'));
+  if(!rows.length){alert('Non ci sono provvigioni da esportare per il periodo e i filtri selezionati.');return;}
+  if(!window.jspdf?.jsPDF){alert('La libreria PDF non è disponibile. Ricarica NEXA CRM e riprova.');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('p','mm','a4');
+  const periodo=(month==='TUTTI'?'Tutti i mesi':monthNames[month])+' '+year;
+  doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(24,45,78); doc.text('Riepilogo provvigioni personali',14,18);
+  doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(75,85,99); doc.text('Periodo: '+periodo,14,25);
+  doc.setFontSize(9); doc.text('Generato il '+new Date().toLocaleDateString('it-IT'),14,31);
+  const total=rows.reduce((sum,r)=>sum+r.amount,0);
+  const paid=rows.filter(r=>String(r.t.status||'').toUpperCase()==='INCASSATO').reduce((sum,r)=>sum+r.amount,0);
+  doc.autoTable({startY:37,theme:'grid',head:[['Cliente','N. polizza / titolo','Compagnia','Scadenza titolo','Provvigione','Stato titolo','Data incasso']],body:rows.map(r=>[
+    String(r.c?.name||'Cliente non trovato'),String((r.p.policyNumber||'Senza numero')+' / '+(r.t.n||'Titolo')),
+    String(r.p.company||''),String(r.t.dueDate||''),commissionMoney(r.amount),String(r.t.status||'DA INCASSARE'),
+    String(String(r.t.status||'').toUpperCase()==='INCASSATO'?(r.t.paymentDate||''):'')
+  ]),styles:{font:'helvetica',fontSize:7.5,cellPadding:2.2,overflow:'linebreak'},headStyles:{fillColor:[30,58,90],textColor:[255,255,255],fontStyle:'bold'},columnStyles:{0:{cellWidth:37},1:{cellWidth:35},2:{cellWidth:31},3:{cellWidth:22},4:{cellWidth:24,halign:'right'},5:{cellWidth:22},6:{cellWidth:23}},margin:{left:10,right:10},didDrawPage:function(data){doc.setFontSize(8);doc.setTextColor(120);doc.text('NEXA CRM · '+periodo,10,290);}});
+  let y=(doc.lastAutoTable?.finalY||40)+9;
+  if(y>270){doc.addPage();y=20;}
+  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(24,45,78);
+  doc.text('Totale provvigioni: '+commissionMoney(total),14,y);
+  doc.text('Di cui su titoli incassati: '+commissionMoney(paid),14,y+6);
+  const m=month==='TUTTI'?'tutti_i_mesi':month;
+  doc.save('NEXA_Provvigioni_'+year+'_'+m+'.pdf');
+}
+
 function findPersonalCommission(pid,tid){
   const p=(Array.isArray(policies)?policies:[]).find(x=>String(x.id)===String(pid));
   const t=(p?.titles||[]).find(x=>String(x.id)===String(tid));
@@ -6116,41 +6096,12 @@ function savePersonalCommissionRecord(p){
   if(typeof renderReport==='function' && !document.getElementById('section-report')?.classList.contains('hidden')) renderReport();
   if(typeof updateDashboard==='function') updateDashboard();
 }
-function updatePersonalCommission(pid,tid,status){
-  const found=findPersonalCommission(pid,tid); if(!found)return;
-  const {p,t}=found; const today=commissionTodayISO();
-  t.commStatus=status;
-  if(status==='MATURATA' && !t.commMaturedDate) t.commMaturedDate=today;
-  if(status==='INCASSATA'){
-    if(!t.commMaturedDate) t.commMaturedDate=today;
-    if(!t.commPaidDate) t.commPaidDate=today;
-  } else { t.commPaidDate=''; }
-  if(status==='DA_VERIFICARE') t.commMaturedDate='';
-  savePersonalCommissionRecord(p);
-}
 function editPersonalCommission(pid,tid){
   const found=findPersonalCommission(pid,tid); if(!found)return;
   const {p,t}=found; const val=prompt('Inserisci la TUA provvigione personale effettiva per questo titolo (€):',String(Number(t.commPers||0).toFixed(2)));
   if(val===null)return; const amount=safeParseFloat(val);
   if(!Number.isFinite(amount)) return alert('Importo non valido.');
   t.commPers=amount; savePersonalCommissionRecord(p);
-}
-
-function editPersonalCommissionDates(pid,tid){
-  const found=findPersonalCommission(pid,tid); if(!found)return;
-  const {p,t}=found;
-  const matured=prompt('Data maturazione provvigione (AAAA-MM-GG, lascia vuoto se non nota):',t.commMaturedDate||'');
-  if(matured===null)return;
-  if(matured && !/^\d{4}-\d{2}-\d{2}$/.test(matured)) return alert('Formato data non valido. Usa AAAA-MM-GG.');
-  const paid=prompt('Data effettivo incasso della tua provvigione (AAAA-MM-GG, lascia vuoto se non incassata):',t.commPaidDate||'');
-  if(paid===null)return;
-  if(paid && !/^\d{4}-\d{2}-\d{2}$/.test(paid)) return alert('Formato data non valido. Usa AAAA-MM-GG.');
-  t.commMaturedDate=matured;
-  t.commPaidDate=paid;
-  if(paid) t.commStatus='INCASSATA';
-  else if(matured) t.commStatus='MATURATA';
-  else t.commStatus='DA_VERIFICARE';
-  savePersonalCommissionRecord(p);
 }
 
 // LOGICA SCANSIONE E UNIONE DUPLICATI
@@ -6331,21 +6282,30 @@ function populateGdprClientSelect() {
     });
 }
 
-function exportClientDataPDF() {
-    const clientId = document.getElementById('utilityGdprClientSelect').value;
-    if(!clientId) return alert("Per favore, seleziona un cliente dalla lista.");
-    
-    const client = clients.find(c => String(c.id) === String(clientId));
-    if(!client) return alert("Cliente non trovato nell'archivio.");
-
+function exportClientDataPDF(clientIdOverride=null) {
+    const requestedClientId = clientIdOverride || document.getElementById('utilityGdprClientSelect')?.value;
+    const pdfContext = window.__nexaClientPdfContext;
+    const profileIsOpen = !!(document.getElementById('crmClientProfile') && !document.getElementById('crmClientProfile').classList.contains('hidden'));
+    // Se il profilo è aperto, è la fonte autorevole: non dipendere dall'ID HTML del pulsante.
+    const clientId = profileIsOpen && pdfContext?.client ? pdfContext.clientId : requestedClientId;
+    if(!clientId) return alert("Apri la scheda del cliente da esportare.");
+    const client = (profileIsOpen && pdfContext?.client ? pdfContext.client : null)
+      || (Array.isArray(clients)?clients:[]).find(c => String(c.id) === String(clientId))
+      || (pdfContext && String(pdfContext.clientId) === String(clientId) ? pdfContext.client : null);
+    if(!client) return alert("Cliente non trovato nell'archivio. Riapri la scheda cliente e riprova.");
+    if(!window.jspdf?.jsPDF) return alert('La libreria PDF non è disponibile. Ricarica NEXA CRM e riprova.');
     // Inizializza jsPDF (Impostazione Portrait/Verticale)
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4'); 
+    const doc = new jsPDF('p', 'mm', 'a4');
+    if(typeof doc.autoTable !== 'function') return alert('La funzione tabelle PDF non è disponibile. Ricarica NEXA CRM e riprova.');
 
     // Raccogli i dati collegati
-    const clientPolicies = policies.filter(p => String(p.clientId) === String(clientId));
-    const clientClaims = typeof claims !== 'undefined' ? claims.filter(c => String(c.clientId) === String(clientId)) : [];
-    const clientQuotes = typeof quotes !== 'undefined' ? quotes.filter(q => String(q.clientId) === String(clientId)) : [];
+    const livePolicies = (Array.isArray(policies)?policies:[]).filter(p => String(p.clientId) === String(clientId));
+    const clientPolicies = livePolicies.length ? livePolicies : (pdfContext && String(pdfContext.clientId) === String(clientId) ? (pdfContext.policies || []) : []);
+    const liveClaims = (typeof claims !== 'undefined' && Array.isArray(claims)) ? claims.filter(c => String(c.clientId) === String(clientId)) : [];
+    const clientClaims = liveClaims.length ? liveClaims : (pdfContext && String(pdfContext.clientId) === String(clientId) ? (pdfContext.claims || []) : []);
+    const liveQuotes = (typeof quotes !== 'undefined' && Array.isArray(quotes)) ? quotes.filter(q => String(q.clientId) === String(clientId)) : [];
+    const clientQuotes = liveQuotes.length ? liveQuotes : (pdfContext && String(pdfContext.clientId) === String(clientId) ? (pdfContext.quotes || []) : []);
 
     // --- HEADER ---
     doc.setFontSize(18);
@@ -6482,6 +6442,112 @@ function exportClientDataPDF() {
     doc.save(`Dossier_${safeName}_${safeCF}.pdf`);
 }
 
+// Avviso scadenze per il cliente: include tutti i titoli ancora da incassare/pagare
+// (scaduti e futuri) e raggruppa gli importi quando l'IBAN del beneficiario coincide.
+function exportClientExpiryNoticePDF(requestedClientId) {
+    const pdfContext = window.__nexaClientPdfContext;
+    const profileIsOpen = !!(document.getElementById('crmClientProfile') && !document.getElementById('crmClientProfile').classList.contains('hidden'));
+    const clientId = profileIsOpen && pdfContext?.client ? pdfContext.clientId : requestedClientId;
+    const client = (profileIsOpen && pdfContext?.client ? pdfContext.client : null)
+      || (Array.isArray(clients)?clients:[]).find(c => String(c.id) === String(clientId))
+      || (pdfContext && String(pdfContext.clientId) === String(clientId) ? pdfContext.client : null);
+    if(!client) return alert("Cliente non trovato nell'archivio. Riapri la scheda cliente e riprova.");
+    if(!window.jspdf?.jsPDF) return alert('La libreria PDF non è disponibile. Ricarica NEXA CRM e riprova.');
+    // Selezione del mese/anno per l'avviso: impostazione predefinita sul mese corrente.
+    const now = new Date();
+    const defaultMonth = String(now.getMonth()+1).padStart(2,'0');
+    const defaultYear = String(now.getFullYear());
+    const monthInput = prompt('Per quale mese vuoi generare l’avviso? Inserisci un numero da 1 a 12 (es. 10 per ottobre):', defaultMonth);
+    if(monthInput === null) return;
+    const month = Number(String(monthInput).trim());
+    if(!Number.isInteger(month) || month < 1 || month > 12) return alert('Mese non valido. Inserisci un numero da 1 a 12.');
+    const yearInput = prompt('Per quale anno vuoi generare l’avviso?', defaultYear);
+    if(yearInput === null) return;
+    const year = Number(String(yearInput).trim());
+    if(!Number.isInteger(year) || year < 2000 || year > 2100) return alert('Anno non valido. Inserisci un anno tra 2000 e 2100.');
+    const periodKey = String(year)+'-'+String(month).padStart(2,'0');
+    const periodLabel = new Date(year, month-1, 1).toLocaleDateString('it-IT',{month:'long',year:'numeric'});
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p','mm','a4');
+    if(typeof doc.autoTable !== 'function') return alert('La funzione tabelle PDF non è disponibile. Ricarica NEXA CRM e riprova.');
+    const fmtDate = v => { if(!v) return '—'; const d=new Date(String(v).slice(0,10)+'T12:00:00'); return Number.isNaN(d.getTime())?String(v):d.toLocaleDateString('it-IT'); };
+    const euro = v => new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(Number(v)||0);
+    const liveLinkedPolicies = (Array.isArray(policies)?policies:[]).filter(p=>String(p.clientId)===String(clientId));
+    const linkedPolicies = liveLinkedPolicies.length ? liveLinkedPolicies :
+      (pdfContext && String(pdfContext.clientId) === String(clientId) && Array.isArray(pdfContext.policies) ? pdfContext.policies : []);
+    const items = [];
+    linkedPolicies.forEach(p => {
+      // Esclude integralmente le polizze con frazionamento mensile (12 rate).
+      if(Number(p.split) === 12) return;
+      (Array.isArray(p.titles)?p.titles:[]).forEach(t => {
+      const st=String(t.status||'DA INCASSARE').toUpperCase();
+      if(['INCASSATO','PAGATO','ANNULLATO','CANCELLED','CANCELLED'].includes(st)) return;
+      const dueDate = String(t.dueDate||p.expiry||'').slice(0,10);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(dueDate) || dueDate.slice(0,7) !== periodKey) return;
+      const pay = typeof getCompanyPaymentInfo==='function' ? getCompanyPaymentInfo(p.company) : {payee:'',iban:''};
+      items.push({
+        dueDate:dueDate, amount:Number(t.amount)||0,
+        installment:t.n ?? t.number ?? '', description:t.description||t.label||t.descriptionText||p.notes||p.ramo||'Premio assicurativo',
+        policyNumber:p.policyNumber||p.number||'—', company:p.company||'—', ramo:p.ramo||'—',
+        payee:pay.payee||'', iban:String(pay.iban||'').replace(/\s+/g,''), status:st
+      });
+      });
+    });
+    items.sort((a,b)=>String(a.dueDate).localeCompare(String(b.dueDate)));
+    if(!items.length) return alert('Non risultano titoli da pagare per '+periodLabel+' per questo cliente, escludendo le polizze con frazionamento mensile.');
+    const groups = new Map();
+    items.forEach((it,i)=>{
+      // IBAN not available: keep by company so unrelated unknown payees are not merged.
+      const key = it.iban ? 'IBAN:'+it.iban : 'NOIBAN:'+it.company+':'+it.payee;
+      if(!groups.has(key)) groups.set(key,{iban:it.iban,payee:it.payee,company:it.company,items:[],total:0});
+      const g=groups.get(key); g.items.push(it); g.total+=it.amount;
+    });
+    const margin=14;
+    doc.setFillColor(15,23,42); doc.rect(0,0,210,39,'F');
+    doc.setTextColor(185,240,106); doc.setFontSize(9); doc.text('NEXA CRM ASSICURATIVO',margin,12);
+    doc.setTextColor(255,255,255); doc.setFontSize(19); doc.text('Avviso di scadenza',margin,22);
+    doc.setFontSize(10); doc.setTextColor(226,232,240); doc.text(String(client.name||'Cliente'),margin,31);
+    doc.setTextColor(71,85,105); doc.setFontSize(9);
+    doc.text('Periodo: '+periodLabel+' · Emesso il '+new Date().toLocaleDateString('it-IT')+' · Titoli non ancora incassati/pagati',margin,46);
+    let y=53;
+    doc.setTextColor(15,23,42); doc.setFontSize(11); doc.text('Gentile '+String(client.name||'Cliente')+',',margin,y); y+=6;
+    doc.setFontSize(9); doc.setTextColor(51,65,85);
+    const intro='di seguito trovi il riepilogo dei titoli assicurativi in scadenza nel mese di '+periodLabel+' ancora da pagare, con le relative scadenze e le coordinate di pagamento disponibili. Le polizze con frazionamento mensile sono escluse. Gli importi sono raggruppati per IBAN quando coincidono.';
+    const introLines=doc.splitTextToSize(intro,182); doc.text(introLines,margin,y); y+=introLines.length*4.5+5;
+    let grandTotal=0;
+    for(const [idx,g] of Array.from(groups.values()).entries()){
+      if(y>245){doc.addPage();y=18;}
+      doc.setFillColor(241,245,249); doc.roundedRect(margin,y,182,18,2,2,'F');
+      doc.setTextColor(15,23,42); doc.setFontSize(10); doc.text(g.payee||('Beneficiario · '+g.company),margin+3,y+6);
+      doc.setFontSize(8); doc.setTextColor(71,85,105);
+      doc.text(g.iban ? 'IBAN: '+g.iban : 'IBAN non disponibile · Compagnia: '+g.company,margin+3,y+12);
+      doc.setFontSize(10); doc.setTextColor(15,23,42); doc.text(euro(g.total),190,y+10,{align:'right'});
+      y+=22;
+      const body=g.items.map(it=>[
+        fmtDate(it.dueDate),
+        (it.policyNumber==='—'?'':it.policyNumber)+'\n'+it.company+' · '+it.ramo,
+        String(it.installment||'—'),
+        String(it.description||'Premio assicurativo').slice(0,100),
+        euro(it.amount)
+      ]);
+      doc.autoTable({startY:y,margin:{left:margin,right:margin},head:[['Scadenza','Polizza / Compagnia','Rata','Descrizione','Importo']],body,
+        theme:'grid',styles:{fontSize:7.5,cellPadding:2.2,overflow:'linebreak',textColor:[30,41,59]},
+        headStyles:{fillColor:[30,58,138],textColor:[255,255,255],fontStyle:'bold'},
+        columnStyles:{0:{cellWidth:22},1:{cellWidth:49},2:{cellWidth:13},3:{cellWidth:62},4:{cellWidth:28,halign:'right'}},
+        didDrawPage:()=>{ doc.setFontSize(8); doc.setTextColor(100,116,139); doc.text('NEXA CRM · Avviso scadenze',margin,290); }
+      });
+      y=doc.lastAutoTable.finalY+8; grandTotal+=g.total;
+    }
+    if(y>265){doc.addPage();y=20;}
+    doc.setDrawColor(148,163,184); doc.line(margin,y,196,y); y+=8;
+    doc.setFontSize(12); doc.setTextColor(15,23,42); doc.text('Totale complessivo da pagare: '+euro(grandTotal),196,y,{align:'right'}); y+=8;
+    doc.setFontSize(8); doc.setTextColor(100,116,139);
+    const foot='In caso di pagamento già effettuato, ti invitiamo a ignorare il presente avviso. Per dubbi o chiarimenti, contatta il tuo referente assicurativo.';
+    doc.text(doc.splitTextToSize(foot,182),margin,y);
+    const safeName=String(client.name||'Cliente').replace(/[^a-zA-Z0-9]/g,'_');
+    doc.save(`Avviso_Scadenze_${safeName}_${periodKey}.pdf`);
+}
+
 // ==========================================
 // UTILITY: GENERATORE LETTERA DI DISDETTA
 // ==========================================
@@ -6533,9 +6599,15 @@ function populateDisdettaPolicySelect() {
     });
 }
 
-function exportDisdettaPDF() {
-    const clientId = document.getElementById('utilityDisdettaClientSelect').value;
-    const policyId = document.getElementById('utilityDisdettaPolicySelect').value;
+function exportDisdettaForPolicy(policyId) {
+    const policy = (Array.isArray(policies)?policies:[]).find(p => String(p.id) === String(policyId));
+    if(!policy) return alert('Polizza non trovata nell’archivio.');
+    return exportDisdettaPDF(policy.clientId, policy.id);
+}
+
+function exportDisdettaPDF(clientIdOverride=null, policyIdOverride=null) {
+    const clientId = clientIdOverride || document.getElementById('utilityDisdettaClientSelect')?.value;
+    const policyId = policyIdOverride || document.getElementById('utilityDisdettaPolicySelect')?.value;
     
     if(!clientId || !policyId) return alert("Seleziona sia il cliente che la polizza.");
     
@@ -6726,6 +6798,8 @@ function renderScannerResults(issues, container) {
         <div class="flex flex-wrap gap-2 shrink-0">
           <button id="crmProfileNewQuote" class="px-3 py-2 rounded-lg bg-accent text-slate-950 text-sm font-bold hover:brightness-110"><i class="fa-solid fa-file-invoice mr-2"></i>Nuovo preventivo</button>
           <button id="crmProfileNewPolicy" class="px-3 py-2 rounded-lg border border-slate-600 text-white text-sm hover:bg-slate-800"><i class="fa-solid fa-file-circle-plus mr-2"></i>Nuova polizza</button>
+          <button type="button" data-nexa-export-dossier="${esc(cid)}" class="px-3 py-2 rounded-lg border border-emerald-700 text-emerald-300 text-sm hover:bg-emerald-950/40"><i class="fa-solid fa-file-pdf mr-2"></i>Esporta dossier</button>
+          <button type="button" data-nexa-expiry-notice="${esc(cid)}" class="px-3 py-2 rounded-lg border border-amber-700 text-amber-300 text-sm hover:bg-amber-950/40"><i class="fa-solid fa-bell mr-2"></i>Avviso scadenze PDF</button>
           <button id="crmProfileEdit" class="px-3 py-2 rounded-lg border border-slate-600 text-white text-sm hover:bg-slate-800"><i class="fa-solid fa-pen mr-2"></i>Modifica</button>
           <button onclick="closeCrmClientProfile()" class="w-10 h-10 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800" aria-label="Chiudi scheda"><i class="fa-solid fa-xmark"></i></button>
         </div>
@@ -6932,6 +7006,15 @@ function renderScannerResults(issues, container) {
     const cid = String(client.id);
     activeClientId = cid;
     const ps = (Array.isArray(policies)?policies:[]).filter(p => String(p.clientId) === cid);
+    // Bridge affidabile verso le funzioni PDF: usa il cliente realmente aperto
+    // da questa scheda, anche se l'archivio visibile alla funzione PDF non coincide.
+    window.__nexaClientPdfContext = {
+      clientId: cid,
+      client: client,
+      policies: ps.map(p => ({...p})),
+      claims: (typeof claims !== 'undefined' && Array.isArray(claims) ? claims : []).filter(x => String(x.clientId) === cid).map(x => ({...x})),
+      quotes: (typeof quotes !== 'undefined' && Array.isArray(quotes) ? quotes : []).filter(x => String(x.clientId) === cid).map(x => ({...x}))
+    };
     const qs = (typeof quotes !== 'undefined' && Array.isArray(quotes)?quotes:[]).filter(q => String(q.clientId) === cid);
     const cs = (typeof claims !== 'undefined' && Array.isArray(claims)?claims:[]).filter(c => String(c.clientId) === cid);
     const as = (Array.isArray(appointments)?appointments:[]).filter(a => String(a.clientId||'') === cid || (a.title && String(a.title).toLowerCase().includes(String(client.name||'').toLowerCase()))).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
@@ -6985,6 +7068,7 @@ function renderScannerResults(issues, container) {
         const actions = [
           `<button type="button" data-nexa-profile-action="edit" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-slate-600 text-xs text-white hover:bg-slate-800" title="Modifica i dati della polizza"><i class="fa-solid fa-pen mr-1"></i>Modifica</button>`,
           `<button type="button" data-nexa-profile-action="titles" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-sky-700 text-xs text-sky-300 hover:bg-sky-950/50" title="Rate, incassi e provvigioni"><i class="fa-solid fa-list-ol mr-1"></i>Titoli</button>`,
+          `<button type="button" data-nexa-profile-action="disdetta" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-amber-800 text-xs text-amber-300 hover:bg-amber-950/40" title="Genera lettera di disdetta PDF"><i class="fa-solid fa-file-signature mr-1"></i>Disdetta PDF</button>`,
           active ? `<button type="button" data-nexa-profile-action="claim" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-amber-800 text-xs text-amber-300 hover:bg-amber-950/40" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Sinistro</button>` : '',
           st==='ATTIVA' ? `<button type="button" data-nexa-profile-action="suspend" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-violet-800 text-xs text-violet-300 hover:bg-violet-950/40" title="Sospendi polizza"><i class="fa-solid fa-pause mr-1"></i>Sospendi</button>` : '',
           (st==='SOSPESA' || (p.suspensionStart && p.suspensionEnd)) ? `<button type="button" data-nexa-profile-action="reactivate" data-policy-id="${pid}" class="px-2 py-1.5 rounded border border-emerald-800 text-xs text-emerald-300 hover:bg-emerald-950/40" title="Riattiva polizza"><i class="fa-solid fa-play mr-1"></i>Riattiva</button>` : '',
@@ -7451,6 +7535,7 @@ function renderScannerResults(issues, container) {
       if(typeof fn !== 'function'){ alert('Funzione non disponibile: '+name+'. Chiudi e riapri NEXA CRM.'); return false; }
       try { fn(...args); return true; } catch(err){ console.error('NEXA v27 azione scheda cliente', action, err); alert('Errore nell’azione '+action+': '+(err?.message||err)); return false; }
     };
+    if(action==='disdetta'){ invoke('exportDisdettaForPolicy', p.id); return; }
     if(action==='edit'){ closeProfile(); window.setTimeout(()=>invoke('openPolicyModal', null, p.id), 40); return; }
     if(action==='titles'){ closeProfile(); window.setTimeout(()=>invoke('openPolicyTitles', p.id), 40); return; }
     if(action==='replace'){ closeProfile(); window.setTimeout(()=>invoke('replacePolicy', p.id), 40); return; }
@@ -7459,6 +7544,24 @@ function renderScannerResults(issues, container) {
     if(action==='suspend' || action==='reactivate' || action==='cancel'){
       if(invoke(action==='suspend'?'suspendPolicy':action==='reactivate'?'reactivatePolicy':'cancelPolicy', p.id)) window.setTimeout(()=>window.nexaRefreshOpenClientProfile?.(), 500);
       return;
+    }
+  }, true);
+  // Azioni PDF nella scheda cliente: delega robusta, evita inline onclick con ID quotati.
+  document.addEventListener('click', function(e){
+    const dossier = e.target && e.target.closest ? e.target.closest('[data-nexa-export-dossier]') : null;
+    const notice = e.target && e.target.closest ? e.target.closest('[data-nexa-expiry-notice]') : null;
+    if(!dossier && !notice) return;
+    e.preventDefault(); e.stopPropagation();
+    const profile = document.getElementById('crmClientProfile');
+    const context = window.__nexaClientPdfContext;
+    const attrId = dossier ? dossier.getAttribute('data-nexa-export-dossier') : notice.getAttribute('data-nexa-expiry-notice');
+    const id = profile && !profile.classList.contains('hidden') && context?.client ? context.clientId : attrId;
+    try {
+      if(dossier) exportClientDataPDF(id);
+      else exportClientExpiryNoticePDF(id);
+    } catch(err) {
+      console.error('NEXA PDF scheda cliente', err);
+      alert('Non è stato possibile generare il PDF: '+(err && err.message ? err.message : err));
     }
   }, true);
   document.addEventListener('click',e=>{const wrap=$('nexa-universal-search-wrap'); if(wrap&&!wrap.contains(e.target))hide();});
