@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale v31 | Avvisi scadenza e dossier cliente</title>
+    <title>NEXA CRM Professionale v39 | Avvio resiliente e stato connessione</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -810,11 +810,20 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 </style>
 </head>
 <body class="bg-deep text-slate-300 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
-<div id="nexaV41Notice" role="status" class="fixed top-3 right-3 z-[120] max-w-md rounded-xl border border-lime-400/50 bg-slate-950/95 text-slate-100 shadow-2xl px-4 py-3 flex items-start gap-3">
-  <span class="mt-0.5 text-lime-300"><i class="fa-solid fa-circle-check"></i></span>
-  <div class="text-xs leading-relaxed"><strong class="text-lime-300">NEXA CRM v21.0 caricato</strong><br>Storico attività sincronizzato con Firebase e incluso nei backup. Dashboard, filtro polizze e flusso preventivi mantenuti.</div>
-  <button type="button" aria-label="Chiudi avviso versione" onclick="document.getElementById('nexaV41Notice').remove()" class="ml-1 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-</div>
+    <!-- NEXA v39: stato rete e messaggio di avvio resiliente -->
+    <div id="nexa-network-status" role="status" aria-live="polite" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px 14px;background:#7f1d1d;color:#fff;text-align:center;font:600 14px/1.4 system-ui,sans-serif;box-shadow:0 2px 12px #0005"></div>
+    <script>
+    (function(){
+      var bar=document.getElementById('nexa-network-status');
+      function show(msg,kind){ if(!bar)return; bar.textContent=msg; bar.style.background=kind==='ok'?'#14532d':kind==='warn'?'#854d0e':'#7f1d1d'; bar.style.display='block'; }
+      function hide(){ if(bar) bar.style.display='none'; }
+      window.NEXA_NETWORK_NOTICE={show:show,hide:hide};
+      window.addEventListener('offline',function(){show('Connessione assente. Le modifiche non ancora sincronizzate potrebbero non essere disponibili sugli altri dispositivi. Non disinstallare l’app e non cancellare i dati del browser.','error');});
+      window.addEventListener('online',function(){show('Connessione ripristinata. Attendi il completamento della sincronizzazione prima di chiudere NEXA CRM.','ok');setTimeout(hide,7000);});
+      if(!navigator.onLine) show('Sei offline. NEXA CRM potrebbe non avviarsi se la pagina o le librerie non sono state memorizzate sul dispositivo.','warn');
+    })();
+    </script>
+
 
     <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none z-0"></div>
 
@@ -1421,11 +1430,16 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
         <h4 class="text-white font-bold text-lg">
             <i class="fa-solid fa-file-circle-exclamation text-info mr-2"></i>Scanner Dati Incompleti
         </h4>
-        <button onclick="scanIncompleteData()" class="bg-info text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-600 active:scale-95 transition-all shadow-lg flex gap-2 items-center border border-blue-500">
-            <i class="fa-solid fa-radar"></i> Avvia Scansione
-        </button>
+        <div class="flex flex-wrap gap-2">
+            <button onclick="completeBirthDatesFromCF()" class="bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-600 active:scale-95 transition-all shadow-lg flex gap-2 items-center border border-emerald-500" title="Compila le date mancanti usando i codici fiscali personali">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Completa date da CF
+            </button>
+            <button onclick="scanIncompleteData()" class="bg-info text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-600 active:scale-95 transition-all shadow-lg flex gap-2 items-center border border-blue-500">
+                <i class="fa-solid fa-radar"></i> Avvia Scansione
+            </button>
+        </div>
     </div>
-    <p class="text-xs text-slate-400 mb-4">Verifica la qualità del tuo archivio. Trova rapidamente i clienti senza recapiti (telefono/email) o senza Codice Fiscale, e le polizze con dati essenziali mancanti.</p>
+    <p class="text-xs text-slate-400 mb-4">Verifica la qualità dell’archivio: individua clienti senza Codice Fiscale, indirizzo di residenza, telefono o email, oltre alle polizze con dati essenziali mancanti. Il pulsante “Completa date da CF” compila in blocco le date di nascita assenti ricavabili dai codici fiscali personali.</p>
     
     <div id="scannerResultContainer" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
         <div class="text-center text-slate-500 py-8 border border-dashed border-slate-700 rounded-lg">Premi "Avvia Scansione" per controllare l'archivio.</div>
@@ -1861,6 +1875,12 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
         let fbKnownClientIds = new Set();
         let fbKnownPolicyIds = new Set();
         let fbKnownAppointmentIds = new Set();
+        // v38: cache in memoria dei documenti remoti; non viene persistita tra sessioni,
+        // così un archivio locale vecchio non può essere scambiato per lo stato remoto.
+        let fbRemoteBaseline = { clients: new Map(), policies: new Map(), appointments: new Map(), quotes: new Map(), claims: new Map() };
+        let fbInitialSnapshots = new Set();
+        let fbSyncInProgress = false;
+        let fbSyncAgain = false;
         let clients = [], policies = [], appointments = [];
         let currentActiveClientId = null; 
         let editingClientId=null, editingPolicyId=null, currentViewingPolicyId=null;
@@ -1928,6 +1948,28 @@ async function fbDeleteSingleDoc(collectionName, docId) {
             fbUnsubClients = fbUnsubPolicies = fbUnsubAppointments = null;
         }
 
+        function fbStableData(obj) {
+            function sortDeep(v) {
+                if (Array.isArray(v)) return v.map(sortDeep);
+                if (v && typeof v === 'object') {
+                    const out = {};
+                    Object.keys(v).filter(k => k !== 'updatedAt').sort().forEach(k => { out[k] = sortDeep(v[k]); });
+                    return out;
+                }
+                return v;
+            }
+            return JSON.stringify(sortDeep(obj || {}));
+        }
+        function fbMarkRemoteSnapshot(name, arr, ids) {
+            const map = new Map();
+            (arr || []).forEach(x => { if (x && x.id !== undefined && x.id !== null) map.set(String(x.id), fbStableData(x)); });
+            fbRemoteBaseline[name] = map;
+            fbInitialSnapshots.add(name);
+        }
+        function fbAllInitialSnapshotsReady() {
+            return ['clients','policies','appointments','quotes','claims'].every(k => fbInitialSnapshots.has(k));
+        }
+
         function fbStartListeners() {
             fbStopListeners();
             if(!currentUser || !currentUser.uid) return;
@@ -1943,6 +1985,7 @@ async function fbDeleteSingleDoc(collectionName, docId) {
                     qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
                     clients = arr;
                     fbKnownClientIds = known;
+                    fbMarkRemoteSnapshot('clients', arr, known);
 renderClients();
   
                     updateDashboard();
@@ -1951,7 +1994,7 @@ renderClients();
                     console.error('onSnapshot error', e);
                 } finally {
                     fbIsApplyingRemote = false;
-                    if(fbPendingSave){
+                    if(fbPendingSave && fbAllInitialSnapshotsReady()){
                         fbPendingSave = false;
                         saveAllData();
                     }
@@ -1969,6 +2012,7 @@ renderClients();
                     qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
                     policies = arr;
                     fbKnownPolicyIds = known;
+                    fbMarkRemoteSnapshot('policies', arr, known);
                     consolidateDuplicatePolicies();
 renderPolicies(currentActiveClientId, true);
                     renderDeadlines();
@@ -1978,7 +2022,7 @@ renderPolicies(currentActiveClientId, true);
                     console.error('onSnapshot error', e);
                 } finally {
                     fbIsApplyingRemote = false;
-                    if(fbPendingSave){
+                    if(fbPendingSave && fbAllInitialSnapshotsReady()){
                         fbPendingSave = false;
                         saveAllData();
                     }
@@ -1996,6 +2040,7 @@ renderPolicies(currentActiveClientId, true);
                     qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
                     appointments = arr;
                     fbKnownAppointmentIds = known;
+                    fbMarkRemoteSnapshot('appointments', arr, known);
 renderAgendaMain();
                     updateDashboard();
                 
@@ -2003,7 +2048,7 @@ renderAgendaMain();
                     console.error('onSnapshot error', e);
                 } finally {
                     fbIsApplyingRemote = false;
-                    if(fbPendingSave){
+                    if(fbPendingSave && fbAllInitialSnapshotsReady()){
                         fbPendingSave = false;
                         saveAllData();
                     }
@@ -2013,68 +2058,59 @@ renderAgendaMain();
         }
 
         async function fbFullSyncToFirestore(){
-            if(!currentUser || !currentUser.uid) return;
-            const uid = currentUser.uid;
-
-            // Firestore writeBatch ha un limite massimo di operazioni per commit.
-            // Per evitare blocchi/errori su archivi grandi, facciamo commit a blocchi.
-            const ops = []; // { type:'set'|'delete', path, data }
-
-            const seenClients = new Set();
-            (clients || []).forEach(c => {
-                if(!c || c.id === undefined || c.id === null) return;
-                const id = String(c.id);
-                seenClients.add(id);
-                ops.push({
-                    type: 'set',
-                    path: `users/${uid}/clients/${id}`,
-                    data: { ...c, updatedAt: FB.serverTimestamp() }
-                });
-            });
-            (fbKnownClientIds || new Set()).forEach(id => {
-                if(!seenClients.has(String(id))) ops.push({ type:'delete', path: `users/${uid}/clients/${String(id)}` });
-            });
-
-            const seenPolicies = new Set();
-            (policies || []).forEach(p => {
-                if(!p || p.id === undefined || p.id === null) return;
-                const id = String(p.id);
-                seenPolicies.add(id);
-                ops.push({
-                    type: 'set',
-                    path: `users/${uid}/policies/${id}`,
-                    data: { ...p, updatedAt: FB.serverTimestamp() }
-                });
-            });
-            (fbKnownPolicyIds || new Set()).forEach(id => {
-                if(!seenPolicies.has(String(id))) ops.push({ type:'delete', path: `users/${uid}/policies/${String(id)}` });
-            });
-
-            const seenAppointments = new Set();
-            (appointments || []).forEach(a => {
-                if(!a || a.id === undefined || a.id === null) return;
-                const id = String(a.id);
-                seenAppointments.add(id);
-                ops.push({
-                    type: 'set',
-                    path: `users/${uid}/appointments/${id}`,
-                    data: { ...a, updatedAt: FB.serverTimestamp() }
-                });
-            });
-            (fbKnownAppointmentIds || new Set()).forEach(id => {
-                if(!seenAppointments.has(String(id))) ops.push({ type:'delete', path: `users/${uid}/appointments/${String(id)}` });
-            });
-
-            const CHUNK = 450; // margine sotto il limite
-            for(let i=0; i<ops.length; i+=CHUNK){
-                const batch = FB.writeBatch(FB.db);
-                ops.slice(i, i+CHUNK).forEach(op => {
-                    const ref = FB.doc(FB.db, op.path);
-                    if(op.type === 'set') batch.set(ref, op.data, { merge: true });
-                    else batch.delete(ref);
-                });
-                await batch.commit();
-            }
+            if(!currentUser || !currentUser.uid || !window.FB || !FB.db) return;
+            // Non scrivere mai prima di aver ricevuto lo stato iniziale di TUTTE le collezioni.
+            // Evita che array locali incompleti cancellino dati remoti durante l'avvio.
+            if(!fbAllInitialSnapshotsReady()) { fbPendingSave = true; return; }
+            if(fbSyncInProgress) { fbSyncAgain = true; return; }
+            fbSyncInProgress = true;
+            try {
+                do {
+                    fbSyncAgain = false;
+                    const uid = currentUser.uid;
+                    const ops = [];
+                    const collections = [
+                        { name:'clients', items:clients || [], ids:fbKnownClientIds },
+                        { name:'policies', items:policies || [], ids:fbKnownPolicyIds },
+                        { name:'appointments', items:appointments || [], ids:fbKnownAppointmentIds }
+                    ];
+                    for (const col of collections) {
+                        const seen = new Set();
+                        for (const item of col.items) {
+                            if (!item || item.id === undefined || item.id === null) continue;
+                            const id = String(item.id); seen.add(id);
+                            const stable = fbStableData(item);
+                            const baseline = fbRemoteBaseline[col.name];
+                            if (!baseline.has(id) || baseline.get(id) !== stable) {
+                                ops.push({ type:'set', collection:col.name, id, data:{ ...item, updatedAt:FB.serverTimestamp() }, stable });
+                            }
+                        }
+                        // La cancellazione viene dedotta solo dopo il caricamento completo iniziale.
+                        for (const id of (col.ids || new Set())) {
+                            if (!seen.has(String(id))) ops.push({ type:'delete', collection:col.name, id:String(id) });
+                        }
+                    }
+                    const CHUNK = 450;
+                    for(let i=0; i<ops.length; i+=CHUNK) {
+                        const batch = FB.writeBatch(FB.db);
+                        const part = ops.slice(i, i+CHUNK);
+                        part.forEach(op => {
+                            const ref = FB.doc(FB.db, `users/${uid}/${op.collection}/${op.id}`);
+                            if(op.type === 'set') batch.set(ref, op.data, { merge:true }); else batch.delete(ref);
+                        });
+                        await batch.commit();
+                        // Aggiorna la baseline solo dopo il commit riuscito.
+                        part.forEach(op => {
+                            const map = fbRemoteBaseline[op.collection];
+                            if(op.type === 'set') map.set(op.id, op.stable); else map.delete(op.id);
+                            const knownSet = op.collection === 'clients' ? fbKnownClientIds : (op.collection === 'policies' ? fbKnownPolicyIds : fbKnownAppointmentIds);
+                            if(op.type === 'set') knownSet.add(op.id); else knownSet.delete(op.id);
+                        });
+                    }
+                    // Sinistri e preventivi sono sincronizzati dalle estensioni v37;
+                    // le loro baseline sono aggiornate nei rispettivi listener.
+                } while(fbSyncAgain);
+            } finally { fbSyncInProgress = false; }
         }
 
         function saveLocalBackup() {
@@ -2204,8 +2240,13 @@ function saveAllData(){
                 });
 
             } catch(err) {
-                console.error(err);
-                alert('Errore inizializzazione Firebase: ' + err.message);
+                console.error('NEXA v39 avvio Firebase:', err);
+                const offline = !navigator.onLine;
+                const message = offline
+                  ? 'NEXA CRM non riesce ad avviarsi senza Internet perché la pagina o alcune librerie necessarie non risultano disponibili nella cache del dispositivo. Riconnettiti a Internet e riapri l’app. La modalità offline completa richiede anche che il sito e le sue risorse siano serviti e memorizzati correttamente dal Service Worker.'
+                  : 'NEXA CRM non riesce a inizializzare Firebase. Controlla la connessione e riprova. Dettaglio: ' + (err?.message || err);
+                if(window.NEXA_NETWORK_NOTICE) window.NEXA_NETWORK_NOTICE.show(message, 'error');
+                else alert(message);
             }
         });
 
@@ -3063,6 +3104,67 @@ function getGenderFluoColor(cf) {
             else if (r === 'VITA') { icon='fa-heart-pulse'; color='text-emerald-400'; label='Vita'; }
             return `<span class="inline-flex items-center gap-1.5 ${color}" title="${label}"><i class="fa-solid ${icon}"></i>${withLabel ? `<span>${label}</span>` : ''}</span>`;
         }
+
+        // Aggiunge una ricerca rapida ai menu a tendina che contengono clienti.
+        // La lista completa resta memorizzata mentre il campo filtra le opzioni visibili.
+        function enableNexaClientSearch(selectOrId) {
+            const sel = typeof selectOrId === 'string' ? document.getElementById(selectOrId) : selectOrId;
+            if (!sel || sel.tagName !== 'SELECT') return;
+            const currentValue = sel.value;
+            const allOptions = Array.from(sel.options).map(o => ({value:o.value, text:o.text, disabled:o.disabled, selected:o.selected}));
+            sel._nexaClientSearchOptions = allOptions;
+            let wrap = sel.parentElement;
+            if (!wrap || !wrap.classList.contains('nexa-client-search-wrap')) {
+                wrap = document.createElement('div');
+                wrap.className = 'nexa-client-search-wrap min-w-0';
+                if (sel.classList.contains('flex-1')) wrap.classList.add('flex-1');
+                sel.parentNode.insertBefore(wrap, sel);
+                wrap.appendChild(sel);
+                sel.classList.remove('flex-1');
+                sel.classList.add('w-full');
+            }
+            let input = wrap.querySelector('.nexa-client-search-input');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'search';
+                input.autocomplete = 'off';
+                input.placeholder = 'Cerca cliente per nome o codice fiscale…';
+                input.setAttribute('aria-label', 'Cerca cliente per nome o codice fiscale');
+                input.className = 'nexa-client-search-input w-full mb-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accent';
+                wrap.insertBefore(input, sel);
+                input.addEventListener('input', () => {
+                    const q = input.value.trim().toLocaleLowerCase('it');
+                    const options = sel._nexaClientSearchOptions || [];
+                    const chosen = sel.value;
+                    const filtered = !q ? options : options.filter(o => o.value === '' || o.text.toLocaleLowerCase('it').includes(q));
+                    // Mantiene disponibile l'opzione già selezionata anche se non corrisponde alla ricerca.
+                    if (chosen && !filtered.some(o => String(o.value) === String(chosen))) {
+                        const selectedOption = options.find(o => String(o.value) === String(chosen));
+                        if (selectedOption) filtered.push(selectedOption);
+                    }
+                    sel.innerHTML = '';
+                    filtered.forEach(o => {
+                        const opt = document.createElement('option');
+                        opt.value = o.value; opt.textContent = o.text; opt.disabled = o.disabled;
+                        sel.appendChild(opt);
+                    });
+                    if (chosen && Array.from(sel.options).some(o => String(o.value) === String(chosen))) sel.value = chosen;
+                });
+                sel.addEventListener('change', () => {
+                    if (input.value) {
+                        input.value = '';
+                        const chosen = sel.value;
+                        const options = sel._nexaClientSearchOptions || [];
+                        sel.innerHTML = '';
+                        options.forEach(o => { const opt=document.createElement('option'); opt.value=o.value; opt.textContent=o.text; opt.disabled=o.disabled; sel.appendChild(opt); });
+                        sel.value = chosen;
+                    }
+                });
+            }
+            sel._nexaClientSearchOptions = allOptions;
+            if (currentValue && allOptions.some(o => String(o.value) === String(currentValue))) sel.value = currentValue;
+        }
+
         function getClientRelations(c) {
             if (!c) return [];
             const src = Array.isArray(c.relations) ? c.relations : (c.relation && c.relation.id ? [c.relation] : []);
@@ -3201,6 +3303,7 @@ function getGenderFluoColor(cf) {
             const s=document.getElementById('relationSelect');
             s.innerHTML='<option value="">Seleziona cliente...</option>';
             clients.forEach(c=>{if(String(c.id)!==String(id)){const o=document.createElement('option');o.value=c.id;o.text=c.name||'Cliente senza nome';s.appendChild(o);}});
+            enableNexaClientSearch(s);
             const currentClient = id ? clients.find(x=>String(x.id)===String(id)) : null;
             clientRelationsDraft = getClientRelations(currentClient).filter(r=>String(r.id)!==String(id)).map(r=>({...r, name:r.name || clients.find(c=>String(c.id)===String(r.id))?.name || ''}));
             renderClientRelationsDraft();
@@ -3382,6 +3485,7 @@ function getGenderFluoColor(cf) {
             const savePolicySubmit = document.getElementById('savePolicySubmit');
             if (savePolicySubmit) savePolicySubmit.textContent = 'Salva polizza';
             const sel=document.getElementById('polClientSelect'); sel.innerHTML='<option value="">Seleziona...</option>'; clients.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c=>{const o=document.createElement('option'); o.value=c.id; o.text=c.name; if(pre&&c.id==pre)o.selected=true; sel.appendChild(o);});
+            enableNexaClientSearch(sel);
             if(edit){editingPolicyId=edit; const p=policies.find(x=>x.id===edit); if(p){document.getElementById('polModalTitle').innerText="Modifica"; sel.value=p.clientId; document.querySelector(`input[name="ramo"][value="${p.ramo}"]`).checked=true; document.getElementById('polCommPerc').value=p.commPerc||35; if(['ALLIANZ','HDI','VITTORIA','HELVETIA','GENIALPIU','ARAG','METLIFE'].includes(p.company))document.getElementById('polCompany').value=p.company; else {document.getElementById('polCompany').value='ALTRO';document.getElementById('polCustomCompany').value=p.company;document.getElementById('polCustomCompany').classList.remove('hidden');} document.getElementById('polNotes').value=p.notes; document.getElementById('polNumber').value=p.policyNumber || ''; document.getElementById('polEffectDate').value=p.effect; document.getElementById('polExpiryDate').value=p.expiry; document.getElementById('polSplit').value=p.split; document.getElementById('polAnnualPremium').value=p.annualPremium; document.getElementById('titlesPreview').innerHTML='<p class="text-emerald-300 text-xs"><i class="fa-solid fa-shield-halved mr-1"></i>I titoli esistenti saranno mantenuti, inclusi stati, date, importi e provvigioni. Per sostituirli seleziona l’opzione qui sotto.</p>'; if(editTitlesOptions) editTitlesOptions.classList.remove('hidden');}}
             else{editingPolicyId=null; document.getElementById('polModalTitle').innerText="Nuova Polizza";}
             updatePolicyTitlesEditOption();
@@ -3587,6 +3691,30 @@ function getGenderFluoColor(cf) {
 
         // Matitina provvigioni (solo rinnovi): modifica provvigione personale (commPers)
         
+function isVittoriaMonthlyPolicy(p) {
+    return !!p && Number(p.split) === 12 && String(p.company || '').trim().toUpperCase().includes('VITTORIA');
+}
+function getFirstInstallment(p) {
+    return (p && Array.isArray(p.titles) ? p.titles : []).slice().sort((a,b) => {
+        const da = String(a.dueDate || '9999-12-31');
+        const db = String(b.dueDate || '9999-12-31');
+        return da.localeCompare(db) || (Number(a.n || 0) - Number(b.n || 0));
+    })[0] || null;
+}
+function syncVittoriaMonthlyInstallments(p, sourceTitle, fields) {
+    if (!isVittoriaMonthlyPolicy(p)) return false;
+    const first = getFirstInstallment(p);
+    if (!first || String(first.id) !== String(sourceTitle.id)) return false;
+    (p.titles || []).forEach(t => {
+        if (fields.amount) t.amount = Number(sourceTitle.amount || 0);
+        if (fields.commission) {
+            t.commTotal = Number(sourceTitle.commTotal || 0);
+            t.commPers = Number(sourceTitle.commPers || 0);
+        }
+    });
+    return true;
+}
+
 function editTitle(pid, tid){
             const p = policies.find(x => String(x.id) === String(pid));
             if(!p) return alert('Polizza non trovata');
@@ -3603,25 +3731,12 @@ function editTitle(pid, tid){
 
             t.amount = newAmt;
 
-            // --- AUTOMATISMO SDD MENSILE (Split 12) ---
-            if(Number(p.split) === 12 && t.dueDate){
-                const targetCycle = Math.floor((Number(t.n) - 1) / 12);
-                
-                (p.titles || []).forEach(tt => {
-                    if(tt === t) return;
-                    const ttCycle = Math.floor((Number(tt.n) - 1) / 12);
-                    
-                    if(!isNaN(targetCycle) && ttCycle === targetCycle){
-                        tt.amount = newAmt;
-                        if((Number(tt.n) - 1) % 12 !== 0){
-                            tt.commTotal = 0;
-                            tt.commPers = 0;
-                        }
-                    }
-                });
+            // Solo per Vittoria con frazionamento mensile: il premio della prima rata
+            // viene riportato automaticamente sulle altre 11 rate.
+            if (isVittoriaMonthlyPolicy(p) && syncVittoriaMonthlyInstallments(p, t, {amount:true, commission:false})) {
                 p.annualPremium = parseFloat((newAmt * 12).toFixed(2));
-            } else {
-                if(Number(p.annualPremium || 0) === 0) p.annualPremium = newAmt;
+            } else if(Number(p.annualPremium || 0) === 0) {
+                p.annualPremium = newAmt;
             }
 
             // Forza il sync immediato su Firebase per evitare la sovrascrittura di altre rate
@@ -4610,8 +4725,13 @@ p.status = 'ATTIVA';
             const newTot = safeParseFloat(val);
             if(isNaN(newTot)) return;
 
+            // Vittoria mensile: la provvigione inserita sulla prima rata si copia sulle 12 rate.
+            if (isVittoriaMonthlyPolicy(p) && String(getFirstInstallment(p)?.id) === String(t.id)) {
+                t.commTotal = newTot;
+                t.commPers = parseFloat((newTot * safeParseFloat(p.commPerc || 0) / 100).toFixed(2));
+                syncVittoriaMonthlyInstallments(p, t, {amount:false, commission:true});
             // FIX SDD mensile (split=12): provvigioni annuali SOLO sulla 1ª rata di rinnovo
-            if(Number(p.split) === 12 && t.isRenewal === true){
+            } else if(Number(p.split) === 12 && t.isRenewal === true){
                 const rts = (p.titles || []).filter(x => x.isRenewal === true)
                     .sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
                 const first = rts[0];
@@ -4653,8 +4773,12 @@ p.status = 'ATTIVA';
     const newVal = safeParseFloat(val);
     if(isNaN(newVal)) return;
 
+    // Vittoria mensile: la provvigione personale inserita sulla prima rata si copia sulle 12 rate.
+    if (isVittoriaMonthlyPolicy(p) && String(getFirstInstallment(p)?.id) === String(t.id)) {
+        t.commPers = newVal;
+        (p.titles || []).forEach(x => { x.commPers = newVal; });
     // FIX SDD mensile (split=12): provvigioni annuali SOLO sulla 1ª rata di rinnovo
-    if(Number(p.split) === 12 && t.isRenewal === true){
+    } else if(Number(p.split) === 12 && t.isRenewal === true){
         const rts = (p.titles || []).filter(x => x.isRenewal === true)
             .sort((a,b)=> new Date(a.dueDate) - new Date(b.dueDate));
         const first = rts[0];
@@ -5083,6 +5207,7 @@ function openQuoteModal(id = null) {
     clients.sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => {
         sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
     });
+    if (typeof enableNexaClientSearch === 'function') enableNexaClientSearch(sel);
 
     if(id) {
         document.getElementById('quoteModalTitle').innerText = "Modifica Preventivo";
@@ -5279,9 +5404,13 @@ function renderQuotes() {
           fbIsApplyingRemote = true;
           try{
             const arr = [];
-            qs.forEach(d => arr.push(d.data()));
+            const ids = new Set();
+            qs.forEach(d => { arr.push(d.data()); ids.add(d.id); });
             quotes = arr;
+            fbKnownQuoteIds = ids;
+            fbMarkRemoteSnapshot('quotes', arr, ids);
             renderQuotes();
+            if(fbAllInitialSnapshotsReady() && fbPendingSave){ fbPendingSave = false; saveAllData(); }
           } catch(e){ console.error(e); }
           finally { fbIsApplyingRemote = false; if(fbPendingSave){ fbPendingSave = false; saveAllData(); } }
       });
@@ -5292,12 +5421,25 @@ function renderQuotes() {
       if(_fbFullSyncToFirestore) await _fbFullSyncToFirestore();
       try {
         if(!currentUser || !currentUser.uid || !window.FB || !FB.db) return;
+        const uid = currentUser.uid;
         const batch = FB.writeBatch(FB.db);
+        let opCount = 0;
+        const seen = new Set();
         (quotes || []).forEach(q => {
-          if(!q || !q.id) return;
-          batch.set(FB.doc(FB.db, `users/${currentUser.uid}/quotes/${String(q.id)}`), { ...q, updatedAt: FB.serverTimestamp() }, { merge: true });
+          if(!q || q.id === undefined || q.id === null) return;
+          const id = String(q.id); seen.add(id);
+          const stable = fbStableData(q);
+          if(!fbRemoteBaseline.quotes.has(id) || fbRemoteBaseline.quotes.get(id) !== stable) {
+            batch.set(FB.doc(FB.db, `users/${uid}/quotes/${id}`), { ...q, updatedAt: FB.serverTimestamp() }, { merge: true });
+            opCount++;
+          }
         });
-        await batch.commit();
+        (fbKnownQuoteIds || new Set()).forEach(id => {
+          if(!seen.has(String(id))) { batch.delete(FB.doc(FB.db, `users/${uid}/quotes/${String(id)}`)); opCount++; }
+        });
+        if(opCount) await batch.commit();
+        fbMarkRemoteSnapshot('quotes', quotes || [], seen);
+        fbKnownQuoteIds = seen;
       } catch(e){ console.error(e); }
     };
   }
@@ -5412,13 +5554,14 @@ function getClientNameById(cid){
             qs.forEach(d => { arr.push(d.data()); known.add(d.id); });
             claims = arr;
             fbKnownClaimIds = known;
+            fbMarkRemoteSnapshot('claims', arr, known);
 renderClaims();
           
                 } catch(e){
                     console.error('onSnapshot error', e);
                 } finally {
                     fbIsApplyingRemote = false;
-                    if(fbPendingSave){
+                    if(fbPendingSave && fbAllInitialSnapshotsReady()){
                         fbPendingSave = false;
                         saveAllData();
                     }
@@ -5439,23 +5582,22 @@ renderClaims();
         const uid = currentUser.uid;
         const batch = FB.writeBatch(FB.db);
         const seenClaims = new Set();
-
+        let opCount = 0;
         (claims || []).forEach(cl => {
           if(!cl || cl.id === undefined || cl.id === null) return;
-          const id = String(cl.id);
-          seenClaims.add(id);
-          batch.set(
-            FB.doc(FB.db, `users/${uid}/claims/${id}`),
-            { ...cl, updatedAt: FB.serverTimestamp() },
-            { merge: true }
-          );
+          const id = String(cl.id); seenClaims.add(id);
+          const stable = fbStableData(cl);
+          if(!fbRemoteBaseline.claims.has(id) || fbRemoteBaseline.claims.get(id) !== stable) {
+            batch.set(FB.doc(FB.db, `users/${uid}/claims/${id}`), { ...cl, updatedAt: FB.serverTimestamp() }, { merge: true });
+            opCount++;
+          }
         });
-
         (fbKnownClaimIds || new Set()).forEach(id => {
-          if(!seenClaims.has(id)) batch.delete(FB.doc(FB.db, `users/${uid}/claims/${id}`));
+          if(!seenClaims.has(String(id))) { batch.delete(FB.doc(FB.db, `users/${uid}/claims/${String(id)}`)); opCount++; }
         });
-
-        await batch.commit();
+        if(opCount) await batch.commit();
+        // Allinea la baseline solo dopo il commit riuscito.
+        fbMarkRemoteSnapshot('claims', claims || [], seenClaims);
         fbKnownClaimIds = seenClaims;
       } catch(e){ console.error('fbFullSyncToFirestore claims', e); }
     };
@@ -6688,9 +6830,10 @@ function scanIncompleteData() {
         // 1. Controllo Clienti
         (clients || []).forEach(c => {
             let missing = [];
-            if (!c.cf || c.cf.trim() === '') missing.push("Codice Fiscale");
-            if (!c.phone || c.phone.trim() === '') missing.push("Telefono");
-            if (!c.email || c.email.trim() === '') missing.push("Email");
+            if (!c.cf || String(c.cf).trim() === '') missing.push("Codice Fiscale");
+            if (!c.address || String(c.address).trim() === '') missing.push("Indirizzo di residenza");
+            if (!c.phone || String(c.phone).trim() === '') missing.push("Telefono");
+            if (!c.email || String(c.email).trim() === '') missing.push("Email");
 
             if (missing.length > 0) {
                 issues.clients.push({ client: c, missing });
@@ -6714,6 +6857,60 @@ function scanIncompleteData() {
 
         renderScannerResults(issues, container);
     }, 400); 
+}
+
+// Ricava la data dal codice fiscale personale (non da partita IVA/CF numerico aziendale).
+// Il secolo non è codificato nel CF: viene usata la stessa euristica già presente in parseCF().
+function birthDateFromFiscalCode(rawCF) {
+    const cf = String(rawCF || '').toUpperCase().replace(/\s+/g, '');
+    if (!/^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/.test(cf)) return null;
+    const monthMap = {A:1,B:2,C:3,D:4,E:5,H:6,L:7,M:8,P:9,R:10,S:11,T:12};
+    const month = monthMap[cf.charAt(8)];
+    if (!month) return null;
+    const yy = parseInt(cf.slice(6,8),10);
+    let day = parseInt(cf.slice(9,11),10);
+    if (day > 40) day -= 40;
+    if (day < 1 || day > 31) return null;
+    const currentYY = new Date().getFullYear() % 100;
+    let year = yy > currentYY ? 1900 + yy : 2000 + yy;
+    let date = new Date(Date.UTC(year, month - 1, day));
+    // Date impossibili (es. 31 febbraio) non vengono compilate.
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+    // Se l'euristica producesse una data futura, prova il secolo precedente.
+    const today = new Date(); today.setHours(0,0,0,0);
+    if (date.getTime() > Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) {
+        year -= 100;
+        date = new Date(Date.UTC(year, month - 1, day));
+        if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+    }
+    return `${date.getUTCFullYear()}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+
+async function completeBirthDatesFromCF() {
+    const candidates = (Array.isArray(clients) ? clients : []).filter(c => {
+        if (c.birthDate && String(c.birthDate).trim()) return false;
+        if (typeof inferClientType === 'function' && inferClientType(c) === 'COMPANY') return false;
+        return !!birthDateFromFiscalCode(c.cf);
+    });
+    if (!candidates.length) {
+        alert('Nessuna data di nascita mancante ricavabile dai codici fiscali personali trovati.');
+        return;
+    }
+    const confirmed = confirm(`Saranno compilate ${candidates.length} date di nascita mancanti usando il codice fiscale. Le date già presenti non verranno modificate.\n\nAttenzione: il codice fiscale non specifica il secolo in modo univoco; controlla le date ricavate.\n\nProcedere?`);
+    if (!confirmed) return;
+    let updated = 0;
+    for (const c of candidates) {
+        const birthDate = birthDateFromFiscalCode(c.cf);
+        if (!birthDate || (c.birthDate && String(c.birthDate).trim())) continue;
+        c.birthDate = birthDate;
+        updated++;
+        await fbSaveSingleDoc('clients', c);
+    }
+    saveLocalBackup();
+    if (typeof renderClients === 'function') renderClients();
+    if (typeof updateDashboard === 'function') updateDashboard();
+    scanIncompleteData();
+    alert(`Completamento terminato: ${updated} date di nascita inserite. Verifica in particolare il secolo delle date ricavate.`);
 }
 
 function renderScannerResults(issues, container) {
@@ -6780,7 +6977,7 @@ function renderScannerResults(issues, container) {
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log('Service Worker registrato!'))
+      .then(() => console.log('NEXA v39: Service Worker registrato; verifica cache app shell e risorse per il supporto offline completo.'))
       .catch((error) => console.log('Errore SW:', error));
   }
 </script>
@@ -7177,6 +7374,7 @@ function renderScannerResults(issues, container) {
     sel.innerHTML = '<option value="">Nessun cliente collegato</option>' + list
       .slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'it'))
       .map(c=>`<option value="${esc(c.id)}">${esc(c.name || 'Cliente senza nome')}${c.cf ? ' · '+esc(c.cf) : ''}</option>`).join('');
+    if (typeof enableNexaClientSearch === 'function') enableNexaClientSearch(sel);
     sel.value = String(previous || '');
   };
   const visibleTasks = () => {
@@ -7567,5 +7765,6 @@ function renderScannerResults(issues, container) {
   document.addEventListener('click',e=>{const wrap=$('nexa-universal-search-wrap'); if(wrap&&!wrap.contains(e.target))hide();});
 })();
 </script>
+<!-- NEXA CRM v38: sincronizzazione incrementale con baseline in memoria e protezione avvio -->
 </body>
 </html>
