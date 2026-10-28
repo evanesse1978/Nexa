@@ -958,7 +958,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                     <div class="relative w-44 sm:w-64 lg:w-80" id="nexa-universal-search-wrap">
                         <label for="nexaUniversalSearch" class="sr-only">Ricerca universale</label>
                         <div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i><input id="nexaUniversalSearch" type="search" autocomplete="off" oninput="nexaUniversalSearchRun()" onkeydown="nexaUniversalSearchKeydown(event)" placeholder="Cerca clienti, polizze, targhe…" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" aria-controls="nexaUniversalSearchResults" aria-expanded="false"></div>
-                        <div id="nexaUniversalSearchResults" class="hidden absolute top-full right-0 mt-2 w-[min(90vw,34rem)] max-h-[70vh] overflow-y-auto rounded-xl border border-slate-700 bg-slate-950 shadow-2xl z-[100]" role="listbox"></div>
+                        <div id="nexaUniversalSearchResults" class="nexa-search-results hidden absolute top-full right-0 mt-2 w-[min(96vw,38rem)] max-h-[70vh] overflow-y-auto rounded-xl border border-slate-700 bg-slate-950 shadow-2xl z-[100]" role="listbox"></div>
                     </div>
                     <div class="text-right hidden md:block"><p class="text-sm font-bold text-white" id="user-display-name">User</p></div>
                     <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center border border-accent/30 shadow-lg shadow-accent/10 text-accent font-bold text-lg hover:scale-105 active:scale-95 transition-transform" id="user-avatar" onclick="openAvatarPicker()" title="Cambia avatar" role="button" style="cursor:pointer;">U</div>
@@ -1579,7 +1579,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Ramo *</label><div class="flex gap-2"><label class="cursor-pointer"><input type="radio" name="ramo" value="AUTO" class="peer hidden" onchange="updateCommDefaults(); updatePolicyAutoFields()"><span class="peer-checked:bg-blue-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors"><i class="fa-solid fa-car-side mr-1"></i>AUTO</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="RAMI VARI" class="peer hidden" onchange="updateCommDefaults(); updatePolicyAutoFields()"><span class="peer-checked:bg-orange-500 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors"><i class="fa-solid fa-shield-halved mr-1"></i>VARI</span></label><label class="cursor-pointer"><input type="radio" name="ramo" value="VITA" class="peer hidden" onchange="updateCommDefaults(); updatePolicyAutoFields()"><span class="peer-checked:bg-green-600 peer-checked:text-white px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-xs border border-slate-700 block text-center transition-colors"><i class="fa-solid fa-heart-pulse mr-1"></i>VITA</span></label></div></div>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Compagnia *</label><select id="polCompany" onchange="checkCustomCompany()" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="HELVETIA">HELVETIA</option><option value="GENIALPIU">GENIALPIU</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option><option value="ALTRO">ALTRO...</option></select><input type="text" id="polCustomCompany" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm mt-2 hidden focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Inserisci nome compagnia..."></div>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Numero Polizza *</label><input type="text" id="polNumber" required class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm uppercase placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Es. 123456789"></div>
-<div id="polAutoFields" class="space-y-3 hidden rounded-lg border border-blue-500/30 bg-blue-950/20 p-3"><div><label class="block text-xs text-slate-300 font-bold mb-1">Targa veicolo</label><input type="text" id="polPlate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm uppercase" placeholder="Es. AB123CD"></div><div><label class="block text-xs text-slate-300 font-bold mb-1">Garanzie</label><button type="button" id="polGuaranteesToggle" onclick="togglePolicyGuarantees()" class="w-full text-left bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm hover:border-accent"><span id="polGuaranteesSummary">Seleziona garanzie…</span><i class="fa-solid fa-chevron-down float-right mt-1"></i></button><div id="polGuaranteesList" class="hidden mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-slate-700 bg-slate-900 p-3"></div><p class="text-[10px] text-slate-500 mt-1">Le garanzie selezionate sono evidenziate in verde.</p></div></div>
+<div id="polAutoFields" class="space-y-3 hidden rounded-lg border border-blue-500/30 bg-blue-950/20 p-3"><div><label class="block text-xs text-slate-300 font-bold mb-1">Targa veicolo</label><input type="text" id="polPlate" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm uppercase" placeholder="Es. AB123CD"></div><div><label class="block text-xs text-slate-300 font-bold mb-1">Garanzie</label><button type="button" id="polGuaranteesToggle" onclick="togglePolicyGuarantees()" class="w-full text-left bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm hover:border-accent"><span id="polGuaranteesSummary">Seleziona garanzie…</span><i class="fa-solid fa-chevron-down float-right mt-1"></i></button><div id="polGuaranteesList" class="nexa-guarantees-list hidden mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-slate-700 bg-slate-900 p-3"></div><p class="text-[10px] text-slate-500 mt-1">Le garanzie selezionate sono evidenziate in verde.</p></div></div>
                             <div><label class="block text-xs text-slate-500 font-bold mb-1">Provvigioni Pers. (%)</label><input type="number" step="0.01" id="polCommPerc" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-accent font-bold placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="35" oninput="generateInstallmentPreview()"></div>
                         </div>
                         <div class="space-y-4">
@@ -3555,8 +3555,8 @@ function getGenderFluoColor(cf) {
         }
         const NEXA_AUTO_GUARANTEES = ['RCA','Furto','Incendio','Atti vandalici','Eventi naturali','Cristalli','Collisione','Kasko','Infortunio','Tutela legale','Assistenza stradale','Altro'];
         function getPolicyGuarantees(){ return Array.from(document.querySelectorAll('#polGuaranteesList input[type="checkbox"]:checked')).map(x=>x.value); }
-        function setPolicyGuarantees(values){ const selected=Array.isArray(values)?values:(typeof values==='string'?values.split(/[,;|]/).map(x=>x.trim()).filter(Boolean):[]); const box=document.getElementById('polGuaranteesList'); if(!box)return; box.innerHTML=NEXA_AUTO_GUARANTEES.map(g=>{const on=selected.includes(g);return `<label class="flex items-center gap-2 rounded-md border px-2 py-2 text-xs cursor-pointer transition-colors ${on?'bg-emerald-900/50 border-emerald-400 text-emerald-200':'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500'}"><input type="checkbox" value="${g}" ${on?'checked':''} onchange="stylePolicyGuarantee(this)" class="accent-emerald-400"><span>${g}</span><span class="ml-auto text-[10px]">${on?'PRESENTE':'—'}</span></label>`;}).join(''); updatePolicyGuaranteesSummary(); }
-        function stylePolicyGuarantee(input){const label=input.closest('label');if(label){label.className='flex items-center gap-2 rounded-md border px-2 py-2 text-xs cursor-pointer transition-colors '+(input.checked?'bg-emerald-900/50 border-emerald-400 text-emerald-200':'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500');const mark=label.querySelector('span:last-child');if(mark)mark.textContent=input.checked?'PRESENTE':'—';}updatePolicyGuaranteesSummary();}
+        function setPolicyGuarantees(values){ const selected=Array.isArray(values)?values:(typeof values==='string'?values.split(/[,;|]/).map(x=>x.trim()).filter(Boolean):[]); const box=document.getElementById('polGuaranteesList'); if(!box)return; box.innerHTML=NEXA_AUTO_GUARANTEES.map(g=>{const on=selected.includes(g);return `<label class="nexa-guarantee-option flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer transition-colors ${on?'bg-emerald-900/50 border-emerald-400 text-emerald-200':'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500'}"><input type="checkbox" value="${g}" ${on?'checked':''} onchange="stylePolicyGuarantee(this)" class="accent-emerald-400 shrink-0"><span class="nexa-guarantee-label">${g}</span></label>`;}).join(''); updatePolicyGuaranteesSummary(); }
+        function stylePolicyGuarantee(input){const label=input.closest('label');if(label){label.className='flex items-center gap-2 rounded-md border px-2 py-2 text-xs cursor-pointer transition-colors '+(input.checked?'bg-emerald-900/50 border-emerald-400 text-emerald-200':'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500');}updatePolicyGuaranteesSummary();}
         function updatePolicyGuaranteesSummary(){const el=document.getElementById('polGuaranteesSummary');if(!el)return;const values=getPolicyGuarantees();el.textContent=values.length?`${values.length} garanzia/e selezionata/e: ${values.join(', ')}`:'Seleziona garanzie…';}
         function togglePolicyGuarantees(){document.getElementById('polGuaranteesList')?.classList.toggle('hidden');}
         function updatePolicyAutoFields(){const isAuto=document.querySelector('input[name="ramo"]:checked')?.value==='AUTO';const box=document.getElementById('polAutoFields');if(box)box.classList.toggle('hidden',!isAuto);}
@@ -7115,12 +7115,12 @@ function renderScannerResults(issues, container) {
 <div id="crmClientProfile" class="fixed inset-0 z-[80] hidden overflow-y-auto bg-slate-950/90 backdrop-blur-sm p-3 md:p-8" role="dialog" aria-modal="true" aria-labelledby="crmProfileName">
   <div class="max-w-6xl mx-auto rounded-2xl border border-slate-700 bg-[#0b1220] shadow-2xl overflow-hidden">
     <div class="p-5 md:p-7 border-b border-slate-800 bg-gradient-to-r from-slate-900 to-slate-950">
-      <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-        <div class="flex items-center gap-4 min-w-0">
-          <div id="crmProfileAvatar" class="w-14 h-14 rounded-2xl bg-accent text-slate-950 flex items-center justify-center text-xl font-black shrink-0">N</div>
-          <div class="min-w-0"><div class="text-xs uppercase tracking-[.2em] text-accent font-bold mb-1">Scheda cliente</div><h2 id="crmProfileName" class="text-2xl md:text-3xl font-bold text-white break-words">Cliente</h2><p id="crmProfileMeta" class="text-sm text-slate-400 mt-1"></p></div>
+      <div class="nexa-profile-header flex flex-row items-start justify-between gap-3">
+        <div class="nexa-profile-identity flex flex-row items-center gap-3 min-w-0">
+          <div id="crmProfileAvatar" class="nexa-profile-avatar w-14 h-14 rounded-2xl bg-accent text-slate-950 flex items-center justify-center text-xl font-black shrink-0">N</div>
+          <div class="min-w-0"><div class="text-xs uppercase tracking-[.2em] text-accent font-bold mb-1">Scheda cliente</div><h2 id="crmProfileName" class="nexa-profile-name text-xl md:text-3xl font-bold text-white break-words">Cliente</h2><p id="crmProfileMeta" class="text-sm text-slate-400 mt-1"></p></div>
         </div>
-        <div class="flex flex-wrap gap-2 shrink-0">
+        <div class="nexa-profile-actions flex flex-wrap gap-2 shrink-0">
           <button id="crmProfileNewQuote" class="px-3 py-2 rounded-lg bg-accent text-slate-950 text-sm font-bold hover:brightness-110"><i class="fa-solid fa-file-invoice mr-2"></i>Nuovo preventivo</button>
           <button id="crmProfileNewPolicy" class="px-3 py-2 rounded-lg border border-slate-600 text-white text-sm hover:bg-slate-800"><i class="fa-solid fa-file-circle-plus mr-2"></i>Nuova polizza</button>
           <button type="button" data-nexa-export-dossier="${esc(cid)}" class="px-3 py-2 rounded-lg border border-emerald-700 text-emerald-300 text-sm hover:bg-emerald-950/40"><i class="fa-solid fa-file-pdf mr-2"></i>Esporta dossier</button>
@@ -7894,5 +7894,38 @@ function renderScannerResults(issues, container) {
 })();
 </script>
 <!-- NEXA CRM v38: sincronizzazione incrementale con baseline in memoria e protezione avvio -->
+
+<style id="nexa-mobile-polish-v44">
+/* Garanzie: riquadro più ampio e testo sempre leggibile */
+.nexa-guarantees-list { width:100%; min-width:0; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.nexa-guarantee-option { min-width:0; width:100%; box-sizing:border-box; white-space:normal; overflow-wrap:anywhere; line-height:1.35; }
+.nexa-guarantee-label { min-width:0; overflow-wrap:anywhere; }
+/* Ricerca: risultati larghi quanto lo schermo, dettagli su più righe senza tagliare i legami */
+.nexa-search-results { width:min(96vw,38rem); max-width:calc(100vw - 1rem); right:0; }
+.nexa-search-results [role="option"] { min-width:0; }
+.nexa-search-results [role="option"] > div { min-width:0; }
+.nexa-search-results [role="option"] > div > span:nth-child(2) { overflow-wrap:anywhere; }
+.nexa-search-results [role="option"] > div > span:last-child { white-space:normal; text-align:right; }
+/* Scheda cliente: nome e cognome restano sulla stessa riga sui telefoni */
+.nexa-profile-identity { flex:1 1 auto; min-width:0; }
+.nexa-profile-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+@media (max-width:640px) {
+  .nexa-guarantees-list { grid-template-columns:1fr; padding:.65rem; gap:.5rem; }
+  .nexa-guarantee-option { padding:.65rem .75rem; font-size:.875rem; }
+  .nexa-profile-header { align-items:flex-start; gap:.5rem; }
+  .nexa-profile-avatar { width:2.5rem; height:2.5rem; border-radius:.75rem; font-size:1rem; }
+  .nexa-profile-identity { gap:.5rem; }
+  .nexa-profile-name { font-size:1rem; line-height:1.35; }
+  .nexa-profile-actions { max-width:44%; justify-content:flex-end; gap:.25rem; }
+  .nexa-profile-actions button { padding:.4rem .5rem; font-size:.68rem; line-height:1.2; }
+  .nexa-profile-actions button i { margin-right:.2rem !important; }
+  .nexa-search-results { width:calc(100vw - 1rem); right:-.25rem; max-height:65vh; }
+  .nexa-search-results [role="option"] { padding:.7rem .65rem; }
+  .nexa-search-results [role="option"] > div { gap:.5rem; }
+  .nexa-search-results [role="option"] > div > span:first-child { width:1.8rem; height:1.8rem; }
+  .nexa-search-results [role="option"] > div > span:last-child { max-width:4.5rem; font-size:.58rem; }
+}
+</style>
+
 </body>
 </html>
