@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale v43 | Provvigioni decimali e garanzie auto</title>
+    <title>NEXA CRM Professionale v45 | Modali coerenti e chiusura protetta</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -807,7 +807,29 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
   }
 }
 
+/* NEXA v45: modali coerenti con tema e campi data con calendario nativo */
+:root { color-scheme: dark; }
+html.theme-light, body.theme-light, .theme-light { color-scheme: light; }
+input[type="date"], input[type="datetime-local"], input[type="time"] { color-scheme: dark; }
+html.theme-light input[type="date"], html.theme-light input[type="datetime-local"], html.theme-light input[type="time"], body.theme-light input[type="date"], body.theme-light input[type="datetime-local"], body.theme-light input[type="time"], .theme-light input[type="date"], .theme-light input[type="datetime-local"], .theme-light input[type="time"] { color-scheme: light; }
+/* Evita pannelli bianchi fuori tema nei browser che consentono la stilizzazione */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .9; }
+html:not(.theme-light) input[type="date"]::-webkit-calendar-picker-indicator,
+body:not(.theme-light) input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.85); }
+html.theme-light input[type="date"]::-webkit-calendar-picker-indicator,
+body.theme-light input[type="date"]::-webkit-calendar-picker-indicator { filter: none; }
+/* Tutti i pannelli modali seguono la palette già usata dall'app */
+.fixed.inset-0 > div:not(.absolute), #settingsModal > div:not(.absolute), #avatarModal > div:not(.absolute) { color: inherit; }
+html.theme-light .fixed.inset-0 .bg-surface, body.theme-light .fixed.inset-0 .bg-surface { background-color:#ffffff !important; color:#172033 !important; border-color:#d7dfeb !important; }
+html.theme-light .fixed.inset-0 .text-white, body.theme-light .fixed.inset-0 .text-white { color:#172033 !important; }
+html.theme-light .fixed.inset-0 .text-slate-300, html.theme-light .fixed.inset-0 .text-slate-400, body.theme-light .fixed.inset-0 .text-slate-300, body.theme-light .fixed.inset-0 .text-slate-400 { color:#526176 !important; }
+html.theme-light .fixed.inset-0 input:not([type="checkbox"]):not([type="radio"]), html.theme-light .fixed.inset-0 select, html.theme-light .fixed.inset-0 textarea, body.theme-light .fixed.inset-0 input:not([type="checkbox"]):not([type="radio"]), body.theme-light .fixed.inset-0 select, body.theme-light .fixed.inset-0 textarea { background-color:#f8fafc !important; color:#172033 !important; border-color:#cbd5e1 !important; }
+html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light) .fixed.inset-0 input[type="datetime-local"], body:not(.theme-light) .fixed.inset-0 input[type="date"], body:not(.theme-light) .fixed.inset-0 input[type="datetime-local"] { background-color:#111827 !important; color:#f8fafc !important; }
 </style>
+
+
+
 </head>
 <body class="bg-deep text-slate-300 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
 
@@ -1459,7 +1481,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 
     <!-- SETTINGS MODAL -->
     <div id="settingsModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeSettingsModal()"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
         <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-4">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-accent modal-animate">
                 <div class="flex justify-between items-center mb-5">
@@ -1486,7 +1508,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 
     <!-- AVATAR PICKER MODAL -->
     <div id="avatarModal" class="fixed inset-0 z-50 hidden">
-      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeAvatarPicker()"></div>
+      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
       <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-4">
         <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-accent modal-animate">
           <div class="flex justify-between items-center mb-4">
@@ -1501,7 +1523,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 
     <!-- CLIENT MODAL -->
     <div id="clientModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
                 <div class="flex justify-between items-start mb-6">
@@ -1557,7 +1579,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 
     <!-- POLICY MODAL -->
     <div id="policyModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePolicyModal()"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl px-4">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
                 <div class="flex justify-between items-start mb-6">
@@ -1608,7 +1630,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 
     <!-- POLICY TITLES MODAL -->
     <div id="policyTitlesModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePolicyTitles()"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl px-4">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative modal-animate">
                 <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
@@ -1632,7 +1654,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
                 
     <!-- PAYMENT MODAL -->
     <div id="paymentModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePaymentModal()"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm px-4">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-success modal-animate">
                 <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-coins text-success mr-2"></i>Registra Incasso</h3>
@@ -1654,7 +1676,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 
     <!-- QUOTE MODAL -->
     <div id="quoteModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeQuoteModal()"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
                 <div class="flex justify-between items-start mb-6">
@@ -1741,7 +1763,7 @@ html.theme-light section[aria-labelledby="crm-operativo-title"] > div:nth-of-typ
 
     <!-- CLAIMS MODAL -->
     <div id="claimModal" class="fixed inset-0 z-50 hidden">
-      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeClaimModal()"></div>
+      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
 
       <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-full max-w-4xl px-4">
         <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
@@ -7926,6 +7948,33 @@ function renderScannerResults(issues, container) {
   .nexa-search-results [role="option"] > div > span:last-child { max-width:4.5rem; font-size:.58rem; }
 }
 </style>
+
+
+<script>
+/* NEXA v45: protezione dalla chiusura accidentale dei moduli */
+(function(){
+  // Toccare lo sfondo esterno non chiude più i moduli: la chiusura avviene dai comandi interni.
+  document.addEventListener('click', function(ev){
+    const overlay = ev.target && ev.target.closest ? ev.target.closest('.fixed.inset-0') : null;
+    if (!overlay || ev.target !== overlay) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+  }, true);
+
+  // Il pulsante X chiede conferma prima di eseguire la chiusura prevista dal CRM.
+  document.addEventListener('click', function(ev){
+    const button = ev.target && ev.target.closest ? ev.target.closest('button') : null;
+    if (!button || !button.querySelector('.fa-xmark, .fa-times, .fa-close')) return;
+    if (button.dataset.nexaCloseConfirmed === 'yes') { delete button.dataset.nexaCloseConfirmed; return; }
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    const ok = window.confirm('Sei sicuro di voler uscire senza salvare le modifiche?');
+    if (!ok) return;
+    button.dataset.nexaCloseConfirmed = 'yes';
+    button.click();
+  }, true);
+})();
+</script>
 
 </body>
 </html>
