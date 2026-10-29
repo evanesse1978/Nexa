@@ -3334,6 +3334,7 @@ function getGenderFluoColor(cf) {
             });
         }
         function openModal(id=null, viewOnly=false) { 
+            document.getElementById('clientModal').dataset.nexaDirty = '';
             document.getElementById('clientModal').classList.remove('hidden'); 
             const sb = document.getElementById('submitBtn');
             
@@ -3406,7 +3407,7 @@ function getGenderFluoColor(cf) {
             openModal(id, true);
         }
 
-        function closeModal() { document.getElementById('clientModal').classList.add('hidden'); }
+        function closeModal() { document.getElementById('clientModal').dataset.nexaDirty = ''; document.getElementById('clientModal').classList.add('hidden'); }
         
         // --- SAVE CLIENT CON LOGICA BIDIREZIONALE ---
         function saveClient(e) {
@@ -7160,8 +7161,8 @@ function renderScannerResults(issues, container) {
     <div class="p-5 md:p-7 border-b border-slate-800 bg-gradient-to-r from-slate-900 to-slate-950">
       <div class="nexa-profile-header flex flex-row items-start justify-between gap-3">
         <div class="nexa-profile-identity flex flex-row items-center gap-3 min-w-0">
-          <div id="crmProfileAvatar" class="nexa-profile-avatar w-14 h-14 rounded-2xl bg-accent text-slate-950 flex items-center justify-center text-xl font-black shrink-0">N</div>
-          <div class="min-w-0"><div class="text-xs uppercase tracking-[.2em] text-accent font-bold mb-1">Scheda cliente</div><h2 id="crmProfileName" class="nexa-profile-name text-xl md:text-3xl font-bold text-white break-words">Cliente</h2><p id="crmProfileMeta" class="text-sm text-slate-400 mt-1"></p></div>
+          <div id="crmProfileAvatar" class="nexa-profile-avatar w-14 h-14 rounded-2xl bg-accent text-slate-950 flex items-center justify-center text-xl font-black shrink-0" aria-label="Tipo anagrafica"><i class="fa-solid fa-mars"></i></div>
+          <div class="flex-1 min-w-0"><div class="text-xs uppercase tracking-[.2em] text-accent font-bold mb-1">Scheda cliente</div><h2 id="crmProfileName" class="nexa-profile-name text-xl md:text-3xl font-bold text-white whitespace-normal break-words [overflow-wrap:anywhere]" style="display:block;overflow:visible;text-overflow:clip;white-space:normal;max-width:100%">Cliente</h2><p id="crmProfileMeta" class="text-sm text-slate-400 mt-1"></p></div>
         </div>
         <div class="nexa-profile-actions flex flex-wrap gap-2 shrink-0">
           <button id="crmProfileNewQuote" class="px-3 py-2 rounded-lg bg-accent text-slate-950 text-sm font-bold hover:brightness-110"><i class="fa-solid fa-file-invoice mr-2"></i>Nuovo preventivo</button>
@@ -7387,7 +7388,11 @@ function renderScannerResults(issues, container) {
     const cs = (typeof claims !== 'undefined' && Array.isArray(claims)?claims:[]).filter(c => String(c.clientId) === cid);
     const as = (Array.isArray(appointments)?appointments:[]).filter(a => String(a.clientId||'') === cid || (a.title && String(a.title).toLowerCase().includes(String(client.name||'').toLowerCase()))).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
     byId('crmProfileName').textContent = client.name || 'Cliente senza nome';
-    byId('crmProfileAvatar').textContent = String(client.name||'N').trim().charAt(0).toUpperCase() || 'N';
+    const profileType = typeof inferClientType === 'function' ? inferClientType(client) : 'PERSON_MALE';
+    const profileAvatar = byId('crmProfileAvatar');
+    const profileIcon = { PERSON_MALE:['fa-mars','Uomo'], PERSON_FEMALE:['fa-venus','Donna'], COMPANY:['fa-building','Azienda'] }[profileType] || ['fa-mars','Uomo'];
+    profileAvatar.innerHTML = `<i class="fa-solid ${profileIcon[0]}"></i>`;
+    profileAvatar.title = profileIcon[1]; profileAvatar.setAttribute('aria-label', profileIcon[1]);
     byId('crmProfileMeta').textContent = [client.cf, client.isDeceased?'Deceduto':(client.isCeased?'Attività cessata':'Cliente')].filter(Boolean).join(' · ');
     const linkedTasks = (typeof window.getCRMTasksForClient === 'function') ? window.getCRMTasksForClient(cid) : [];
     byId('crmProfileStats').innerHTML = [
@@ -7982,17 +7987,45 @@ function renderScannerResults(issues, container) {
     ev.stopPropagation();
   }, true);
 
-  // Il pulsante X chiede conferma prima di eseguire la chiusura prevista dal CRM.
+  // Segna come modificato solo un modulo in cui l'utente cambia davvero un campo.
+  document.addEventListener('input', function(ev){ const modal=ev.target && ev.target.closest ? ev.target.closest('.fixed.inset-0') : null; if(modal && !ev.target.readOnly && !ev.target.disabled) modal.dataset.nexaDirty='yes'; }, true);
+  document.addEventListener('change', function(ev){ const modal=ev.target && ev.target.closest ? ev.target.closest('.fixed.inset-0') : null; if(modal && !ev.target.readOnly && !ev.target.disabled) modal.dataset.nexaDirty='yes'; }, true);
+  // La X chiede conferma soltanto se sono state cambiate informazioni nel modulo.
   document.addEventListener('click', function(ev){
     const button = ev.target && ev.target.closest ? ev.target.closest('button') : null;
     if (!button || !button.querySelector('.fa-xmark, .fa-times, .fa-close')) return;
     if (button.dataset.nexaCloseConfirmed === 'yes') { delete button.dataset.nexaCloseConfirmed; return; }
-    ev.preventDefault();
-    ev.stopImmediatePropagation();
-    const ok = window.confirm('Sei sicuro di voler uscire senza salvare le modifiche?');
+    const modal = button.closest('.fixed.inset-0');
+    if (!modal || modal.dataset.nexaDirty !== 'yes') return;
+    ev.preventDefault(); ev.stopImmediatePropagation();
+    const ok = window.confirm('Hai apportato modifiche. Vuoi uscire senza salvare?');
     if (!ok) return;
-    button.dataset.nexaCloseConfirmed = 'yes';
-    button.click();
+    modal.dataset.nexaDirty='';
+    button.dataset.nexaCloseConfirmed = 'yes'; button.click();
+  }, true);
+
+  // Suoni sintetici discreti, senza file esterni: si attivano dopo il primo clic dell'utente.
+  let audioCtx=null;
+  function nexaTone(kind='click'){
+    try {
+      const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return;
+      if(!audioCtx) audioCtx=new Ctx(); if(audioCtx.state==='suspended') audioCtx.resume();
+      const now=audioCtx.currentTime, osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+      const presets={click:[620,0.035,0.018],tab:[480,0.045,0.016],login:[740,0.08,0.025],logout:[330,0.10,0.022]};
+      const [freq,duration,volume]=presets[kind]||presets.click;
+      osc.type='sine'; osc.frequency.setValueAtTime(freq,now); if(kind==='login') osc.frequency.linearRampToValueAtTime(980,now+duration); if(kind==='logout') osc.frequency.linearRampToValueAtTime(220,now+duration);
+      gain.gain.setValueAtTime(volume,now); gain.gain.exponentialRampToValueAtTime(0.0001,now+duration);
+      osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now+duration);
+    } catch(_) {}
+  }
+  document.addEventListener('click', function(ev){
+    const el=ev.target && ev.target.closest ? ev.target.closest('button,[role="tab"],.tab,nav a') : null;
+    if(!el || el.disabled || el.getAttribute('aria-disabled')==='true') return;
+    const text=(el.innerText||el.getAttribute('title')||'').trim().toLowerCase();
+    if(/esci|logout|disconnetti/.test(text) || el.getAttribute('onclick')?.includes('handleLogout')) nexaTone('logout');
+    else if(/accedi a nexa|^accedi$|login/.test(text)) nexaTone('login');
+    else if(el.matches('[role="tab"],.tab,nav a') || el.closest('nav')) nexaTone('tab');
+    else nexaTone('click');
   }, true);
 })();
 </script>
