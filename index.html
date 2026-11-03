@@ -1564,6 +1564,11 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                                 <p class="text-[10px] text-slate-500 mt-2">Puoi collegare più familiari, soci o altre anagrafiche. I legami sono salvati anche nel profilo dei contatti collegati.</p>
                             </div>
                             <textarea id="inputNotes" rows="3" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Note..."></textarea>
+                            <div class="bg-slate-800/30 p-3 rounded-lg border border-slate-700/50 mt-3">
+                                <div class="flex items-center justify-between gap-2 mb-2"><label class="text-xs text-slate-300 font-bold"><i class="fa-solid fa-clock-rotate-left mr-1 text-accent"></i>Storico avvisi di scadenza</label><span id="clientNoticeCount" class="text-[10px] text-slate-500">0 avvisi</span></div>
+                                <div id="clientNoticeHistory" class="space-y-2"><p class="text-xs text-slate-500">Nessun avviso registrato.</p></div>
+                                <p class="text-[10px] text-slate-500 mt-2">Sono registrati data, ora, canale, polizza, titolo e utente che ha avviato l'invio. La consegna o lettura non è verificata.</p>
+                            </div>
 <div class="flex items-center gap-3 bg-slate-800/30 border border-slate-700/50 rounded-xl px-4 py-3 mt-2">
     <input type="checkbox" id="inputDeceased" class="accent-red-500 bg-deep border-slate-700 h-4 w-4 rounded">
     <label for="inputDeceased" class="text-sm text-red-400 font-bold select-none">Dichiara Decesso (mantiene attive le polizze)</label>
@@ -3333,6 +3338,28 @@ function getGenderFluoColor(cf) {
                 tb.innerHTML += row; 
             });
         }
+        function renderClientNoticeHistory(clientId){
+            const host = document.getElementById('clientNoticeHistory');
+            const count = document.getElementById('clientNoticeCount');
+            if(!host) return;
+            const rows = [];
+            if(clientId !== null && clientId !== undefined){
+                (policies || []).filter(p => String(p.clientId) === String(clientId)).forEach(p => {
+                    (p.titles || []).forEach(t => (t.noticeHistory || []).forEach(n => rows.push({ ...n, policyNumber: p.policyNumber || '-', company: p.company || '-', dueDate: t.dueDate || '' })));
+                });
+            }
+            rows.sort((a,b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+            if(count) count.textContent = `${rows.length} ${rows.length === 1 ? 'avviso' : 'avvisi'}`;
+            if(!rows.length){ host.innerHTML = '<p class="text-xs text-slate-500">Nessun avviso registrato.</p>'; return; }
+            host.innerHTML = rows.map(n => {
+                const dt = n.timestamp ? new Date(n.timestamp) : null;
+                const when = dt && !isNaN(dt) ? dt.toLocaleString('it-IT', { dateStyle:'short', timeStyle:'short' }) : '-';
+                const channel = ({whatsapp:'WhatsApp',sms:'SMS',email:'Email'})[n.channel] || n.channel || 'Altro';
+                const due = n.dueDate ? new Date(String(n.dueDate).slice(0,10)+'T12:00:00').toLocaleDateString('it-IT') : '-';
+                return `<div class="flex items-start justify-between gap-3 border-b border-slate-700/50 pb-2 last:border-0"><div class="min-w-0"><div class="text-xs text-white font-semibold">${escapeHtml(channel)} · ${escapeHtml(n.policyNumber || '-')}</div><div class="text-[10px] text-slate-400">${escapeHtml(n.company || '')} · Scadenza titolo: ${escapeHtml(due)}</div><div class="text-[10px] text-slate-500">${escapeHtml(n.userName || 'Utente')}</div></div><div class="text-[10px] text-accent whitespace-nowrap">${escapeHtml(when)}</div></div>`;
+            }).join('');
+        }
+
         function openModal(id=null, viewOnly=false) { 
             document.getElementById('clientModal').dataset.nexaDirty = '';
             document.getElementById('clientModal').classList.remove('hidden'); 
@@ -3384,6 +3411,7 @@ function getGenderFluoColor(cf) {
             const currentClient = id ? clients.find(x=>String(x.id)===String(id)) : null;
             clientRelationsDraft = getClientRelations(currentClient).filter(r=>String(r.id)!==String(id)).map(r=>({...r, name:r.name || clients.find(c=>String(c.id)===String(r.id))?.name || ''}));
             renderClientRelationsDraft();
+            renderClientNoticeHistory(id);
             document.getElementById('relationType').value = 'Coniuge';
             updateClientTypeIcon();
             setClientModalReadOnly(!!(id && viewOnly));
@@ -3758,6 +3786,14 @@ function getGenderFluoColor(cf) {
             const msg = buildDeadlineMessage(deadline);
             const enc = encodeURIComponent(msg);
 
+            if(!['whatsapp','sms','email'].includes(channel)) { alert('Canale non supportato'); return; }
+            // Registro il tentativo di invio: il browser non può verificare consegna o lettura.
+            if(!Array.isArray(t.noticeHistory)) t.noticeHistory = [];
+            const userName = currentUser ? (currentUser.displayName || `${currentUser.name || ''} ${currentUser.surname || ''}`.trim() || currentUser.email || 'Utente') : 'Utente';
+            t.noticeHistory.push({ id: Date.now() + '_' + Math.random().toString(36).slice(2,8), timestamp: new Date().toISOString(), channel, userName });
+            saveAllData();
+            renderClientNoticeHistory(p.clientId);
+
             if(channel === 'whatsapp') {
                 const waPhone = cleanPhoneForWhatsApp(deadline.phone);
                 const url = waPhone ? `https://wa.me/${waPhone.replace('+','')}?text=${enc}` : `https://wa.me/?text=${enc}`;
@@ -3780,7 +3816,6 @@ function getGenderFluoColor(cf) {
                 return;
             }
 
-            alert('Canale non supportato');
         }
 
         // Matitina provvigioni (solo rinnovi): modifica provvigione personale (commPers)
