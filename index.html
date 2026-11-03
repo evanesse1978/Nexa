@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale | Modali coerenti e chiusura protetta</title>
+    <title>NEXA CRM Professionale v52 | Modali coerenti e chiusura protetta</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -42,9 +42,28 @@
         }
         const monthSel = document.getElementById('reportMonth');
         if(monthSel && !monthSel.value) monthSel.value = String(now.getMonth()+1).padStart(2,'0');
+        const rangeStart = document.getElementById('reportDateStart');
+        const rangeEnd = document.getElementById('reportDateEnd');
+        const today = new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+        if(rangeStart && !rangeStart.value) rangeStart.value = `${now.getFullYear()}-01-01`;
+        if(rangeEnd && !rangeEnd.value) rangeEnd.value = today;
+        updateReportDateControls();
     }
 
+        function updateReportDateControls(){
+            const isRange = document.getElementById('reportType')?.value === 'INCASSI';
+            ['reportYearWrap','reportMonthWrap','reportCompareWrap'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden',isRange); });
+            ['reportDateStartWrap','reportDateEndWrap'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.toggle('hidden',!isRange); });
+        }
+
         function getReportDates(){
+        if(document.getElementById('reportType')?.value === 'INCASSI'){
+            const a = parseISODate(document.getElementById('reportDateStart')?.value);
+            const b = parseISODate(document.getElementById('reportDateEnd')?.value);
+            if(!a || !b || a>b) return {start:null,end:null,invalid:true};
+            const end = new Date(b); end.setDate(end.getDate()+1);
+            return {start:a,end,rangeStart:a,rangeEnd:b};
+        }
         const year = parseInt(document.getElementById('reportYear').value);
         const month = parseInt(document.getElementById('reportMonth').value);
         // Intervallo mensile locale: include tutto il primo giorno ed esclude il primo giorno del mese successivo.
@@ -104,6 +123,21 @@
             const type = document.getElementById('reportType')?.value || 'PROD';
             let rows = (Array.isArray(policies) ? policies : []).filter(p => matchesReportFilters(p));
 
+            if(type === 'INCASSI'){
+                if(dates.invalid) return {rows:[],count:0,premium:0,commission:0};
+                const collected=[];
+                rows.forEach(p=>(Array.isArray(p.titles)?p.titles:[]).forEach(t=>{
+                    const paidDate = String(t.paymentDate||'').slice(0,10);
+                    const d = parseISODate(paidDate);
+                    if(String(t.status||'').toUpperCase()==='INCASSATO' && d && d>=dates.start && d<dates.end){
+                        collected.push({...p, _reportTitle:t, _paymentDate:paidDate});
+                    }
+                }));
+                const total = collected.reduce((sum,r)=>sum+(safeParseFloat(r._reportTitle.amount)||0),0);
+                const comm = collected.reduce((sum,r)=>sum+(safeParseFloat(r._reportTitle.commPers)||0),0);
+                return {rows:collected,count:collected.length,premium:total,commission:comm};
+            }
+
             if(type === 'PROD'){
                 // Nuova produzione: effetto nel mese, senza polizze sostituite, annullate o nate da sostituzione.
                 rows = rows.filter(p => {
@@ -145,12 +179,14 @@
             return {rows, count, premium, commission};
         }
         function renderReport(){
+        updateReportDateControls();
         const dates = getReportDates();
+        if(dates.invalid){ alert('Controlla le date: la data inizio deve essere precedente o uguale alla data fine.'); window.__lastReportRows=[]; return; }
         const cur = computeReport(dates);
         
         // Confronto anno precedente
         let prev = null;
-        if(document.getElementById('reportCompare').checked){
+        if(document.getElementById('reportType').value !== 'INCASSI' && document.getElementById('reportCompare').checked){
             const prevDates = {
                 start: new Date(dates.year-1, dates.month-1, 1, 0,0,0,0),
                 end: new Date(dates.year-1, dates.month, 1, 0,0,0,0),
@@ -162,6 +198,11 @@
         const delta = prev ? (cur.premium - prev.premium) : 0;
         const deltaPerc = (prev && prev.premium>0) ? ((delta/prev.premium)*100) : null;
 
+        const isCashReport = document.getElementById('reportType').value === 'INCASSI';
+        const countLabel=document.querySelector('#repCount')?.previousElementSibling; if(countLabel) countLabel.innerText=isCashReport?'N° Titoli incassati':'N° Polizze';
+        const premiumLabel=document.querySelector('#repPremium')?.previousElementSibling; if(premiumLabel) premiumLabel.innerText=isCashReport?'Totale incassato':'Premi annui';
+        const commLabel=document.querySelector('#repCommission')?.previousElementSibling; if(commLabel) commLabel.innerText=isCashReport?'Provvigioni sui titoli incassati':'Provvigioni personali effettive inserite';
+        ['repDelta','repDeltaPerc'].forEach(id=>{const el=document.getElementById(id)?.parentElement;if(el)el.classList.toggle('hidden',isCashReport);});
         document.getElementById('repCount').innerText = cur.count;
         document.getElementById('repPremium').innerText = '€ ' + cur.premium.toFixed(2);
         const commissionEl = document.getElementById('repCommission');
@@ -171,13 +212,25 @@
 
         const tb = document.getElementById('reportTableBody');
         tb.innerHTML = '';
+        const reportHead=tb.parentElement.querySelector('thead tr');
+        if(reportHead){ reportHead.innerHTML = isCashReport ? '<th class="px-6 py-4">Data incasso</th><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Compagnia</th><th class="px-6 py-4">Polizza</th><th class="px-6 py-4">Titolo</th><th class="px-6 py-4 text-right">Importo incassato</th><th class="px-6 py-4 text-right">Provvigione personale</th><th class="px-6 py-4">Metodo</th>' : '<th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Ramo</th><th class="px-6 py-4">Compagnia</th><th class="px-6 py-4">Polizza</th><th class="px-6 py-4">Effetto</th><th class="px-6 py-4">Scadenza</th><th class="px-6 py-4 text-right">Premio annuo</th><th class="px-6 py-4 text-right">Provvigione personale effettiva (€)</th><th class="px-6 py-4">Stato</th>'; }
         if(cur.rows.length === 0){
-            tb.innerHTML = '<tr><td colspan="9" class="px-6 py-8 text-center text-slate-500">Nessun dato trovato per i filtri selezionati.</td></tr>';
+            tb.innerHTML = `<tr><td colspan="${isCashReport?8:9}" class="px-6 py-8 text-center text-slate-500">Nessun dato trovato per i filtri selezionati.</td></tr>`;
             window.__lastReportRows = [];
             return;
         }
 
         const rowsOut = [];
+        if(isCashReport){
+            const head=tb.parentElement.querySelector('thead tr');
+            if(head) head.innerHTML='<th class="px-6 py-4">Data incasso</th><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Compagnia</th><th class="px-6 py-4">Polizza</th><th class="px-6 py-4">Titolo</th><th class="px-6 py-4 text-right">Importo incassato</th><th class="px-6 py-4 text-right">Provvigione personale</th><th class="px-6 py-4">Metodo</th>';
+            cur.rows.forEach(p=>{ const t=p._reportTitle||{}; const c=clients.find(x=>String(x.id)===String(p.clientId)); const cname=c?c.name:'Sconosciuto'; const amount=(safeParseFloat(t.amount)||0).toFixed(2); const comm=(safeParseFloat(t.commPers)||0).toFixed(2);
+                tb.innerHTML += `<tr class="hover:bg-slate-800/30"><td class="px-6 py-3 text-xs">${p._paymentDate||''}</td><td class="px-6 py-3 text-white font-medium">${cname}</td><td class="px-6 py-3">${p.company||''}</td><td class="px-6 py-3 font-mono text-xs">${p.policyNumber||''}</td><td class="px-6 py-3 text-xs">${t.n||'Titolo'}</td><td class="px-6 py-3 text-right text-white">€ ${amount}</td><td class="px-6 py-3 text-right text-emerald-300">€ ${comm}</td><td class="px-6 py-3 text-xs">${t.paymentMethod||''}</td></tr>`;
+                rowsOut.push({data_incasso:p._paymentDate,cliente:cname,compagnia:p.company||'',polizza:p.policyNumber||'',titolo:t.n||'Titolo',importo_incassato:amount,provvigione:comm,metodo:t.paymentMethod||'',_policyId:p.id,_clientId:p.clientId});
+            });
+            window.__lastReportRows=rowsOut; return;
+        }
+        const head=tb.parentElement.querySelector('thead tr'); if(head) head.innerHTML='<th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Ramo</th><th class="px-6 py-4">Compagnia</th><th class="px-6 py-4">Polizza</th><th class="px-6 py-4">Effetto</th><th class="px-6 py-4">Scadenza</th><th class="px-6 py-4 text-right">Premio annuo</th><th class="px-6 py-4 text-right">Provvigione personale effettiva (€)</th><th class="px-6 py-4">Stato</th>';
         cur.rows.forEach(p => {
             const c = clients.find(x => String(x.id) === String(p.clientId));
             const cname = c ? c.name : 'Sconosciuto';
@@ -224,6 +277,7 @@
 
         // Mappatura estesa per inserire tutti i dettagli extra nel CSV
         const extendedRows = rows.map(r => {
+            if(document.getElementById('reportType').value==='INCASSI') return {Data_Incasso:r.data_incasso,Cliente:r.cliente,Compagnia:r.compagnia,Polizza:r.polizza,Titolo:r.titolo,Importo_Incassato_Euro:r.importo_incassato,Provvigione_Personale_Euro:r.provvigione,Metodo:r.metodo};
             const p = policies.find(x => x.id === r._policyId) || {};
             const c = clients.find(x => x.id === r._clientId) || {};
             return {
@@ -252,6 +306,10 @@
         extendedRows.forEach(r => {
             lines.push(headers.map(h => esc(r[h])).join(';'));
         });
+        if(document.getElementById('reportType').value==='INCASSI'){
+            lines.push('');
+            lines.push([esc('TOTALE INCASSATO'),esc(document.getElementById('repPremium').innerText),esc('PROVVIGIONI PERSONALI'),esc(document.getElementById('repCommission').innerText)].join(';'));
+        }
 
         // FIX CRITICO: Usa \n invece di andare a capo nel codice
         const csv = lines.join('\n');
@@ -274,7 +332,7 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4');
         
-        const title = `Report ${document.getElementById('reportType').value} - ${document.getElementById('reportMonth').value}/${document.getElementById('reportYear').value}`;
+        const title = document.getElementById('reportType').value==='INCASSI' ? `Report Incassi dal ${document.getElementById('reportDateStart').value} al ${document.getElementById('reportDateEnd').value}` : `Report ${document.getElementById('reportType').value} - ${document.getElementById('reportMonth').value}/${document.getElementById('reportYear').value}`;
         doc.text(title, 14, 15);
         
         // Rimuove gli ID tecnici in modo da non stamparli come colonne nel PDF
@@ -294,6 +352,12 @@
             styles: { fontSize: 8 },
             headStyles: { fillColor: [5, 7, 20] }
         });
+        if(document.getElementById('reportType').value==='INCASSI'){
+            const y=(doc.lastAutoTable && doc.lastAutoTable.finalY ? doc.lastAutoTable.finalY : 25)+10;
+            doc.setFontSize(11);
+            doc.text(`Totale incassato: ${document.getElementById('repPremium').innerText}`,14,y);
+            doc.text(`Provvigioni personali: ${document.getElementById('repCommission').innerText}`,110,y);
+        }
         
         doc.save('report_nexa.pdf');
     }
@@ -1352,10 +1416,12 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
 
                         <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex flex-col gap-4">
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Tipo</label><select id="reportType" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="PROD">Nuova Produzione (escluse sostituzioni)</option><option value="REPL">Polizze in sostituzione</option><option value="LOST">Polizze Perse</option><option value="PORT">Portafoglio nel mese</option></select></div>
-                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Anno</label><select id="reportYear" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="2025">2025</option><option value="2026">2026</option></select></div>
-                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Mese</label><select id="reportMonth" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="01">Gennaio</option><option value="02">Febbraio</option><option value="03">Marzo</option><option value="04">Aprile</option><option value="05">Maggio</option><option value="06">Giugno</option><option value="07">Luglio</option><option value="08">Agosto</option><option value="09">Settembre</option><option value="10">Ottobre</option><option value="11">Novembre</option><option value="12">Dicembre</option></select></div>
-                                <div class="flex items-end"><label class="flex items-center gap-2 text-xs text-slate-300 select-none"><input type="checkbox" id="reportCompare" checked onchange="renderReport()" class="accent-accent" /><span>Confronta anno prec.</span></label></div>
+                                <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Tipo</label><select id="reportType" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="PROD">Nuova Produzione (escluse sostituzioni)</option><option value="REPL">Polizze in sostituzione</option><option value="LOST">Polizze Perse</option><option value="PORT">Portafoglio nel mese</option><option value="INCASSI">Incassi per periodo</option></select></div>
+                                <div id="reportYearWrap"><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Anno</label><select id="reportYear" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="2025">2025</option><option value="2026">2026</option></select></div>
+                                <div id="reportMonthWrap"><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Mese</label><select id="reportMonth" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="01">Gennaio</option><option value="02">Febbraio</option><option value="03">Marzo</option><option value="04">Aprile</option><option value="05">Maggio</option><option value="06">Giugno</option><option value="07">Luglio</option><option value="08">Agosto</option><option value="09">Settembre</option><option value="10">Ottobre</option><option value="11">Novembre</option><option value="12">Dicembre</option></select></div>
+                                <div id="reportCompareWrap" class="flex items-end"><label class="flex items-center gap-2 text-xs text-slate-300 select-none"><input type="checkbox" id="reportCompare" checked onchange="renderReport()" class="accent-accent" /><span>Confronta anno prec.</span></label></div>
+                                <div id="reportDateStartWrap" class="hidden"><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Data inizio</label><input type="date" id="reportDateStart" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full" /></div>
+                                <div id="reportDateEndWrap" class="hidden"><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Data fine</label><input type="date" id="reportDateEnd" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full" /></div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div><label class="block text-10px uppercase font-bold text-slate-500 ml-1 mb-1">Macro Ramo</label><select id="reportRamo" onchange="renderReport()" class="bg-deep border border-slate-700 rounded px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-accent"><option value="TUTTI">Tutti</option><option value="AUTO">AUTO</option><option value="RAMI VARI">RAMI VARI</option><option value="VITA">VITA</option></select></div>
