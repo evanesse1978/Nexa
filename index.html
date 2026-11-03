@@ -1254,6 +1254,7 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                                 <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Stato:</label><select id="filterStatusDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-accent"><option value="">Tutti gli stati</option><option value="DA INCASSARE">Da Incassare del mese</option><option value="INCASSATO">Incassati</option></select></div>
                                 <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Compagnia:</label><select id="filterCompDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-accent"><option value="">Tutte</option><option value="ALLIANZ">ALLIANZ</option><option value="HDI">HDI</option><option value="VITTORIA">VITTORIA</option><option value="HELVETIA">HELVETIA</option><option value="GENIALPIU">GENIALPIU</option><option value="ARAG">ARAG</option><option value="METLIFE">METLIFE</option></select></div>
                                 <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Rate Mensili:</label><select id="filterMonthlyDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-accent"><option value="ALL">Mostra tutte</option><option value="ANNUAL_ONLY">Solo prima rata (Scadenza Annua)</option></select></div>
+                                <div><label class="block text-[10px] uppercase font-bold text-slate-500 ml-1 mb-1">Avviso:</label><select id="filterNoticeDeadlines" onchange="renderDeadlines()" class="bg-deep border border-slate-700 rounded px-2 py-1 text-xs text-white"><option value="ALL">Tutti</option><option value="SENT">Già avvisati</option><option value="NOT_SENT">Da avvisare</option></select></div>
                             </div>
                         </div>
 
@@ -1277,6 +1278,7 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                                         <th class="px-6 py-4">Importo</th>
                                         <th class="px-6 py-4 text-accent">Provvigioni</th>
                                         <th class="px-6 py-4">Stato</th>
+                                        <th class="px-4 py-4 text-center">Avvisato</th>
                                         <th class="px-6 py-4 text-right">Azioni</th>
                                     </tr>
                                 </thead>
@@ -3338,9 +3340,9 @@ function getGenderFluoColor(cf) {
                 tb.innerHTML += row; 
             });
         }
-        function renderClientNoticeHistory(clientId){
-            const host = document.getElementById('clientNoticeHistory');
-            const count = document.getElementById('clientNoticeCount');
+        function renderClientNoticeHistory(clientId, hostId='clientNoticeHistory', countId='clientNoticeCount'){
+            const host = document.getElementById(hostId);
+            const count = document.getElementById(countId);
             if(!host) return;
             const rows = [];
             if(clientId !== null && clientId !== undefined){
@@ -5009,7 +5011,8 @@ function getFilteredDeadlines() {
     const fStat = document.getElementById('filterStatusDeadlines').value; 
     const fComp = document.getElementById('filterCompDeadlines').value; 
     // Recupero il valore del nuovo filtro
-    const fMonthly = document.getElementById('filterMonthlyDeadlines')?.value || 'ALL'; 
+    const fMonthly = document.getElementById('filterMonthlyDeadlines')?.value || 'ALL';
+    const fNotice = document.getElementById('filterNoticeDeadlines')?.value || 'ALL'; 
 
     let all = [];
     policies.forEach(p => {
@@ -5017,6 +5020,9 @@ function getFilteredDeadlines() {
         if (['overdue','dueSoon','coverage'].includes(crmOperationalFocus) && p.status !== 'ATTIVA' && p.status !== 'SOSPESA') return;
 
         p.titles.forEach(t => {
+            const hasNotice = Array.isArray(t.noticeHistory) && t.noticeHistory.length > 0;
+            if (fNotice === 'SENT' && !hasNotice) return;
+            if (fNotice === 'NOT_SENT' && hasNotice) return;
             // Se la polizza è annullata, mostriamo SOLO i titoli attivi (Storni o rate insolute pre-annullamento)
             if(t.status === 'ANNULLATO') return; 
 
@@ -5092,7 +5098,7 @@ function getFilteredDeadlines() {
 
             // AGGIUNTA: Se non ci sono titoli, mostra il messaggio invece di una pagina vuota
             if(all.length === 0){
-                tb.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500">Nessuna scadenza trovata per il mese o i filtri selezionati. Cancella i filtri in alto per vedere tutto.</td></tr>';
+                tb.innerHTML = '<tr><td colspan="10" class="px-6 py-8 text-center text-slate-500">Nessuna scadenza trovata per il mese o i filtri selezionati. Cancella i filtri in alto per vedere tutto.</td></tr>';
                 document.getElementById('deadlines-total-amount').innerText = '€ 0.00';
                 document.getElementById('deadlines-total-comm').innerText = '€ 0.00';
                 return;
@@ -5156,6 +5162,7 @@ function getFilteredDeadlines() {
                     <td class="px-6 py-4 text-xs">
                         ${statusIcon}
                     </td>
+                    <td class="px-4 py-4 text-center"><input type="checkbox" disabled ${Array.isArray(t.noticeHistory) && t.noticeHistory.length ? 'checked' : ''} title="${Array.isArray(t.noticeHistory) && t.noticeHistory.length ? 'Avviso registrato' : 'Nessun avviso registrato'}" class="h-4 w-4 accent-emerald-500 cursor-default"></td>
                     <td class="px-6 py-4 text-right space-x-2">
                         ${payBtn}<button onclick=\"shareDeadline(${t.pid}, ${t.id}, 'whatsapp')\" class=\"text-xs text-green-400 hover:text-green-300 ml-2\" title=\"Invia WhatsApp\"><i class=\"fa-brands fa-whatsapp\"></i></button><button onclick=\"shareDeadline(${t.pid}, ${t.id}, 'sms')\" class=\"text-xs text-sky-400 hover:text-sky-300 ml-2\" title=\"Invia SMS\"><i class=\"fa-solid fa-comment-sms\"></i></button><button onclick=\"shareDeadline(${t.pid}, ${t.id}, 'email')\" class=\"text-xs text-slate-300 hover:text-white ml-2\" title=\"Invia Email\"><i class=\"fa-solid fa-envelope\"></i></button><button onclick=\"deleteTitle(${t.pid}, ${t.id})\" class=\"text-xs text-red-400 hover:text-red-300 ml-2\" title=\"Elimina titolo\"><i class=\"fa-solid fa-trash\"></i></button><button onclick=\"openPolicyTitles(${t.pid})\" class=\"text-xs text-slate-500 hover:text-accent ml-2\" title=\"Vedi Dettaglio\"><i class=\"fa-solid fa-eye\"></i></button>
                     </td>
@@ -7229,6 +7236,7 @@ function renderScannerResults(issues, container) {
           </form>
           <div id="crmActivityList" class="space-y-2"></div>
         </section>
+        <section class="rounded-xl border border-amber-800/60 bg-slate-900/40 p-4 lg:col-span-3"><div class="flex items-center justify-between gap-3 mb-3"><h3 class="text-sm uppercase tracking-wider font-bold text-amber-300"><i class="fa-solid fa-bell text-amber-400 mr-2"></i>Storico avvisi di scadenza</h3><span id="crmProfileNoticeCount" class="text-xs text-slate-400">0 avvisi</span></div><div id="crmProfileNoticeHistory" class="space-y-2"><p class="text-sm text-slate-500">Nessun avviso registrato.</p></div><p class="text-[10px] text-slate-500 mt-3">Sono registrati data, ora, canale, polizza, titolo e utente che ha avviato l'invio. La consegna o lettura non è verificata.</p></section>
         <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-4 lg:col-span-3"><h3 class="text-sm uppercase tracking-wider font-bold text-slate-300 mb-3"><i class="fa-solid fa-note-sticky text-accent mr-2"></i>Note cliente</h3><p id="crmProfileNotes" class="text-sm text-slate-300 whitespace-pre-wrap break-words"></p></section>
       </div>
       <div class="flex justify-end"><button onclick="closeCrmClientProfile()" class="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Chiudi scheda</button></div>
@@ -7504,6 +7512,7 @@ function renderScannerResults(issues, container) {
     }
     byId('crmProfileAgenda').innerHTML = agendaItems.length ? agendaItems.join('') : empty('Nessun richiamo o attività collegata individuata.');
     byId('crmProfileNotes').textContent = client.notes || 'Nessuna nota inserita.';
+    if (typeof renderClientNoticeHistory === 'function') renderClientNoticeHistory(cid, 'crmProfileNoticeHistory', 'crmProfileNoticeCount');
     byId('crmActivityDate').value = new Date().toISOString().slice(0,10);
     byId('crmActivityText').value = '';
     renderActivities();
