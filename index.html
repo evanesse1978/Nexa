@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale v52 | Modali coerenti e chiusura protetta</title>
+    <title>NEXA CRM Professionale v53 | Report produzione verificati</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -87,8 +87,46 @@
             return dt;
         }
 
-        function isReplacementPolicy(p){
-            return p?.isReplacement === true || /SOSTITUZION/i.test(String(p?.notes || ''));
+        function isReplacementPolicy(p, allPolicies){
+            if(!p) return false;
+            // Riconoscimento diretto: flag storico, collegamento alla polizza precedente
+            // oppure note descrittive usate nelle versioni precedenti.
+            const flag = p.isReplacement === true || String(p.isReplacement || '').toLowerCase() === 'true';
+            const directLink = p.replacementOfPolicyId !== undefined && p.replacementOfPolicyId !== null && String(p.replacementOfPolicyId).trim() !== '';
+            const noteMatch = /SOSTITUZION/i.test(String(p.notes || ''));
+            if(flag || directLink || noteMatch) return true;
+
+            // Riconoscimento inverso: la vecchia polizza può conservare il collegamento
+            // replacedByPolicyId anche se la nuova non ha il flag isReplacement.
+            const source = Array.isArray(allPolicies) ? allPolicies : (Array.isArray(policies) ? policies : []);
+            const pid = p.id;
+            if(pid === undefined || pid === null) return false;
+            const linkedFromOld = source.some(old => old && old !== p && old.replacedByPolicyId !== undefined && old.replacedByPolicyId !== null && String(old.replacedByPolicyId) === String(pid));
+            if(linkedFromOld) return true;
+
+            // Ricostruzione prudente per gli archivi storici che non hanno i campi
+            // di collegamento: considera le vecchie polizze SOSTITUITE dello stesso
+            // cliente, compagnia e ramo, con periodo compatibile. Se esiste una
+            // corrispondenza univoca sulle date di scadenza, la nuova è sostitutiva.
+            // In assenza di questa corrispondenza, accetta una sola candidata temporale;
+            // se le candidate sono più di una non classifica automaticamente.
+            const norm = v => String(v || '').trim().toUpperCase();
+            const newEffect = String(p.effect || '').slice(0,10);
+            const newExpiry = String(p.expiry || '').slice(0,10);
+            if(!p.clientId || !norm(p.company) || !norm(p.ramo) || !newEffect || !newExpiry) return false;
+            const candidates = source.filter(old => {
+                if(!old || old === p || String(old.id) === String(p.id)) return false;
+                if(norm(old.status) !== 'SOSTITUITA') return false;
+                if(String(old.clientId) !== String(p.clientId)) return false;
+                if(norm(old.company) !== norm(p.company) || norm(old.ramo) !== norm(p.ramo)) return false;
+                const oldEffect = String(old.effect || '').slice(0,10);
+                const oldExpiry = String(old.expiry || '').slice(0,10);
+                return !!oldEffect && !!oldExpiry && oldEffect <= newEffect && oldExpiry >= newEffect && oldEffect <= newExpiry;
+            });
+            const sameExpiry = candidates.filter(old => String(old.expiry || '').slice(0,10) === newExpiry);
+            if(sameExpiry.length === 1) return true;
+            if(sameExpiry.length > 1) return false;
+            return candidates.length === 1;
         }
 
         function matchesReportFilters(p){
@@ -142,7 +180,7 @@
                 // Nuova produzione: effetto nel mese, senza polizze sostituite, annullate o nate da sostituzione.
                 rows = rows.filter(p => {
                     const status = String(p.status || '').toUpperCase();
-                    if(status === 'SOSTITUITA' || status === 'ANNULLATA' || isReplacementPolicy(p)) return false;
+                    if(status === 'SOSTITUITA' || status === 'ANNULLATA' || isReplacementPolicy(p, policies)) return false;
                     const d = parseISODate(p.effect);
                     return d && d >= dates.start && d < dates.end;
                 });
@@ -150,7 +188,7 @@
                 // Report separato delle nuove polizze inserite come sostituzione.
                 rows = rows.filter(p => {
                     const status = String(p.status || '').toUpperCase();
-                    if(status === 'SOSTITUITA' || status === 'ANNULLATA' || !isReplacementPolicy(p)) return false;
+                    if(status === 'SOSTITUITA' || status === 'ANNULLATA' || !isReplacementPolicy(p, policies)) return false;
                     const d = parseISODate(p.effect);
                     return d && d >= dates.start && d < dates.end;
                 });
@@ -234,7 +272,7 @@
         cur.rows.forEach(p => {
             const c = clients.find(x => String(x.id) === String(p.clientId));
             const cname = c ? c.name : 'Sconosciuto';
-            const prem = safeParseFloat(p.annualPremium).toFixed(2);
+            const prem = (safeParseFloat(p.annualPremium) || 0).toFixed(2);
             const personalCommission = getPersonalCommission(p).toFixed(2);
             
             // --- INIZIO NUOVO CODICE PER I BADGE ---
@@ -1405,7 +1443,7 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                     <div class="glass-effect rounded-2xl p-6 shadow-2xl relative">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
                             <div>
-                                <h3 class="text-lg font-bold text-white uppercase tracking-wide">Report <span class="text-accent text-xs font-bold">(V18)</span></h3>
+                                <h3 class="text-lg font-bold text-white uppercase tracking-wide">Report <span class="text-accent text-xs font-bold">(V53)</span></h3>
                                 <p class="text-sm text-slate-400 mt-1">Analisi produzione, portafoglio e polizze perse.</p>
                             </div>
                             <div class="flex gap-2">
