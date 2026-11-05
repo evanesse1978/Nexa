@@ -1759,6 +1759,14 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                     </div>
                     <button onclick="closePolicyTitles()" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
+                <div id="vitaAccumulationPanel" class="hidden mb-4 rounded-xl border border-emerald-500/40 bg-emerald-950/20 p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div class="rounded-lg bg-slate-900/70 border border-emerald-500/30 p-3"><div class="text-[11px] uppercase tracking-wide text-emerald-300 font-bold">Cumulo versato</div><div id="vitaPaidTotal" class="text-2xl font-bold text-white font-mono mt-1">€ 0,00</div><div class="text-[10px] text-slate-400 mt-1">Versamenti liberi + rate SDD effettivamente incassate</div></div>
+                        <div class="rounded-lg bg-slate-900/70 border border-amber-500/30 p-3"><div class="text-[11px] uppercase tracking-wide text-amber-300 font-bold">Cumulo + interessi maturati</div><div id="vitaInterestTotal" class="text-2xl font-bold text-white font-mono mt-1">€ 0,00</div><div class="text-[10px] text-slate-400 mt-1">Valore aggiornato manualmente ogni 6/12 mesi</div></div>
+                    </div>
+                    <div class="flex flex-wrap gap-2"><button onclick="addAccumulationContribution(currentViewingPolicyId)" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-plus mr-1"></i>Registra versamento libero</button><button onclick="updateAccumulationValue(currentViewingPolicyId)" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-pen mr-1"></i>Aggiorna cumulo + interessi</button></div>
+                    <div class="mt-3"><div class="text-[10px] uppercase font-bold text-slate-400 mb-1">Storico versamenti liberi</div><div id="vitaContributionHistory" class="text-xs text-slate-300 space-y-1 max-h-24 overflow-y-auto">Nessun versamento libero registrato.</div></div>
+                </div>
                 <div class="overflow-x-auto max-h-[60vh]">
                     <table class="w-full text-left text-sm text-slate-400">
                         <thead class="bg-slate-900/50 text-slate-200 text-xs uppercase font-bold sticky top-0"><tr><th>Scadenza</th><th>Rata</th><th>Importo</th><th>Provv. Totali</th><th>Provv. Pers.</th><th>Stato</th><th class="text-right">Azioni</th></tr></thead>
@@ -4219,7 +4227,7 @@ function editTitle(pid, tid){
                     const warning = `Stai per sostituire ${existingCount} titoli esistenti${hasPaid ? ', inclusi titoli già incassati' : ''}. Date, stati, importi e provvigioni dei titoli attuali non saranno conservati. Vuoi continuare?`;
                     if (!confirm(warning)) return;
                 }
-                const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, policyType, customPolicyType, vitaType, company:comp, notes, policyNumber:polNum, plate, autoGuarantees, guarantees, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:editingExisting ? editingExisting.status : 'ATTIVA', titles, isReplacement: !!replacementSource || !!(editingExisting && editingExisting.isReplacement), replacementOfPolicyId: replacementSource ? replacementSource.id : (editingExisting ? editingExisting.replacementOfPolicyId || null : null), replacedByPolicyId: editingExisting ? editingExisting.replacedByPolicyId || null : null};
+                const pData={id:editingPolicyId||Date.now(), clientId:cid, ramo, policyType, customPolicyType, vitaType, company:comp, notes, policyNumber:polNum, plate, autoGuarantees, guarantees, effect:eff, expiry:exp, split, annualPremium:annual, commPerc, status:editingExisting ? editingExisting.status : 'ATTIVA', accumulationContributions: editingExisting ? (editingExisting.accumulationContributions || []) : [], accumulationValueWithInterest: editingExisting ? (editingExisting.accumulationValueWithInterest || 0) : 0, accumulationValueUpdatedAt: editingExisting ? (editingExisting.accumulationValueUpdatedAt || null) : null, titles, isReplacement: !!replacementSource || !!(editingExisting && editingExisting.isReplacement), replacementOfPolicyId: replacementSource ? replacementSource.id : (editingExisting ? editingExisting.replacementOfPolicyId || null : null), replacedByPolicyId: editingExisting ? editingExisting.replacedByPolicyId || null : null};
                 if(editingPolicyId){const idx=policies.findIndex(p=>p.id===editingPolicyId); if(idx<0) throw new Error('Polizza da modificare non trovata.'); policies[idx]=pData;} else {policies.push(pData);}
                 if (replacementSource) {
                     replacementSource.status = 'SOSTITUITA';
@@ -4898,6 +4906,12 @@ p.status = 'ATTIVA';
     tb.innerHTML = '';
     if(!p){ return; }
     const perc = p.commPerc || 0;
+    const isAccumulation = p.ramo === 'VITA' && ['FONDO PENSIONE','PIANO DI ACCUMULO'].includes(String(p.vitaType || '').toUpperCase());
+    const accPanel = document.getElementById('vitaAccumulationPanel');
+    if (accPanel) {
+        accPanel.classList.toggle('hidden', !isAccumulation);
+        if (isAccumulation) refreshAccumulationSummary(p);
+    }
 
     (p.titles||[]).forEach(t=>{
         let st = 'text-white';
@@ -4957,6 +4971,40 @@ p.status = 'ATTIVA';
         </tr>`;
     });
 }
+        function isAccumulationPolicy(p){ return !!p && p.ramo === 'VITA' && ['FONDO PENSIONE','PIANO DI ACCUMULO'].includes(String(p.vitaType || '').toUpperCase()); }
+        function euroAccumulation(v){ return '€ ' + Number(v || 0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+        function getAccumulationPaidTotal(p){
+            const titlePaid=(p.titles||[]).filter(t=>['INCASSATO','PAGATO'].includes(String(t.status||'').toUpperCase())).reduce((s,t)=>s+Math.max(0,safeParseFloat(t.amount)||0),0);
+            const freePaid=(p.accumulationContributions||[]).reduce((s,x)=>s+Math.max(0,safeParseFloat(x.amount)||0),0);
+            return Math.round((titlePaid+freePaid)*100)/100;
+        }
+        function refreshAccumulationSummary(p){
+            const paid=document.getElementById('vitaPaidTotal'), total=document.getElementById('vitaInterestTotal');
+            if(paid) paid.textContent=euroAccumulation(getAccumulationPaidTotal(p));
+            if(total) total.textContent=euroAccumulation(p.accumulationValueWithInterest || 0);
+            const history=document.getElementById('vitaContributionHistory');
+            if(history){ const rows=(p.accumulationContributions||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))); history.innerHTML=rows.length ? rows.map(x=>`<div class="flex justify-between border-b border-slate-700/60 py-1"><span>${x.date ? new Date(x.date+'T12:00:00').toLocaleDateString('it-IT') : 'Data n.d.'}</span><strong class="font-mono text-emerald-300">${euroAccumulation(x.amount)}</strong></div>`).join('') : 'Nessun versamento libero registrato.'; }
+        }
+        function persistAccumulationPolicy(p){ if(typeof fbSaveSingleDoc==='function') fbSaveSingleDoc('policies',p); if(typeof saveLocalBackup==='function') saveLocalBackup(); saveAllData(); refreshAccumulationSummary(p); }
+        function addAccumulationContribution(polId){
+            const p=(policies||[]).find(x=>String(x.id)===String(polId)); if(!isAccumulationPolicy(p)) return;
+            const raw=prompt('Importo del versamento libero (€):'); if(raw===null) return;
+            const amount=safeParseFloat(String(raw).replace(',','.')); if(!Number.isFinite(amount)||amount<=0){alert('Inserisci un importo valido maggiore di zero.');return;}
+            const date=prompt('Data del versamento (AAAA-MM-GG):',new Date().toISOString().slice(0,10)); if(date===null) return;
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('Data non valida. Usa il formato AAAA-MM-GG.');return;}
+            if(!Array.isArray(p.accumulationContributions)) p.accumulationContributions=[];
+            p.accumulationContributions.push({id:Date.now(),date,amount:Number(amount.toFixed(2)),createdAt:new Date().toISOString()});
+            persistAccumulationPolicy(p); openPolicyTitles(polId);
+        }
+        function updateAccumulationValue(polId){
+            const p=(policies||[]).find(x=>String(x.id)===String(polId)); if(!isAccumulationPolicy(p)) return;
+            const current=Number(p.accumulationValueWithInterest||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+            const raw=prompt('Inserisci il valore complessivo aggiornato (cumulo versato + interessi maturati), non la sola rivalutazione:',current); if(raw===null) return;
+            const value=safeParseFloat(String(raw).replace(/\s/g,'').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.'));
+            if(!Number.isFinite(value)||value<0){alert('Inserisci un valore valido.');return;}
+            p.accumulationValueWithInterest=Number(value.toFixed(2)); p.accumulationValueUpdatedAt=new Date().toISOString();
+            persistAccumulationPolicy(p); openPolicyTitles(polId);
+        }
         function closePolicyTitles(){document.getElementById('policyTitlesModal').classList.add('hidden'); currentViewingPolicyId=null; if(typeof window.nexaRestoreClientProfileAfterPolicyAction==='function') window.setTimeout(()=>window.nexaRestoreClientProfileAfterPolicyAction(),80);}
         function calcLivePersonale(tid, val, perc) { const tot = safeParseFloat(val); const pers = (tot * perc / 100).toFixed(2); document.getElementById('pers-'+tid).value = pers; }
         // UPDATE FUNZIONI: ORA CHIAMANO renderDeadlines() invece di renderTitles()
