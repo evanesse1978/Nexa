@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale v57 | Consultazione polizze dalla scheda cliente</title>
+    <title>NEXA CRM Professionale | Consultazione polizze dalla scheda cliente</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -938,6 +938,33 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
 
 
 
+<style id="nexa-relation-search-layout-fix">
+#clientModal #relationSearchField,
+#clientModal #relationSearchField .nexa-client-search-wrap {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  flex: 0 0 100% !important;
+  z-index: 5;
+}
+#clientModal #relationSearchField .nexa-client-search-input,
+#clientModal #relationSearchField select#relationSelect {
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+#clientModal #relationSearchField .nexa-client-search-input {
+  margin-bottom: 8px !important;
+}
+#clientModal #relationType {
+  position: relative;
+  z-index: 1;
+}
+</style>
 </head>
 <body class="bg-deep text-slate-300 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
 
@@ -1198,7 +1225,7 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                             <button onclick="toggleNewEventForm()" class="bg-accent hover:bg-yellow-400 text-darktext px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-accent/20 flex gap-2 active:scale-95 transition-all duration-200"><i class="fa-solid fa-plus"></i> Nuovo</button>
                         </div>
                         <div id="newEventForm" class="hidden mb-4 bg-slate-800/50 p-4 rounded-xl border border-slate-700 transition-all">
-                            <h4 class="text-white font-bold text-sm mb-3">Nuovo Appuntamento</h4>
+                            <h4 id="evtFormTitle" class="text-white font-bold text-sm mb-3">Nuovo Appuntamento</h4>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <input type="date" id="evtDate" aria-label="Data richiamo" class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white">
                                 <input type="time" id="evtTime" aria-label="Ora richiamo" class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white" value="09:30">
@@ -1208,9 +1235,12 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                                 <select id="evtStatus" class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white"><option value="Da fare">Da fare</option><option value="In corso">In corso</option><option value="Completato">Completato</option><option value="Annullato">Annullato</option></select>
                                 <textarea id="evtNotes" placeholder="Note / storico del contatto" rows="2" class="bg-deep border border-slate-600 rounded px-3 py-2 text-sm text-white md:col-span-3"></textarea>
                             </div>
-                            <div class="flex justify-end gap-2 mt-3">
-                                <button onclick="toggleNewEventForm()" class="px-3 py-1 rounded text-slate-400 hover:text-white text-xs transition-colors">Annulla</button>
-                                <button onclick="addNewEvent()" class="px-4 py-2 bg-accent text-darktext font-bold rounded text-xs hover:bg-yellow-400 active:scale-95 transition-all">Salva</button>
+                            <div class="flex flex-wrap justify-between items-center gap-2 mt-3">
+                                <button id="evtDeleteBtn" type="button" onclick="deleteAppointment(editingAgendaEventId)" class="hidden px-3 py-2 rounded text-rose-400 hover:text-rose-300 text-xs border border-rose-500/30"><i class="fa-solid fa-trash mr-1"></i>Elimina appuntamento</button>
+                                <div class="flex justify-end gap-2 ml-auto">
+                                    <button type="button" onclick="closeAgendaEventForm()" class="px-3 py-2 rounded text-slate-400 hover:text-white text-xs transition-colors">Annulla</button>
+                                    <button id="evtSaveBtn" type="button" onclick="addNewEvent()" class="px-4 py-2 bg-accent text-darktext font-bold rounded text-xs hover:bg-yellow-400 active:scale-95 transition-all">Salva appuntamento</button>
+                                </div>
                             </div>
                         </div>
                         <div id="calendar-container" class="flex-1 overflow-y-auto border border-slate-800 rounded-lg bg-deep/30"></div>
@@ -1661,10 +1691,14 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                             <input type="text" id="inputAddress" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Residenza">
                             <div class="bg-slate-800/30 p-3 rounded-lg border border-slate-700/50">
                                 <label class="block text-xs text-slate-400 mb-2">Legami con altre anagrafiche</label>
-                                <div class="flex flex-col md:flex-row gap-2 min-w-0">
-                                    <select id="relationSelect" class="w-full min-w-0 md:flex-1 bg-deep border border-slate-700 rounded-lg px-3 py-3 text-white text-sm focus:outline-none focus:border-accent"><option value="">Seleziona cliente...</option></select>
-                                    <select id="relationType" class="w-full min-w-0 md:w-36 md:shrink-0 bg-deep border border-slate-700 rounded-lg px-3 py-3 text-white text-sm focus:outline-none focus:border-accent"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option><option value="Altro">Altro</option></select>
-                                    <button type="button" onclick="addClientRelation()" class="w-full md:w-auto md:shrink-0 inline-flex items-center justify-center px-4 py-3 rounded-lg bg-accent text-darktext text-sm font-bold whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i>Aggiungi</button>
+                                <div class="flex flex-col gap-3 w-full min-w-0">
+                                    <div id="relationSearchField" class="w-full min-w-0 relative">
+                                        <select id="relationSelect" class="w-full min-w-0 block bg-deep border border-slate-700 rounded-lg px-3 py-3 text-white text-sm focus:outline-none focus:border-accent"><option value="">Seleziona cliente...</option></select>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2 w-full min-w-0">
+                                        <select id="relationType" class="w-full min-w-0 block bg-deep border border-slate-700 rounded-lg px-3 py-3 text-white text-sm focus:outline-none focus:border-accent"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option><option value="Altro">Altro</option></select>
+                                        <button type="button" onclick="addClientRelation()" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-3 rounded-lg bg-accent text-darktext text-sm font-bold whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i>Aggiungi</button>
+                                    </div>
                                 </div>
                                 <div id="clientRelationsList" class="mt-3 space-y-2"><p class="text-xs text-slate-500">Nessun legame aggiunto.</p></div>
                                 <p class="text-[10px] text-slate-500 mt-2">Puoi collegare più familiari, soci o altre anagrafiche. I legami sono salvati anche nel profilo dei contatti collegati.</p>
@@ -2038,6 +2072,7 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
         // AGENDA STATE
         let agendaView = 'month'; // 'month', 'week', 'day'
         let agendaRefDate = new Date();
+        let editingAgendaEventId = null;
 
         // ==============================
         // FIREBASE HELPERS
@@ -2913,7 +2948,8 @@ function sendBirthdayWishes(name, phone, email, channel) {
             const l = document.getElementById('dash-agenda-list');
             l.innerHTML = '';
             const upcoming = appointments
-                .filter(a => new Date(a.date) >= new Date(new Date().setHours(0,0,0,0)))
+                .filter(a => !['COMPLETATO','ANNULLATO'].includes(String(a.status || 'DA FARE').trim().toUpperCase()))
+                .filter(a => new Date(a.date + 'T00:00:00') >= new Date(new Date().setHours(0,0,0,0)))
                 .sort((a,b) => new Date(a.date + 'T' + (a.time||'00:00')) - new Date(b.date + 'T' + (b.time||'00:00')))
                 .slice(0, 6); // AUMENTATO DA 3 a 6. Puoi cambiare questo numero a tuo piacimento.
 
@@ -2922,12 +2958,14 @@ function sendBirthdayWishes(name, phone, email, channel) {
             } else {
                 upcoming.forEach(a => {
                     // AGGIUNTO "min-w-0" per bloccare lo strabordamento e "title" per leggere il testo passando il mouse
-                    l.innerHTML += `<div class="flex items-center justify-between p-2 rounded border bg-slate-800/30 border-slate-700">
+                    l.innerHTML += `<button type="button" onclick="openAgendaEventEditor('${String(a.id).replace(/'/g, '')}')" class="w-full text-left flex items-center justify-between p-2 rounded border bg-slate-800/30 border-slate-700 hover:border-accent hover:bg-slate-800/70 transition-colors cursor-pointer" title="Apri e modifica appuntamento">
                         <div class="flex-1 min-w-0">
-                            <div class="text-xs text-accent font-bold">${new Date(a.date).toLocaleDateString()} ${a.time||''}</div>
-                            <div class="text-sm text-white font-medium truncate" title="${a.title}">${a.title}</div>
+                            <div class="text-xs text-accent font-bold">${new Date(a.date + 'T00:00:00').toLocaleDateString('it-IT')} ${agendaEscape(a.time||'')}</div>
+                            <div class="text-sm text-white font-medium truncate">${agendaEscape(a.title||'')}</div>
+                            <div class="text-[10px] text-slate-400">${agendaEscape(a.clientName||'')}</div>
                         </div>
-                    </div>`;
+                        <i class="fa-solid fa-chevron-right text-slate-500 ml-2"></i>
+                    </button>`;
                 });
             }
 
@@ -3008,10 +3046,35 @@ function sendBirthdayWishes(name, phone, email, channel) {
         // ==========================================
         // NUOVA LOGICA AGENDA
         // ==========================================
+        function resetAgendaEventForm(){
+            editingAgendaEventId = null;
+            const form=document.getElementById('newEventForm');
+            if(!form) return;
+            document.getElementById('evtFormTitle').textContent='Nuovo Appuntamento';
+            document.getElementById('evtSaveBtn').textContent='Salva appuntamento';
+            document.getElementById('evtDeleteBtn').classList.add('hidden');
+            document.getElementById('evtDate').value=new Date().toISOString().split('T')[0];
+            document.getElementById('evtTime').value='09:30';
+            document.getElementById('evtTitle').value='';
+            document.getElementById('evtNotes').value='';
+            document.getElementById('evtStatus').value='Da fare';
+            document.getElementById('evtClient').value='';
+            populateAgendaPolicies();
+            document.getElementById('evtPolicy').value='';
+        }
+        function closeAgendaEventForm(){
+            document.getElementById('newEventForm')?.classList.add('hidden');
+            resetAgendaEventForm();
+        }
         function toggleNewEventForm(){
             const form=document.getElementById('newEventForm');
-            form.classList.toggle('hidden');
-            if(!form.classList.contains('hidden')) populateAgendaForm();
+            if(form.classList.contains('hidden')){
+                resetAgendaEventForm();
+                populateAgendaForm();
+                form.classList.remove('hidden');
+            } else {
+                closeAgendaEventForm();
+            }
         }
 
         function agendaEscape(value){return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
@@ -3040,6 +3103,25 @@ function sendBirthdayWishes(name, phone, email, channel) {
             });
             if(previous) sel.value=previous;
         }
+        function openAgendaEventEditor(id){
+            const item=(appointments||[]).find(a=>String(a.id)===String(id)); if(!item) return;
+            if(typeof switchSection==='function') switchSection('agenda');
+            populateAgendaForm();
+            editingAgendaEventId=String(item.id);
+            document.getElementById('evtFormTitle').textContent='Modifica appuntamento';
+            document.getElementById('evtSaveBtn').textContent='Salva modifiche';
+            document.getElementById('evtDeleteBtn').classList.remove('hidden');
+            document.getElementById('evtDate').value=item.date||'';
+            document.getElementById('evtTime').value=item.time||'09:30';
+            document.getElementById('evtTitle').value=item.title||item.reason||'';
+            document.getElementById('evtClient').value=item.clientId ? String(item.clientId) : '';
+            populateAgendaPolicies();
+            document.getElementById('evtPolicy').value=item.policyId ? String(item.policyId) : '';
+            document.getElementById('evtStatus').value=item.status||'Da fare';
+            document.getElementById('evtNotes').value=item.notes||'';
+            document.getElementById('newEventForm').classList.remove('hidden');
+            document.getElementById('newEventForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+        }
         function addNewEvent(){
             const d=document.getElementById('evtDate').value;
             const t=document.getElementById('evtTime').value || '09:30';
@@ -3052,13 +3134,21 @@ function sendBirthdayWishes(name, phone, email, channel) {
             const client=(clients||[]).find(c=>String(c.id)===clientId);
             const policy=(policies||[]).find(p=>String(p.id)===policyId);
             const clientName=client ? ([client.name,client.surname].filter(Boolean).join(' ') || client.company || client.ragioneSociale || '') : '';
+            const policyName=policy ? (policy.policyNumber||policy.numeroPolizza||policy.number||String(policy.id)) : null;
             const now=new Date().toISOString();
-            appointments.push({id:Date.now(),date:d,time:t,title:ti,reason:ti,clientId:clientId||null,clientName:clientName||null,policyId:policyId||null,policyName:policy ? (policy.policyNumber||policy.numeroPolizza||policy.number||String(policy.id)) : null,status,notes,contactHistory:notes?[{date:now,note:notes}]:[],createdAt:now,updatedAt:now});
+            if(editingAgendaEventId){
+                const existing=(appointments||[]).find(a=>String(a.id)===String(editingAgendaEventId));
+                if(!existing) return alert('Appuntamento non trovato. Aggiorna la schermata e riprova.');
+                Object.assign(existing,{date:d,time:t,title:ti,reason:ti,clientId:clientId||null,clientName:clientName||null,policyId:policyId||null,policyName, status,notes,updatedAt:now});
+                if(notes && (!Array.isArray(existing.contactHistory) || !existing.contactHistory.length)){
+                    existing.contactHistory=[{date:now,note:notes}];
+                }
+            } else {
+                appointments.push({id:Date.now(),date:d,time:t,title:ti,reason:ti,clientId:clientId||null,clientName:clientName||null,policyId:policyId||null,policyName,status,notes,contactHistory:notes?[{date:now,note:notes}]:[],createdAt:now,updatedAt:now});
+            }
             saveAllData(); renderAgendaMain(); updateDashboard();
             document.getElementById('newEventForm').classList.add('hidden');
-            ['evtTitle','evtNotes'].forEach(id=>document.getElementById(id).value='');
-            document.getElementById('evtClient').value=''; document.getElementById('evtPolicy').value=''; document.getElementById('evtStatus').value='Da fare';
-            populateAgendaForm();
+            resetAgendaEventForm();
         }
         function updateAgendaStatus(id,status){
             const item=(appointments||[]).find(a=>String(a.id)===String(id)); if(!item) return;
@@ -3073,9 +3163,12 @@ function sendBirthdayWishes(name, phone, email, channel) {
         }
 
         function deleteAppointment(id){
-            if(confirm("Eliminare appuntamento?")){
-                appointments=appointments.filter(a=>a.id!==id);
+            if(id == null || id === '') return;
+            if(confirm("Vuoi eliminare definitivamente questo appuntamento?")){
+                appointments=appointments.filter(a=>String(a.id)!==String(id));
                 saveAllData();
+                document.getElementById('newEventForm')?.classList.add('hidden');
+                resetAgendaEventForm();
                 renderAgendaMain();
                 updateDashboard();
             }
@@ -3147,7 +3240,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     
                     daysEvents.forEach(ev => {
                          const status=ev.status||'Da fare';
-                         html += `<div class="event-chip event-chip-gen" title="${agendaEscape(ev.time||'')} - ${agendaEscape(ev.title||'')} · ${agendaEscape(status)}"><button type="button" onclick="showAgendaEvent('${String(ev.id).replace(/'/g, '')}')" class="w-full text-left">${agendaEscape(ev.time||'')} ${agendaEscape(ev.title||'')}</button></div>`;
+                         html += `<div class="event-chip event-chip-gen" title="${agendaEscape(ev.time||'')} - ${agendaEscape(ev.title||'')} · ${agendaEscape(status)}"><button type="button" onclick="openAgendaEventEditor('${String(ev.id).replace(/'/g, '')}')" class="w-full text-left">${agendaEscape(ev.time||'')} ${agendaEscape(ev.title||'')}</button></div>`;
                     });
 
                     html += `</div></div>`;
@@ -3184,7 +3277,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
                     
                     daysEvents.forEach(ev => {
                         html += `<div class="p-2 rounded bg-slate-800 border border-slate-700 hover:border-accent group">
-                            <button type="button" onclick="showAgendaEvent('${String(ev.id).replace(/'/g, '')}')" class="w-full text-left"><div class="text-xs text-accent font-bold">${agendaEscape(ev.time||'')}</div><div class="text-xs text-white break-words">${agendaEscape(ev.title||'')}</div><div class="text-[10px] text-slate-400 mt-1">${agendaEscape(ev.status||'Da fare')}</div></button>
+                            <button type="button" onclick="openAgendaEventEditor('${String(ev.id).replace(/'/g, '')}')" class="w-full text-left"><div class="text-xs text-accent font-bold">${agendaEscape(ev.time||'')}</div><div class="text-xs text-white break-words">${agendaEscape(ev.title||'')}</div><div class="text-[10px] text-slate-400 mt-1">${agendaEscape(ev.status||'Da fare')}</div></button>
                         </div>`;
                     });
 
@@ -3210,7 +3303,7 @@ function sendBirthdayWishes(name, phone, email, channel) {
                                 <div class="text-xs text-slate-400 mt-1">${agendaEscape(ev.clientName||'Cliente non collegato')} · ${agendaEscape(ev.policyName||'Nessuna polizza')} · ${agendaEscape(ev.status||'Da fare')}</div>
                                 ${ev.notes?`<div class="text-sm text-slate-300 mt-2">${agendaEscape(ev.notes)}</div>`:''}
                             </div>
-                            <button onclick="showAgendaEvent('${String(ev.id).replace(/'/g, '')}')" class="text-accent p-2" title="Dettagli e storico"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="openAgendaEventEditor('${String(ev.id).replace(/'/g, '')}')" class="text-accent p-2" title="Dettagli e storico"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteAppointment('${String(ev.id).replace(/'/g, '')}')" class="text-slate-500 hover:text-red-500 p-2" title="Elimina"><i class="fa-solid fa-trash"></i></button>
                         </div>`;
                     });
