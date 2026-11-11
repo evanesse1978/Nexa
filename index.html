@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale  | Consultazione polizze dalla scheda cliente</title>
+    <title>NEXA CRM Professionale v57 | Consultazione polizze dalla scheda cliente</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -1637,7 +1637,7 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
     <div id="clientModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
-            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
+            <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 relative max-h-[90vh] overflow-y-auto border-t-4 border-t-accent modal-animate">
                 <div class="flex justify-between items-start mb-6">
                     <div class="flex items-center gap-3"><span id="clientModalTypeIcon" class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-slate-800 text-slate-300 border border-slate-700" title="Tipo anagrafica"><i class="fa-solid fa-user"></i></span><h3 id="modalTitle" class="text-xl font-bold text-white">Dettaglio Cliente</h3></div>
                     <button onclick="closeModal()" class="text-slate-500 hover:text-accent transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -1661,10 +1661,10 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                             <input type="text" id="inputAddress" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow" placeholder="Residenza">
                             <div class="bg-slate-800/30 p-3 rounded-lg border border-slate-700/50">
                                 <label class="block text-xs text-slate-400 mb-2">Legami con altre anagrafiche</label>
-                                <div class="flex flex-col sm:flex-row gap-2">
-                                    <select id="relationSelect" class="min-w-0 flex-1 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:border-accent"><option value="">Seleziona cliente...</option></select>
-                                    <select id="relationType" class="sm:w-32 bg-deep border border-slate-700 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:border-accent"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option><option value="Altro">Altro</option></select>
-                                    <button type="button" onclick="addClientRelation()" class="px-3 py-2 rounded-lg bg-accent text-darktext text-xs font-bold whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i>Aggiungi</button>
+                                <div class="flex flex-col md:flex-row gap-2 min-w-0">
+                                    <select id="relationSelect" class="w-full min-w-0 md:flex-1 bg-deep border border-slate-700 rounded-lg px-3 py-3 text-white text-sm focus:outline-none focus:border-accent"><option value="">Seleziona cliente...</option></select>
+                                    <select id="relationType" class="w-full min-w-0 md:w-36 md:shrink-0 bg-deep border border-slate-700 rounded-lg px-3 py-3 text-white text-sm focus:outline-none focus:border-accent"><option value="Coniuge">Coniuge</option><option value="Figlio/a">Figlio/a</option><option value="Genitore">Genitore</option><option value="Socio">Socio</option><option value="Altro">Altro</option></select>
+                                    <button type="button" onclick="addClientRelation()" class="w-full md:w-auto md:shrink-0 inline-flex items-center justify-center px-4 py-3 rounded-lg bg-accent text-darktext text-sm font-bold whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i>Aggiungi</button>
                                 </div>
                                 <div id="clientRelationsList" class="mt-3 space-y-2"><p class="text-xs text-slate-500">Nessun legame aggiunto.</p></div>
                                 <p class="text-[10px] text-slate-500 mt-2">Puoi collegare più familiari, soci o altre anagrafiche. I legami sono salvati anche nel profilo dei contatti collegati.</p>
@@ -4594,7 +4594,6 @@ function editTitle(pid, tid){
                 const row=`<tr class="hover:bg-slate-800/30 border-b border-slate-800/50 last:border-0 ${rc} ${displayStatus!=='ATTIVA' && displayStatus!=='SOSPESA' && displayStatus!=='RICHIESTA SOSPENSIONE'?'opacity-60':''}"><td class="px-6 py-4">${sb}</td><td class="px-6 py-4 text-white font-medium">${escapeHtml(c)}</td><td class="px-6 py-4"><div class="text-sm font-bold text-white">${escapeHtml(p.company||'')}</div><div class="text-xs text-slate-400 mt-1">${escapeHtml(p.policyNumber||'')}</div>${(p.vitaType||p.policyType) ? `<div class="text-xs text-emerald-300 mt-1">${escapeHtml(p.vitaType||p.policyType)}</div>` : ''}${p.replacementOfPolicyId ? `<button onclick="openRelatedPolicy(${JSON.stringify(p.replacementOfPolicyId)})" class="block text-[10px] text-blue-300 hover:text-blue-100 mt-1 text-left" title="Apri la polizza sostituita"><i class="fa-solid fa-arrow-turn-up mr-1"></i>Sostituisce: ${escapeHtml((policies.find(x=>String(x.id)===String(p.replacementOfPolicyId))||{}).policyNumber || 'polizza precedente')}</button>` : ''}${p.replacedByPolicyId ? `<button onclick="openRelatedPolicy(${JSON.stringify(p.replacedByPolicyId)})" class="block text-[10px] text-amber-300 hover:text-amber-100 mt-1 text-left" title="Apri la polizza sostitutiva"><i class="fa-solid fa-arrow-right-arrow-left mr-1"></i>Sostituita da: ${escapeHtml((policies.find(x=>String(x.id)===String(p.replacedByPolicyId))||{}).policyNumber || 'nuova polizza')}</button>` : ''}<div class="text-[10px] uppercase border border-slate-700 rounded px-1 w-fit mt-1">${branchIconMarkup(p.ramo, true)}</div></td><td class="px-6 py-4 font-mono text-xs text-slate-300">${new Date(p.expiry).toLocaleDateString('it-IT')}</td><td class="px-6 py-4 text-right font-mono text-white">€ ${p.annualPremium.toFixed(2)}</td><td class="px-6 py-4 text-center space-x-1">
                     ${btnRenew}
                     <button onclick="openClaimModal(${p.id}, null)" class="text-xs border border-slate-700 text-warning hover:bg-slate-800 px-2 py-1 rounded" title="Apri sinistro"><i class="fa-solid fa-triangle-exclamation"></i></button>
-                    <button onclick="openPolicyConsultation(${JSON.stringify(String(p.id))})" class="text-xs border border-sky-700 text-sky-300 hover:bg-slate-800 px-2 py-1 rounded" title="Consulta polizza"><i class="fa-solid fa-eye"></i></button>
                     <button onclick="openPolicyTitles(${p.id})" class="text-xs border border-slate-700 text-info hover:bg-slate-800 px-2 py-1 rounded" title="Rate e Provvigioni"><i class="fa-solid fa-list-ol"></i></button>
                     <button onclick="openPolicyModal(null, ${p.id})" class="text-xs border border-slate-700 text-slate-300 hover:bg-slate-800 px-2 py-1 rounded" title="Modifica Polizza"><i class="fa-solid fa-pen"></i></button>
                     <button onclick="suspendPolicy(${p.id})" class="text-xs border border-slate-700 text-purple-400 hover:bg-slate-800 px-2 py-1 rounded" title="Sospendi"><i class="fa-solid fa-pause"></i></button>
@@ -7417,12 +7416,12 @@ function renderScannerResults(issues, container) {
 <div id="crmClientProfile" class="fixed inset-0 z-[80] hidden overflow-y-auto bg-slate-950/90 backdrop-blur-sm p-3 md:p-8" role="dialog" aria-modal="true" aria-labelledby="crmProfileName">
   <div class="max-w-6xl mx-auto rounded-2xl border border-slate-700 bg-[#0b1220] shadow-2xl overflow-hidden">
     <div class="p-5 md:p-7 border-b border-slate-800 bg-gradient-to-r from-slate-900 to-slate-950">
-      <div class="nexa-profile-header flex flex-row items-start justify-between gap-3">
-        <div class="nexa-profile-identity flex flex-row items-center gap-3 min-w-0">
+      <div class="nexa-profile-header flex flex-col items-stretch gap-4">
+        <div class="nexa-profile-identity flex flex-row items-center gap-3 min-w-0 w-full">
           <div id="crmProfileAvatar" class="nexa-profile-avatar w-14 h-14 rounded-2xl bg-accent text-slate-950 flex items-center justify-center text-xl font-black shrink-0" aria-label="Tipo anagrafica"><i class="fa-solid fa-mars"></i></div>
-          <div class="flex-1 min-w-0"><div class="text-xs uppercase tracking-[.2em] text-accent font-bold mb-1">Scheda cliente</div><h2 id="crmProfileName" class="nexa-profile-name text-xl md:text-3xl font-bold text-white whitespace-normal break-words [overflow-wrap:anywhere]" style="display:block;overflow:visible;text-overflow:clip;white-space:normal;max-width:100%">Cliente</h2><p id="crmProfileMeta" class="text-sm text-slate-400 mt-1"></p></div>
+          <div class="flex-1 min-w-0"><div class="text-xs uppercase tracking-[.2em] text-accent font-bold mb-1">Scheda cliente</div><h2 id="crmProfileName" class="nexa-profile-name text-xl md:text-3xl font-bold text-white whitespace-normal break-normal" style="display:block;overflow:visible;text-overflow:clip;white-space:normal;word-break:normal;overflow-wrap:normal;hyphens:none;max-width:100%">Cliente</h2><p id="crmProfileMeta" class="text-sm text-slate-400 mt-1"></p></div>
         </div>
-        <div class="nexa-profile-actions flex flex-wrap gap-2 shrink-0">
+        <div class="nexa-profile-actions flex flex-wrap items-center gap-2 w-full">
           <button id="crmProfileNewQuote" class="px-3 py-2 rounded-lg bg-accent text-slate-950 text-sm font-bold hover:brightness-110"><i class="fa-solid fa-file-invoice mr-2"></i>Nuovo preventivo</button>
           <button id="crmProfileNewPolicy" class="px-3 py-2 rounded-lg border border-slate-600 text-white text-sm hover:bg-slate-800"><i class="fa-solid fa-file-circle-plus mr-2"></i>Nuova polizza</button>
           <button type="button" data-nexa-export-dossier="${esc(cid)}" class="px-3 py-2 rounded-lg border border-emerald-700 text-emerald-300 text-sm hover:bg-emerald-950/40"><i class="fa-solid fa-file-pdf mr-2"></i>Esporta dossier</button>
@@ -7654,14 +7653,34 @@ function renderScannerResults(issues, container) {
     profileAvatar.title = profileIcon[1]; profileAvatar.setAttribute('aria-label', profileIcon[1]);
     byId('crmProfileMeta').textContent = [client.cf, client.isDeceased?'Deceduto':(client.isCeased?'Attività cessata':'Cliente')].filter(Boolean).join(' · ');
     const linkedTasks = (typeof window.getCRMTasksForClient === 'function') ? window.getCRMTasksForClient(cid) : [];
+    const activePolicyCount = ps.filter(p => {
+      let st = String(p.status || 'ATTIVA').toUpperCase();
+      if (p.suspensionStart && p.suspensionEnd && st === 'ATTIVA') {
+        const today = new Date(); today.setHours(0,0,0,0);
+        const todayISO = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+        if (todayISO < String(p.suspensionStart).slice(0,10)) st = 'RICHIESTA SOSPENSIONE';
+        else if (todayISO <= String(p.suspensionEnd).slice(0,10)) st = 'SOSPESA';
+      }
+      return st === 'ATTIVA';
+    }).length;
     byId('crmProfileStats').innerHTML = [
-      ['Polizze',ps.length,'fa-file-shield'],['Preventivi',qs.length,'fa-file-invoice-dollar'],['Sinistri aperti',cs.filter(c=>!c.closed).length,'fa-car-burst'],['Richiami / eventi',as.length + linkedTasks.length,'fa-calendar-check']
+      ['Polizze',activePolicyCount,'fa-file-shield'],['Preventivi',qs.length,'fa-file-invoice-dollar'],['Sinistri aperti',cs.filter(c=>!c.closed).length,'fa-car-burst'],['Richiami / eventi',as.length + linkedTasks.length,'fa-calendar-check']
     ].map(([label,count,ico])=>`<div class="rounded-xl border border-slate-800 bg-slate-900/60 p-4"><div class="flex items-center justify-between text-slate-400 text-xs uppercase tracking-wider"><span>${label}</span><i class="fa-solid ${ico} text-accent"></i></div><div class="text-2xl font-bold text-white mt-2">${count}</div></div>`).join('');
+    const profileRelations = (typeof getClientRelations === 'function'
+      ? getClientRelations(client)
+      : (Array.isArray(client.relations) ? client.relations : (client.relation && client.relation.id ? [client.relation] : [])));
+    const relationRowsHtml = profileRelations.length
+      ? profileRelations.map(rel => {
+          const linked = (Array.isArray(clients) ? clients : []).find(x => String(x.id) === String(rel.id));
+          const relationName = rel.name || linked?.name || 'Cliente collegato';
+          return `<div class="flex flex-col gap-0.5 rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2"><span class="text-slate-200 font-medium break-words">${esc(relationName)}</span><span class="text-[11px] text-slate-400">${esc(rel.type || 'Collegamento')}</span></div>`;
+        }).join('')
+      : '<span class="text-slate-500">Nessuna relazione registrata</span>';
     const contactRows = [
       ['Telefono',client.phone ? `<a class="text-accent hover:underline" href="tel:${esc(client.phone)}">${esc(client.phone)}</a>` : '<span class="text-slate-500">Non indicato</span>'],
       ['Email',client.email ? `<a class="text-accent hover:underline break-all" href="mailto:${esc(client.email)}">${esc(client.email)}</a>` : '<span class="text-slate-500">Non indicata</span>'],
       ['Data di nascita',esc(client.birthDate||'Non indicata')],['Indirizzo',esc(client.address||'Non indicato')],
-      ['Relazione',esc(client.relation ? `${client.relation.type||'Collegamento'}: ${client.relation.name||''}` : 'Nessuna relazione registrata')]
+      ['Relazioni',`<div class="space-y-2">${relationRowsHtml}</div>`]
     ];
     byId('crmProfileContacts').innerHTML = contactRows.map(([label,value])=>`<div><div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">${label}</div><div class="text-slate-200 break-words">${value}</div></div>`).join('');
     const profilePolicyFilter = byId('crmProfilePolicyStatusFilter');
