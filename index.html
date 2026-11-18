@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#b9f06a">
 
     <meta name="application-name" content="NEXA CRM Assicurativo">
-    <title>NEXA CRM Professionale | Consultazione polizze dalla scheda cliente</title>
+    <title>NEXA CRM Professionale v57 | Consultazione polizze dalla scheda cliente</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -1826,7 +1826,10 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm px-4">
             <div class="bg-surface border border-slate-700 rounded-2xl shadow-2xl p-6 relative border-t-4 border-t-success modal-animate">
-                <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-coins text-success mr-2"></i>Registra Incasso</h3>
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-coins text-success mr-2"></i>Registra Incasso</h3>
+                    <button type="button" onclick="closePaymentModal()" class="text-slate-400 hover:text-white transition-colors p-1" title="Chiudi senza registrare l'incasso" aria-label="Chiudi senza registrare l'incasso"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
                 <input type="hidden" id="payPolicyId"><input type="hidden" id="payTitleId">
                 <div class="space-y-4">
                     <div>
@@ -1837,7 +1840,10 @@ html:not(.theme-light) .fixed.inset-0 input[type="date"], html:not(.theme-light)
                         <label class="block text-xs text-slate-500 font-bold mb-1">Metodo</label>
                         <select id="payMethod" class="w-full bg-deep border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-shadow"><option value="CONTANTI">CONTANTI</option><option value="POS">POS</option><option value="BONIFICO">BONIFICO</option><option value="ASSEGNO">ASSEGNO</option><option value="ONLINE">PAGAMENTO ONLINE</option><option value="SDD">SDD</option></select>
                     </div>
-                    <button onclick="confirmPayment()" class="w-full py-2 bg-success text-white rounded-lg font-bold hover:bg-green-600 active:scale-95 transition-all duration-200 mt-4">Conferma</button>
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <button type="button" onclick="closePaymentModal()" class="w-full py-2 bg-slate-700 text-white rounded-lg font-bold hover:bg-slate-600 active:scale-95 transition-all duration-200">Annulla</button>
+                        <button type="button" onclick="confirmPayment()" class="w-full py-2 bg-success text-white rounded-lg font-bold hover:bg-green-600 active:scale-95 transition-all duration-200">Conferma incasso</button>
+                    </div>
                 </div>
             </div>
         </div>
